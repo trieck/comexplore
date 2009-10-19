@@ -14,6 +14,9 @@
 
 #include "common.h"
 
+// cms070922: new for wtl8.0 to get atldlgs.h to compile.
+#define _WTL_FORWARD_DECLARE_CSTRING
+
 #include <atlbase.h>
 #include <atlapp.h>
 #include <atlstr.h>
