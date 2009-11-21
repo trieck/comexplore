@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////////////////
 //
-//	COOBJECT.H : dynamically allocated object wrapper 
+//	COOBJECT.H : dynamically allocated object wrapper
 //
 //	Copyright(c) 2003 KnowX.com, All Rights Reserved
 //
@@ -12,16 +12,14 @@
 
 /////////////////////////////////////////////////////////////////////////////
 template <typename T, typename Alloc = coallocator<T> >
-class coobject 
-{
+class coobject {
 public:
 	typedef T value_type;
 	typedef typename Alloc::pointer pointer;
 	typedef typename Alloc::reference reference;
 
 	coobject(const T& obj = T(), const Alloc &a = coallocator<T>())
-		: alloc(a), ptr(0)
-	{
+			: alloc(a), ptr(0) {
 		T *p = alloc.allocate(sizeof(T));
 		try {
 			alloc.construct(p, obj);
@@ -32,9 +30,8 @@ public:
 		ptr = p;
 	}
 
-	coobject(coobject<typename T, typename Alloc> &rhs) 
-		: ptr(rhs.release())
-	{
+	coobject(coobject<typename T, typename Alloc> &rhs)
+			: ptr(rhs.release()) {
 	}
 
 	coobject<typename T, typename Alloc>& operator = (const coobject &rhs) {
@@ -42,13 +39,16 @@ public:
 		return *this;
 	}
 
-	~coobject()
-	{
+	~coobject() {
 		destroy();
 	}
 
-	typename Alloc::reference operator *() { return *ptr; }
-	value_type operator*() const { return *ptr; }
+	typename Alloc::reference operator *() {
+		return *ptr;
+	}
+	value_type operator*() const {
+		return *ptr;
+	}
 
 private:
 	typename Alloc::pointer release() {
@@ -58,7 +58,7 @@ private:
 	}
 
 	void reset(typename Alloc::pointer p = 0) {
-		if (p != ptr) 
+		if (p != ptr)
 			destroy();
 		ptr = p;	// take ownership
 	}

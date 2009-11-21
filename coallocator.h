@@ -15,8 +15,7 @@
 
 /////////////////////////////////////////////////////////////////////////////
 template <typename T>
-class coallocator
-{
+class coallocator {
 public:
 	typedef std::size_t size_type;
 	typedef std::ptrdiff_t difference_type;
@@ -36,9 +35,13 @@ public:
 	template <class U>
 	coallocator(const coallocator<U> &) throw() {}
 	~coallocator() throw() {}
-	
-	pointer address(reference x) const { return &x; }
-	const_pointer address(const_reference x) const { return &x; }
+
+	pointer address(reference x) const {
+		return &x;
+	}
+	const_pointer address(const_reference x) const {
+		return &x;
+	}
 
 	pointer allocate(size_type n, void * hint = 0) {
 		pointer pv = static_cast<pointer>(comalloc(n * sizeof(T)));
@@ -52,7 +55,7 @@ public:
 	}
 
 	size_type max_size() const throw() {
-		return std::numeric_limits<size_type>::max() / sizeof(T);		
+		return std::numeric_limits<size_type>::max() / sizeof(T);
 	}
 
 	void construct(pointer p, const T& val) {
@@ -67,13 +70,15 @@ public:
 
 /////////////////////////////////////////////////////////////////////////////
 template <typename T>
-bool operator == (const coallocator<T> &, const coallocator<T> &) {
+bool operator == (const coallocator<T> &, const coallocator<T> &)
+{
 	return true;
 }
 
 /////////////////////////////////////////////////////////////////////////////
 template <typename T>
-bool operator != (const coallocator<T> &, const coallocator<T> &) {
+bool operator != (const coallocator<T> &, const coallocator<T> &)
+{
 	return false;
 }
 

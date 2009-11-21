@@ -23,7 +23,7 @@ int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 
 	CMainFrame wndMain;
 
-	if(!wndMain.DefCreate()) {
+	if (!wndMain.DefCreate()) {
 		ATLTRACE(_T("Main window creation failed!\n"));
 		return 0;
 	}

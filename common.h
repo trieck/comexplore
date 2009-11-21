@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////////
-// 
+//
 // COMMON.H : common include file
 //
 
@@ -28,7 +28,8 @@
 /////////////////////////////////////////////////////////////////////////////
 // Iterator interface
 template <typename T>
-DECLARE_INTERFACE(IIterator) {
+DECLARE_INTERFACE(IIterator)
+{
 public:
 	virtual T GetNext() PURE;
 	virtual bool HasNext() const PURE;
@@ -49,17 +50,17 @@ public:
 
 /////////////////////////////////////////////////////////////////////////////
 // COM allocated string construction
-typedef std::basic_string<TCHAR, std::char_traits<TCHAR>, 
-	coallocator<TCHAR> > costring;
+typedef std::basic_string<TCHAR, std::char_traits<TCHAR>,
+coallocator<TCHAR> > costring;
 
 typedef coobject<costring, coallocator<costring> > costringptr;
 
 /////////////////////////////////////////////////////////////////////////////
 // case insensitive costring comparison
 struct stringless : std::binary_function <costring, costring, bool> {
-    bool operator () (const costring & x, const costring & y) const {
-        return (stricmp(x.c_str(), y.c_str()) > 0);
-    }
+	bool operator () (const costring & x, const costring & y) const {
+		return (stricmp(x.c_str(), y.c_str()) > 0);
+	}
 };
 
 /////////////////////////////////////////////////////////////////////////////
@@ -70,8 +71,8 @@ typedef coobject<costringvec, coallocator<costringvec> > costringvecptr;
 /////////////////////////////////////////////////////////////////////////////
 // COM allocated map construction
 typedef std::pair<costring, costring> costringpair;
-typedef std::map<costring, costring, stringless, 
-	coallocator <costringpair> > costringmap;
+typedef std::map<costring, costring, stringless,
+coallocator <costringpair> > costringmap;
 typedef coobject<costringmap, coallocator<costringmap> > costringmapptr;
 
 /////////////////////////////////////////////////////////////////////////////
@@ -82,18 +83,28 @@ typedef coobject<costringlist, coallocator<costringlist> > costringlistptr;
 /////////////////////////////////////////////////////////////////////////////
 class StringVecIterator : public IIterator<costring> {
 public:
-	StringVecIterator(const costringvec &vec) : v(vec) { Reset(); }
-	StringVecIterator(const StringVecIterator &rhs) { *this = rhs; }
+	StringVecIterator(const costringvec &vec) : v(vec) {
+		Reset();
+	}
+	StringVecIterator(const StringVecIterator &rhs) {
+		*this = rhs;
+	}
 	StringVecIterator &operator = (const StringVecIterator &rhs) {
-		if (this != &rhs) {			
+		if (this != &rhs) {
 			v = rhs.v;
 			Reset();
 		}
 		return *this;
 	}
-	costring GetNext() { return *it++; }
-	bool HasNext() const { return it != v.end(); }
-	void Reset() { it = v.begin(); }
+	costring GetNext() {
+		return *it++;
+	}
+	bool HasNext() const {
+		return it != v.end();
+	}
+	void Reset() {
+		it = v.begin();
+	}
 private:
 	costringvec v;
 	costringvec::const_iterator it;
@@ -102,18 +113,28 @@ private:
 /////////////////////////////////////////////////////////////////////////////
 class StringListIterator : public IIterator<costring> {
 public:
-	StringListIterator(const costringlist &list) : l(list) { Reset(); }
-	StringListIterator(const StringListIterator &rhs) { *this = rhs; }
+	StringListIterator(const costringlist &list) : l(list) {
+		Reset();
+	}
+	StringListIterator(const StringListIterator &rhs) {
+		*this = rhs;
+	}
 	StringListIterator &operator = (const StringListIterator &rhs) {
-		if (this != &rhs) {			
+		if (this != &rhs) {
 			l = rhs.l;
 			Reset();
 		}
 		return *this;
 	}
-	costring GetNext() { return *it++; }
-	bool HasNext() const { return it != l.end(); }
-	void Reset() { it = l.begin(); }
+	costring GetNext() {
+		return *it++;
+	}
+	bool HasNext() const {
+		return it != l.end();
+	}
+	void Reset() {
+		it = l.begin();
+	}
 private:
 	costringlist l;
 	costringlist::const_iterator it;
@@ -122,18 +143,28 @@ private:
 /////////////////////////////////////////////////////////////////////////////
 class StringMapIterator : public IIterator<costringpair> {
 public:
-	StringMapIterator(const costringmap &map) : m(map) { Reset(); }
-	StringMapIterator(const StringMapIterator &rhs)  { *this = rhs; }
+	StringMapIterator(const costringmap &map) : m(map) {
+		Reset();
+	}
+	StringMapIterator(const StringMapIterator &rhs)  {
+		*this = rhs;
+	}
 	StringMapIterator &operator = (const StringMapIterator &rhs) {
-		if (this != &rhs) {			
+		if (this != &rhs) {
 			m = rhs.m;
 			Reset();
 		}
 		return *this;
 	}
-	costringpair GetNext() { return *it++; }
-	bool HasNext() const { return it != m.end(); }
-	void Reset() { it = m.begin(); }
+	costringpair GetNext() {
+		return *it++;
+	}
+	bool HasNext() const {
+		return it != m.end();
+	}
+	void Reset() {
+		it = m.begin();
+	}
 private:
 	costringmap m;
 	costringmap::const_iterator it;
@@ -142,7 +173,7 @@ private:
 /////////////////////////////////////////////////////////////////////////////
 class cofiletime {
 private:
-	cofiletime(){}
+	cofiletime() {}
 public:
 	typedef coobject<FILETIME> filetime;
 	typedef coobject<SYSTEMTIME> systemtime;
@@ -163,10 +194,10 @@ public:
 
 	static costring fmttime(const costring &fmt) {
 		systemtime s = getsystime();
-		
+
 		struct tm atm;
 		atm.tm_sec = (*s).wSecond;
-        atm.tm_min = (*s).wMinute;
+		atm.tm_min = (*s).wMinute;
 		atm.tm_hour = (*s).wHour;
 		atm.tm_mday = (*s).wDay;
 		atm.tm_mon = (*s).wMonth - 1;

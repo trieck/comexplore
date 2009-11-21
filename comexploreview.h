@@ -16,48 +16,44 @@
 
 #define CLSID_NODE _T("Class IDs")
 
-class CComexploreView : public CWindowImpl<CComexploreView, CTreeViewCtrlEx>
-{
+class CComexploreView : public CWindowImpl<CComexploreView, CTreeViewCtrlEx> {
 public:
 	DECLARE_WND_SUPERCLASS(NULL, CTreeViewCtrl::GetWndClassName())
 
-	BOOL PreTranslateMessage(MSG* pMsg)
-	{
+	BOOL PreTranslateMessage(MSG* pMsg) {
 		return FALSE;
 	}
 
 	BEGIN_MSG_MAP_EX(CComexploreView)
-		MSG_WM_CREATE(OnCreate)	
-		MSG_OCM_NOTIFY(OnNotify)
-		DEFAULT_REFLECTION_HANDLER()
-    END_MSG_MAP()
+	MSG_WM_CREATE(OnCreate)
+	MSG_OCM_NOTIFY(OnNotify)
+	DEFAULT_REFLECTION_HANDLER()
+	END_MSG_MAP()
 
-	LRESULT OnCreate(LPCREATESTRUCT pcs)
-	{
+	LRESULT OnCreate(LPCREATESTRUCT pcs) {
 		LRESULT bResult = DefWindowProc();
 
-		// Create a masked image list large enough to hold the icons. 
-		m_ImageList = ImageList_Create(16, 16, ILC_MASK, 1, 0); 
- 
-		// Load the icon resources, and add the icons to the image list. 
-		HICON hIcon = LoadIcon(_Module.GetResourceInstance(), MAKEINTRESOURCE(IDI_NODE)); 
+		// Create a masked image list large enough to hold the icons.
+		m_ImageList = ImageList_Create(16, 16, ILC_MASK, 1, 0);
+
+		// Load the icon resources, and add the icons to the image list.
+		HICON hIcon = LoadIcon(_Module.GetResourceInstance(), MAKEINTRESOURCE(IDI_NODE));
 		m_ImageList.AddIcon(hIcon);
 
 		CTreeViewCtrl::SetImageList(m_ImageList, TVSIL_NORMAL);
-		CTreeViewCtrl::SetWindowLong(GWL_STYLE, 
-			CTreeViewCtrl::GetWindowLong(GWL_STYLE) 
-			| TVS_HASBUTTONS | TVS_HASLINES | TVS_FULLROWSELECT | TVS_INFOTIP
-			| TVS_LINESATROOT | TVS_SHOWSELALWAYS);
-		
+		CTreeViewCtrl::SetWindowLong(GWL_STYLE,
+		                             CTreeViewCtrl::GetWindowLong(GWL_STYLE)
+		                             | TVS_HASBUTTONS | TVS_HASLINES | TVS_FULLROWSELECT | TVS_INFOTIP
+		                             | TVS_LINESATROOT | TVS_SHOWSELALWAYS);
+
 		ConstructTree();
 
 		SetMsgHandled(FALSE);
 
 		return bResult;
 	}
-	
-	LRESULT OnNotify(int id, LPNMHDR pnmh)
-	{	
+
+	LRESULT OnNotify(int id, LPNMHDR pnmh) {
 		switch (pnmh->code) {
 		case TVN_ITEMEXPANDING:
 			OnExpanding(MAKE_TREEITEM(pnmh, this));
@@ -71,22 +67,19 @@ public:
 		return 0;
 	}
 
-	void OnExpanding(const CTreeItem& item)
-	{
+	void OnExpanding(const CTreeItem& item) {
 		TString *data = (TString*)item.GetData();
 		if (data && data->Compare(CLSID_NODE) == 0) {
 			ExpandClasses(item);
 		}
 	}
 
-	void OnDelete(const CTreeItem& item)
-	{
+	void OnDelete(const CTreeItem& item) {
 		TString *data = (TString*)item.GetData();
 		delete data;
 	}
 
-	void ExpandClasses(const CTreeItem& item)
-	{
+	void ExpandClasses(const CTreeItem& item) {
 		CTreeItem child = item.GetChild();
 		if (!child.IsNull())
 			return;	// already expanded
@@ -95,9 +88,8 @@ public:
 		CTreeViewCtrlEx::SortChildren(item.m_hTreeItem);
 	}
 
-	void ConstructClasses(const CTreeItem& item)
-	{
-		SetCursor(LoadCursor(NULL, IDC_WAIT)); 
+	void ConstructClasses(const CTreeItem& item) {
+		SetCursor(LoadCursor(NULL, IDC_WAIT));
 
 		HTREEITEM hItem = item.m_hTreeItem;
 
@@ -121,7 +113,7 @@ public:
 				break;
 
 			length = MAX_PATH + 1;
-			subkey.QueryStringValue(NULL, val, &length);			
+			subkey.QueryStringValue(NULL, val, &length);
 			val[length] = '\0';
 
 			TString value(val);
@@ -145,12 +137,11 @@ public:
 		}
 
 exit:
-		SetCursor(LoadCursor(NULL, IDC_ARROW)); 
+		SetCursor(LoadCursor(NULL, IDC_ARROW));
 	}
 
 private:
-	void ConstructTree() 
-	{
+	void ConstructTree() {
 		TV_INSERTSTRUCT tvis;
 		tvis.hParent = TVI_ROOT;
 		tvis.hInsertAfter = TVI_ROOT;
@@ -160,7 +151,7 @@ private:
 		tvis.itemex.iImage = 0;
 		tvis.itemex.iSelectedImage = 0;
 		tvis.itemex.lParam = (LPARAM)new TString(CLSID_NODE);
-		
+
 		CTreeViewCtrl::InsertItem(&tvis);
 	}
 
