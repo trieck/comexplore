@@ -3,7 +3,6 @@
 	ProjectType="Visual C++"
 	Version="9.00"
 	Name="comexplore"
-	ProjectGUID="{51BC9E3B-0D4F-4B75-A29D-D05DE56DD42F}"
 	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
@@ -48,7 +47,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				PreprocessorDefinitions="_CRT_SECURE_NO_WARNINGS"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;STRICT"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -75,10 +74,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="..\bin\comexplore.exe"
+				OutputFile=".\Debug/comexplore.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
-				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\Debug/comexplore.pdb"
 				SubSystem="2"
@@ -91,7 +89,6 @@
 			/>
 			<Tool
 				Name="VCManifestTool"
-				EmbedManifest="false"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -118,7 +115,7 @@
 			ConfigurationType="1"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
 			UseOfMFC="0"
-			ATLMinimizesCRunTimeLibraryUsage="false"
+			ATLMinimizesCRunTimeLibraryUsage="true"
 			CharacterSet="2"
 			>
 			<Tool
@@ -146,7 +143,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="1"
-				PreprocessorDefinitions="_CRT_SECURE_NO_WARNINGS"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;STRICT"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
@@ -172,10 +169,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="..\bin\comexplore.exe"
+				OutputFile=".\Release/comexplore.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				GenerateManifest="false"
 				ProgramDatabaseFile=".\Release/comexplore.pdb"
 				SubSystem="2"
 				RandomizedBaseAddress="1"
@@ -187,7 +183,6 @@
 			/>
 			<Tool
 				Name="VCManifestTool"
-				EmbedManifest="false"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -231,7 +226,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						PreprocessorDefinitions=""
+						PreprocessorDefinitions="_ATL_MIN_CRT"
 					/>
 				</FileConfiguration>
 			</File>
@@ -272,7 +267,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						PreprocessorDefinitions=""
+						PreprocessorDefinitions="_ATL_MIN_CRT"
 						UsePrecompiledHeader="1"
 					/>
 				</FileConfiguration>
@@ -308,6 +303,10 @@
 			Filter="ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 			>
 			<File
+				RelativePath="res\comexplore.exe.manifest"
+				>
+			</File>
+			<File
 				RelativePath="res\comexplore.ico"
 				>
 			</File>
@@ -317,6 +316,4 @@
 			</File>
 		</Filter>
 	</Files>
-	<Globals>
-	</Globals>
 </VisualStudioProject>
