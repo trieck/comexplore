@@ -12,6 +12,8 @@
 #define _WIN32_IE	0x0400
 #define _RICHEDIT_VER	0x0100
 
+#pragma warning(disable:4996)	// disable deprecation warnings
+
 #include "common.h"
 
 // cms070922: new for wtl8.0 to get atldlgs.h to compile.
