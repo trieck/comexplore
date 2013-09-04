@@ -51,7 +51,7 @@ public:
 /////////////////////////////////////////////////////////////////////////////
 // COM allocated string construction
 typedef std::basic_string<TCHAR, std::char_traits<TCHAR>,
-coallocator<TCHAR> > costring;
+        coallocator<TCHAR> > costring;
 
 typedef coobject<costring, coallocator<costring> > costringptr;
 
@@ -72,7 +72,7 @@ typedef coobject<costringvec, coallocator<costringvec> > costringvecptr;
 // COM allocated map construction
 typedef std::pair<costring, costring> costringpair;
 typedef std::map<costring, costring, stringless,
-coallocator <costringpair> > costringmap;
+        coallocator <costringpair> > costringmap;
 typedef coobject<costringmap, coallocator<costringmap> > costringmapptr;
 
 /////////////////////////////////////////////////////////////////////////////

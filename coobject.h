@@ -19,7 +19,7 @@ public:
 	typedef typename Alloc::reference reference;
 
 	coobject(const T& obj = T(), const Alloc &a = coallocator<T>())
-			: alloc(a), ptr(0) {
+		: alloc(a), ptr(0) {
 		T *p = alloc.allocate(sizeof(T));
 		try {
 			alloc.construct(p, obj);
@@ -31,7 +31,7 @@ public:
 	}
 
 	coobject(coobject<typename T, typename Alloc> &rhs)
-			: ptr(rhs.release()) {
+		: ptr(rhs.release()) {
 	}
 
 	coobject<typename T, typename Alloc>& operator = (const coobject &rhs) {

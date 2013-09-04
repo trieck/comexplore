@@ -10,7 +10,7 @@
 #endif // _MSC_VER >= 1000
 
 class CMainFrame : public CFrameWindowImpl<CMainFrame>, public CUpdateUI<CMainFrame>,
-			public CMessageFilter, public CIdleHandler {
+	public CMessageFilter, public CIdleHandler {
 public:
 	DECLARE_FRAME_WND_CLASS(NULL, IDR_MAINFRAME)
 
