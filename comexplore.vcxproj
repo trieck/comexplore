@@ -16,13 +16,13 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
-    <PlatformToolset>v110</PlatformToolset>
+    <PlatformToolset>v120</PlatformToolset>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
-    <PlatformToolset>v110</PlatformToolset>
+    <PlatformToolset>v120</PlatformToolset>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
@@ -139,6 +139,7 @@
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="comalloc.cpp" />
     <ClCompile Include="comexplore.cpp">
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">_ATL_MIN_CRT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
@@ -153,7 +154,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="aboutdlg.h" />
+    <ClInclude Include="coallocator.h" />
+    <ClInclude Include="comalloc.h" />
+    <ClInclude Include="comexplore.h" />
     <ClInclude Include="comexploreview.h" />
+    <ClInclude Include="common.h" />
+    <ClInclude Include="coobject.h" />
     <ClInclude Include="mainfrm.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />

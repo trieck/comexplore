@@ -18,38 +18,38 @@ CAppModule _Module;
 
 int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 {
-	CMessageLoop theLoop;
-	_Module.AddMessageLoop(&theLoop);
+    CMessageLoop theLoop;
+    _Module.AddMessageLoop(&theLoop);
 
-	CMainFrame wndMain;
+    CMainFrame wndMain;
 
-	if (!wndMain.DefCreate()) {
-		ATLTRACE(_T("Main window creation failed!\n"));
-		return 0;
-	}
+    if (!wndMain.DefCreate()) {
+        ATLTRACE(_T("Main window creation failed!\n"));
+        return 0;
+    }
 
-	wndMain.ShowWindow(nCmdShow);
+    wndMain.ShowWindow(nCmdShow);
 
-	int nRet = theLoop.Run();
+    int nRet = theLoop.Run();
 
-	_Module.RemoveMessageLoop();
-	return nRet;
+    _Module.RemoveMessageLoop();
+    return nRet;
 }
 
 int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lpstrCmdLine, int nCmdShow)
 {
-	HRESULT hRes = ::CoInitialize(NULL);
-	ATLASSERT(SUCCEEDED(hRes));
+    HRESULT hRes = ::CoInitialize(NULL);
+    ATLASSERT(SUCCEEDED(hRes));
 
-	AtlInitCommonControls(ICC_COOL_CLASSES | ICC_BAR_CLASSES);	// add flags to support other controls
+    AtlInitCommonControls(ICC_COOL_CLASSES | ICC_BAR_CLASSES);	// add flags to support other controls
 
-	hRes = _Module.Init(NULL, hInstance);
-	ATLASSERT(SUCCEEDED(hRes));
+    hRes = _Module.Init(NULL, hInstance);
+    ATLASSERT(SUCCEEDED(hRes));
 
-	int nRet = Run(lpstrCmdLine, nCmdShow);
+    int nRet = Run(lpstrCmdLine, nCmdShow);
 
-	_Module.Term();
-	::CoUninitialize();
+    _Module.Term();
+    ::CoUninitialize();
 
-	return nRet;
+    return nRet;
 }
