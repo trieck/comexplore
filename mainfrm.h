@@ -10,7 +10,8 @@
 #endif // _MSC_VER >= 1000
 
 class CMainFrame : public CFrameWindowImpl<CMainFrame>, public CUpdateUI<CMainFrame>,
-    public CMessageFilter, public CIdleHandler {
+    public CMessageFilter, public CIdleHandler
+{
 public:
     DECLARE_FRAME_WND_CLASS(NULL, IDR_MAINFRAME)
 
@@ -21,19 +22,22 @@ public:
     enum { CX_WIDTH = 600 };
     enum { CY_HEIGHT = 600 };
 
-    virtual BOOL PreTranslateMessage(MSG* pMsg) {
+    virtual BOOL PreTranslateMessage(MSG* pMsg)
+    {
         if (CFrameWindowImpl<CMainFrame>::PreTranslateMessage(pMsg))
             return TRUE;
 
         return m_view.PreTranslateMessage(pMsg);
     }
 
-    virtual BOOL OnIdle() {
+    virtual BOOL OnIdle()
+    {
         UIUpdateToolBar();
         return FALSE;
     }
 
-    BOOL DefCreate() {
+    BOOL DefCreate()
+    {
         RECT rect = { 0, 0, CX_WIDTH, CY_HEIGHT };
         return CreateEx(NULL, rect) != NULL;
     }
@@ -60,7 +64,8 @@ public:
 //	LRESULT CommandHandler(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 //	LRESULT NotifyHandler(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
 
-    LRESULT OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled) {
+    LRESULT OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+    {
         // create command bar window
         HWND hWndCmdBar = m_CmdBar.Create(m_hWnd, rcDefault, NULL, ATL_SIMPLE_CMDBAR_PANE_STYLE);
         // attach menu
@@ -95,18 +100,21 @@ public:
         return 1;
     }
 
-    LRESULT OnFileExit(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
+    LRESULT OnFileExit(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+    {
         PostMessage(WM_CLOSE);
         return 0;
     }
 
-    LRESULT OnFileNew(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
+    LRESULT OnFileNew(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+    {
         // TODO: add code to initialize document
 
         return 0;
     }
 
-    LRESULT OnViewToolBar(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
+    LRESULT OnViewToolBar(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+    {
         static BOOL bVisible = TRUE;	// initially visible
         bVisible = !bVisible;
         CReBarCtrl rebar = m_hWndToolBar;
@@ -117,7 +125,8 @@ public:
         return 0;
     }
 
-    LRESULT OnViewStatusBar(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
+    LRESULT OnViewStatusBar(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+    {
         BOOL bVisible = !::IsWindowVisible(m_hWndStatusBar);
         ::ShowWindow(m_hWndStatusBar, bVisible ? SW_SHOWNOACTIVATE : SW_HIDE);
         UISetCheck(ID_VIEW_STATUS_BAR, bVisible);
@@ -125,7 +134,8 @@ public:
         return 0;
     }
 
-    LRESULT OnAppAbout(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
+    LRESULT OnAppAbout(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+    {
         CAboutDlg dlg;
         dlg.DoModal();
         return 0;

@@ -38,12 +38,15 @@ public:
 
 /////////////////////////////////////////////////////////////////////////////
 // COM initializer
-class coinit {
+class coinit
+{
 public:
-    coinit () {
+    coinit ()
+    {
         CoInitialize(NULL);
     }
-    ~coinit () {
+    ~coinit ()
+    {
         CoUninitialize();
     }
 };
@@ -58,7 +61,8 @@ typedef coobject<costring, coallocator<costring> > costringptr;
 /////////////////////////////////////////////////////////////////////////////
 // case insensitive costring comparison
 struct stringless : std::binary_function <costring, costring, bool> {
-    bool operator () (const costring & x, const costring & y) const {
+    bool operator () (const costring & x, const costring & y) const
+    {
         return (stricmp(x.c_str(), y.c_str()) > 0);
     }
 };
@@ -81,28 +85,35 @@ typedef std::list<costring, coallocator<costring> > costringlist;
 typedef coobject<costringlist, coallocator<costringlist> > costringlistptr;
 
 /////////////////////////////////////////////////////////////////////////////
-class StringVecIterator : public IIterator<costring> {
+class StringVecIterator : public IIterator<costring>
+{
 public:
-    StringVecIterator(const costringvec &vec) : v(vec) {
+    StringVecIterator(const costringvec &vec) : v(vec)
+    {
         Reset();
     }
-    StringVecIterator(const StringVecIterator &rhs) {
+    StringVecIterator(const StringVecIterator &rhs)
+    {
         *this = rhs;
     }
-    StringVecIterator &operator = (const StringVecIterator &rhs) {
+    StringVecIterator &operator = (const StringVecIterator &rhs)
+    {
         if (this != &rhs) {
             v = rhs.v;
             Reset();
         }
         return *this;
     }
-    costring GetNext() {
+    costring GetNext()
+    {
         return *it++;
     }
-    bool HasNext() const {
+    bool HasNext() const
+    {
         return it != v.end();
     }
-    void Reset() {
+    void Reset()
+    {
         it = v.begin();
     }
 private:
@@ -111,28 +122,35 @@ private:
 };
 
 /////////////////////////////////////////////////////////////////////////////
-class StringListIterator : public IIterator<costring> {
+class StringListIterator : public IIterator<costring>
+{
 public:
-    StringListIterator(const costringlist &list) : l(list) {
+    StringListIterator(const costringlist &list) : l(list)
+    {
         Reset();
     }
-    StringListIterator(const StringListIterator &rhs) {
+    StringListIterator(const StringListIterator &rhs)
+    {
         *this = rhs;
     }
-    StringListIterator &operator = (const StringListIterator &rhs) {
+    StringListIterator &operator = (const StringListIterator &rhs)
+    {
         if (this != &rhs) {
             l = rhs.l;
             Reset();
         }
         return *this;
     }
-    costring GetNext() {
+    costring GetNext()
+    {
         return *it++;
     }
-    bool HasNext() const {
+    bool HasNext() const
+    {
         return it != l.end();
     }
-    void Reset() {
+    void Reset()
+    {
         it = l.begin();
     }
 private:
@@ -141,28 +159,35 @@ private:
 };
 
 /////////////////////////////////////////////////////////////////////////////
-class StringMapIterator : public IIterator<costringpair> {
+class StringMapIterator : public IIterator<costringpair>
+{
 public:
-    StringMapIterator(const costringmap &map) : m(map) {
+    StringMapIterator(const costringmap &map) : m(map)
+    {
         Reset();
     }
-    StringMapIterator(const StringMapIterator &rhs)  {
+    StringMapIterator(const StringMapIterator &rhs)
+    {
         *this = rhs;
     }
-    StringMapIterator &operator = (const StringMapIterator &rhs) {
+    StringMapIterator &operator = (const StringMapIterator &rhs)
+    {
         if (this != &rhs) {
             m = rhs.m;
             Reset();
         }
         return *this;
     }
-    costringpair GetNext() {
+    costringpair GetNext()
+    {
         return *it++;
     }
-    bool HasNext() const {
+    bool HasNext() const
+    {
         return it != m.end();
     }
-    void Reset() {
+    void Reset()
+    {
         it = m.begin();
     }
 private:
@@ -171,28 +196,32 @@ private:
 };
 
 /////////////////////////////////////////////////////////////////////////////
-class cofiletime {
+class cofiletime
+{
 private:
     cofiletime() {}
 public:
     typedef coobject<FILETIME> filetime;
     typedef coobject<SYSTEMTIME> systemtime;
 
-    static filetime get() {
+    static filetime get()
+    {
         FILETIME ft;
         HRESULT hr = CoFileTimeNow(&ft);
         _com_util::CheckError(hr);
         return ft;
     }
 
-    static systemtime getsystime() {
+    static systemtime getsystime()
+    {
         filetime f = get();
         SYSTEMTIME st;
         FileTimeToSystemTime(&*f, &st);
         return st;
     }
 
-    static costring fmttime(const costring &fmt) {
+    static costring fmttime(const costring &fmt)
+    {
         systemtime s = getsystime();
 
         struct tm atm;

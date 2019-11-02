@@ -16,11 +16,13 @@
 
 #define CLSID_NODE _T("Class IDs")
 
-class CComexploreView : public CWindowImpl<CComexploreView, CTreeViewCtrlEx> {
+class CComexploreView : public CWindowImpl<CComexploreView, CTreeViewCtrlEx>
+{
 public:
     DECLARE_WND_SUPERCLASS(NULL, CTreeViewCtrl::GetWndClassName())
 
-    BOOL PreTranslateMessage(MSG* pMsg) {
+    BOOL PreTranslateMessage(MSG* pMsg)
+    {
         return FALSE;
     }
 
@@ -30,7 +32,8 @@ public:
     DEFAULT_REFLECTION_HANDLER()
     END_MSG_MAP()
 
-    LRESULT OnCreate(LPCREATESTRUCT pcs) {
+    LRESULT OnCreate(LPCREATESTRUCT pcs)
+    {
         LRESULT bResult = DefWindowProc();
 
         // Create a masked image list large enough to hold the icons.
@@ -53,7 +56,8 @@ public:
         return bResult;
     }
 
-    LRESULT OnNotify(int id, LPNMHDR pnmh) {
+    LRESULT OnNotify(int id, LPNMHDR pnmh)
+    {
         switch (pnmh->code) {
         case TVN_ITEMEXPANDING:
             OnExpanding(MAKE_TREEITEM(pnmh, this));
@@ -67,19 +71,22 @@ public:
         return 0;
     }
 
-    void OnExpanding(const CTreeItem& item) {
+    void OnExpanding(const CTreeItem& item)
+    {
         TString *data = (TString*)item.GetData();
         if (data && data->Compare(CLSID_NODE) == 0) {
             ExpandClasses(item);
         }
     }
 
-    void OnDelete(const CTreeItem& item) {
+    void OnDelete(const CTreeItem& item)
+    {
         TString *data = (TString*)item.GetData();
         delete data;
     }
 
-    void ExpandClasses(const CTreeItem& item) {
+    void ExpandClasses(const CTreeItem& item)
+    {
         CTreeItem child = item.GetChild();
         if (!child.IsNull())
             return;	// already expanded
@@ -88,7 +95,8 @@ public:
         CTreeViewCtrlEx::SortChildren(item.m_hTreeItem);
     }
 
-    void ConstructClasses(const CTreeItem& item) {
+    void ConstructClasses(const CTreeItem& item)
+    {
         SetCursor(LoadCursor(NULL, IDC_WAIT));
 
         HTREEITEM hItem = item.m_hTreeItem;
@@ -141,7 +149,8 @@ exit:
     }
 
 private:
-    void ConstructTree() {
+    void ConstructTree()
+    {
         TV_INSERTSTRUCT tvis;
         tvis.hParent = TVI_ROOT;
         tvis.hInsertAfter = TVI_ROOT;

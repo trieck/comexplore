@@ -12,14 +12,16 @@
 
 /////////////////////////////////////////////////////////////////////////////
 template <typename T, typename Alloc = coallocator<T> >
-class coobject {
+class coobject
+{
 public:
     typedef T value_type;
     typedef typename Alloc::pointer pointer;
     typedef typename Alloc::reference reference;
 
     coobject(const T& obj = T(), const Alloc &a = coallocator<T>())
-        : alloc(a), ptr(0) {
+        : alloc(a), ptr(0)
+    {
         T *p = alloc.allocate(sizeof(T));
         try {
             alloc.construct(p, obj);
@@ -31,39 +33,47 @@ public:
     }
 
     coobject(coobject<typename T, typename Alloc> &rhs)
-        : ptr(rhs.release()) {
+        : ptr(rhs.release())
+    {
     }
 
-    coobject<typename T, typename Alloc>& operator = (const coobject &rhs) {
+    coobject<typename T, typename Alloc>& operator = (const coobject &rhs)
+    {
         reset(rhs.release());
         return *this;
     }
 
-    ~coobject() {
+    ~coobject()
+    {
         destroy();
     }
 
-    typename Alloc::reference operator *() {
+    typename Alloc::reference operator *()
+    {
         return *ptr;
     }
-    value_type operator*() const {
+    value_type operator*() const
+    {
         return *ptr;
     }
 
 private:
-    typename Alloc::pointer release() {
+    typename Alloc::pointer release()
+    {
         typename Alloc::pointer tmp = ptr;
         ptr = 0;	// give up ownership
         return tmp;
     }
 
-    void reset(typename Alloc::pointer p = 0) {
+    void reset(typename Alloc::pointer p = 0)
+    {
         if (p != ptr)
             destroy();
         ptr = p;	// take ownership
     }
 
-    void destroy() {
+    void destroy()
+    {
         if (ptr != 0) {
             alloc.destroy(ptr);
             alloc.deallocate(ptr, 1);
