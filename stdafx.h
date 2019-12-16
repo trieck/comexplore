@@ -6,12 +6,6 @@
 #if !defined(AFX_STDAFX_H__C948BDDA_086B_4731_AE11_F06D2809D133__INCLUDED_)
 #define AFX_STDAFX_H__C948BDDA_086B_4731_AE11_F06D2809D133__INCLUDED_
 
-// Change these values to use different versions
-#define WINVER		0x0400
-//#define _WIN32_WINNT	0x0400
-#define _WIN32_IE	0x0400
-#define _RICHEDIT_VER	0x0100
-
 #pragma warning(disable:4996)	// disable deprecation warnings
 
 #include "common.h"
