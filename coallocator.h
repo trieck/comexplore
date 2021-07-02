@@ -26,27 +26,40 @@ public:
     typedef const T& const_reference;
     typedef T value_type;
 
-    template <class U> struct rebind {
+    template <class U>
+    struct rebind
+    {
         typedef coallocator<U> other;
     };
 
-    coallocator() throw() {}
-    coallocator(const coallocator &) throw() {}
+    coallocator() throw()
+    {
+    }
+
+    coallocator(const coallocator&) throw()
+    {
+    }
 
     template <class U>
-    coallocator(const coallocator<U> &) throw() {}
-    ~coallocator() throw() {}
+    coallocator(const coallocator<U>&) throw()
+    {
+    }
+
+    ~coallocator() throw()
+    {
+    }
 
     pointer address(reference x) const
     {
         return &x;
     }
+
     const_pointer address(const_reference x) const
     {
         return &x;
     }
 
-    pointer allocate(size_type n, void * hint = 0)
+    pointer allocate(size_type n, void* hint = 0)
     {
         pointer pv = static_cast<pointer>(comalloc(n * sizeof(T)));
         if (pv == NULL)
@@ -66,7 +79,7 @@ public:
 
     void construct(pointer p, const T& val)
     {
-        new (static_cast<void*>(p)) T(val);
+        new(static_cast<void*>(p)) T(val);
     }
 
     void destroy(pointer p)
@@ -74,18 +87,19 @@ public:
         p->~T();
     }
 };
+
 /////////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////////
 template <typename T>
-bool operator == (const coallocator<T> &, const coallocator<T> &)
+bool operator ==(const coallocator<T>&, const coallocator<T>&)
 {
     return true;
 }
 
 /////////////////////////////////////////////////////////////////////////////
 template <typename T>
-bool operator != (const coallocator<T> &, const coallocator<T> &)
+bool operator !=(const coallocator<T>&, const coallocator<T>&)
 {
     return false;
 }

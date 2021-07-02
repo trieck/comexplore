@@ -26,10 +26,10 @@ public:
         return FALSE;
     }
 
-    BEGIN_MSG_MAP_EX(CComexploreView)
-    MSG_WM_CREATE(OnCreate)
-    MSG_OCM_NOTIFY(OnNotify)
-    DEFAULT_REFLECTION_HANDLER()
+BEGIN_MSG_MAP_EX(CComexploreView)
+        MSG_WM_CREATE(OnCreate)
+        MSG_OCM_NOTIFY(OnNotify)
+        DEFAULT_REFLECTION_HANDLER()
     END_MSG_MAP()
 
     LRESULT OnCreate(LPCREATESTRUCT pcs)
@@ -43,7 +43,7 @@ public:
         HICON hIcon = LoadIcon(_Module.GetResourceInstance(), MAKEINTRESOURCE(IDI_NODE));
         m_ImageList.AddIcon(hIcon);
 
-        CTreeViewCtrl::SetImageList(m_ImageList, TVSIL_NORMAL);
+        SetImageList(m_ImageList, TVSIL_NORMAL);
         CTreeViewCtrl::SetWindowLong(GWL_STYLE,
                                      CTreeViewCtrl::GetWindowLong(GWL_STYLE)
                                      | TVS_HASBUTTONS | TVS_HASLINES | TVS_FULLROWSELECT | TVS_INFOTIP
@@ -73,7 +73,7 @@ public:
 
     void OnExpanding(const CTreeItem& item)
     {
-        TString *data = (TString*)item.GetData();
+        auto data = reinterpret_cast<TString*>(item.GetData());
         if (data && data->Compare(CLSID_NODE) == 0) {
             ExpandClasses(item);
         }
@@ -81,7 +81,7 @@ public:
 
     void OnDelete(const CTreeItem& item)
     {
-        TString *data = (TString*)item.GetData();
+        auto data = reinterpret_cast<TString*>(item.GetData());
         delete data;
     }
 
@@ -89,22 +89,22 @@ public:
     {
         CTreeItem child = item.GetChild();
         if (!child.IsNull())
-            return;	// already expanded
+            return; // already expanded
 
         ConstructClasses(item);
-        CTreeViewCtrlEx::SortChildren(item.m_hTreeItem);
+        SortChildren(item.m_hTreeItem);
     }
 
     void ConstructClasses(const CTreeItem& item)
     {
-        SetCursor(LoadCursor(NULL, IDC_WAIT));
+        SetCursor(LoadCursor(nullptr, IDC_WAIT));
 
         HTREEITEM hItem = item.m_hTreeItem;
 
         CRegKey key, subkey;
-        LONG lResult = key.Open(HKEY_CLASSES_ROOT, "CLSID", KEY_ENUMERATE_SUB_KEYS);
+        LONG lResult = key.Open(HKEY_CLASSES_ROOT, _T("CLSID"), KEY_ENUMERATE_SUB_KEYS);
         if (lResult != ERROR_SUCCESS)
-            goto exit;	// no access
+            goto exit; // no access
 
         DWORD index = 0, length = MAX_PATH + 1;
         TCHAR buff[MAX_PATH + 1];
@@ -121,7 +121,7 @@ public:
                 break;
 
             length = MAX_PATH + 1;
-            subkey.QueryStringValue(NULL, val, &length);
+            subkey.QueryStringValue(nullptr, val, &length);
             val[length] = '\0';
 
             TString value(val);
@@ -133,7 +133,7 @@ public:
                 tvis.hInsertAfter = hItem;
                 tvis.itemex.mask = TVIF_CHILDREN | TVIF_IMAGE | TVIF_TEXT | TVIF_PARAM;
                 tvis.itemex.cChildren = 1;
-                tvis.itemex.pszText = (LPTSTR)(LPCTSTR)value;
+                tvis.itemex.pszText = (LPTSTR)static_cast<LPCTSTR>(value);
                 tvis.itemex.iImage = 0;
                 tvis.itemex.iSelectedImage = 0;
                 tvis.itemex.lParam = (LPARAM)new TString(buff);
@@ -144,8 +144,8 @@ public:
             index++;
         }
 
-exit:
-        SetCursor(LoadCursor(NULL, IDC_ARROW));
+    exit:
+        SetCursor(LoadCursor(nullptr, IDC_ARROW));
     }
 
 private:

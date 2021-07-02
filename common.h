@@ -63,7 +63,7 @@ typedef coobject<costring, coallocator<costring> > costringptr;
 struct stringless : std::binary_function <costring, costring, bool> {
     bool operator () (const costring & x, const costring & y) const
     {
-        return (stricmp(x.c_str(), y.c_str()) > 0);
+        return (_tcsicmp(x.c_str(), y.c_str()) > 0);
     }
 };
 
