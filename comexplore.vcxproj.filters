@@ -26,15 +26,10 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="comexplore.rc">
-      <Filter>Source Files</Filter>
-    </ResourceCompile>
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="aboutdlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="comexploreview.h">
+    <ClInclude Include="comtreeview.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="mainfrm.h">
@@ -52,20 +47,18 @@
     <ClInclude Include="comalloc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="comexplore.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="common.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="coobject.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <Manifest Include="res\comexplore.exe.manifest">
-      <Filter>Resource Files</Filter>
-    </Manifest>
+    <ClInclude Include="comdetailview.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="regview.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\comexplore.ico">
@@ -74,5 +67,19 @@
     <Image Include="res\toolbar.bmp">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="res\node.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\coclass.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="comexplore.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="cpp.hint" />
   </ItemGroup>
 </Project>

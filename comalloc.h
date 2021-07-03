@@ -2,17 +2,11 @@
 //
 //	COMALLOC.H : COM Allocation
 //
-//	Copyright(c) 2003 KnowX.com, All Rights Reserved
-//
 
 #pragma once
 
-#ifndef __COMALLOC_H__
-#define __COMALLOC_H__
-
 /////////////////////////////////////////////////////////////////////////////
-extern void *comalloc(size_t cb);
-extern void cofree(void *pv);
+extern void* comalloc(size_t cb);
+extern void cofree(void* pv);
 /////////////////////////////////////////////////////////////////////////////
 
-#endif // __COMALLOC_H__

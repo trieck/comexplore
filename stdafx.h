@@ -1,30 +1,37 @@
-// stdafx.h : include file for standard system include files,
-//  or project specific include files that are used frequently, but
-//      are changed infrequently
-//
-
-#if !defined(AFX_STDAFX_H__C948BDDA_086B_4731_AE11_F06D2809D133__INCLUDED_)
-#define AFX_STDAFX_H__C948BDDA_086B_4731_AE11_F06D2809D133__INCLUDED_
-
-#pragma warning(disable:4996)	// disable deprecation warnings
+#pragma once
 
 #include "common.h"
 
-// cms070922: new for wtl8.0 to get atldlgs.h to compile.
+#ifdef _ATL_MIN_CRT
+#undef _ATL_MIN_CRT
+#endif
+
 #define _WTL_FORWARD_DECLARE_CSTRING
 
 #include <atlbase.h>
 #include <atlapp.h>
 #include <atlstr.h>
-#include <atlcrack.h>		// WTL enhanced message map macros
+#include <atlcrack.h>
+#include <atlctrls.h>
+#include <atldlgs.h>
+#include <atlwin.h>
+#include <atlframe.h>
+#include <atlctrls.h>
+#include <atldlgs.h>
+#include <atlctrlw.h>
+#include <atlctrlx.h>
+#include <atlsplit.h>
 
-typedef CStringT<TCHAR, StrTraitATL<TCHAR> > TString;
+typedef CStringT<TCHAR, StrTraitATL<TCHAR>> TString;
 
 extern CAppModule _Module;
 
-#include <atlwin.h>
-
-//{{AFX_INSERT_LOCATION}}
-// Microsoft Visual C++ will insert additional declarations immediately before the previous line.
-
-#endif // !defined(AFX_STDAFX_H__C948BDDA_086B_4731_AE11_F06D2809D133__INCLUDED_)
+#if defined _M_IX86
+#pragma comment(linker, "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='x86' publicKeyToken='6595b64144ccf1df' language='*'\"")
+#elif defined _M_IA64
+#pragma comment(linker, "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='ia64' publicKeyToken='6595b64144ccf1df' language='*'\"")
+#elif defined _M_X64
+#pragma comment(linker, "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='amd64' publicKeyToken='6595b64144ccf1df' language='*'\"")
+#else
+#pragma comment(linker, "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
+#endif

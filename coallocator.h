@@ -1,8 +1,6 @@
 /////////////////////////////////////////////////////////////////////////////
 //
-//	COALLOCATOR.H : STL Custom COM Allocator
-//
-//	Copyright(c) 2003 KnowX.com, All Rights Reserved
+// COALLOCATOR.H : STL Custom COM Allocator
 //
 
 #pragma once
@@ -29,25 +27,19 @@ public:
     template <class U>
     struct rebind
     {
-        typedef coallocator<U> other;
+        using other = coallocator<U>;
     };
 
-    coallocator() throw()
-    {
-    }
+    coallocator() noexcept = default;
 
-    coallocator(const coallocator&) throw()
-    {
-    }
+    coallocator(const coallocator&) throw() = default;
 
     template <class U>
-    coallocator(const coallocator<U>&) throw()
+    coallocator(const coallocator<U>&) noexcept
     {
     }
 
-    ~coallocator() throw()
-    {
-    }
+    ~coallocator() noexcept = default;
 
     pointer address(reference x) const
     {
@@ -59,10 +51,10 @@ public:
         return &x;
     }
 
-    pointer allocate(size_type n, void* hint = 0)
+    pointer allocate(size_type n, void* /*hint*/ = nullptr)
     {
-        pointer pv = static_cast<pointer>(comalloc(n * sizeof(T)));
-        if (pv == NULL)
+        auto pv = static_cast<pointer>(comalloc(n * sizeof(T)));
+        if (pv == nullptr)
             throw std::bad_alloc();
         return pv;
     }
@@ -72,7 +64,7 @@ public:
         cofree(static_cast<void*>(p));
     }
 
-    size_type max_size() const throw()
+    size_type max_size() const noexcept
     {
         return std::numeric_limits<size_type>::max() / sizeof(T);
     }
@@ -87,8 +79,6 @@ public:
         p->~T();
     }
 };
-
-/////////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////////
 template <typename T>

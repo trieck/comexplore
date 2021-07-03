@@ -5,32 +5,38 @@
 
 #pragma once
 
-#ifndef __COMMON_H__
-#define __COMMON_H__
-
-#include <memory>
 #include <functional>
-#include <string>
-#include <vector>
-#include <map>
 #include <list>
+#include <map>
+#include <memory>
 
-#include "coallocator.h"
-#include "coobject.h"
+#include <string>
+#include <utility>
+#include <vector>
 
+#define WINVER          _WIN32_WINNT_WIN10
+#define _WIN32_WINNT    _WIN32_WINNT_WIN10
 #define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+
+#define WM_SELCHANGED (WM_APP + 1)
+
+#include <atltrace.h>
 #include <windows.h>
 #include <objbase.h>
 #include <tchar.h>
-#include <time.h>
+#include <ctime>
 #include <comutil.h>
+
+#include "coallocator.h"
+#include "coobject.h"
 
 /////////////////////////////////////////////////////////////////////////////
 // Iterator interface
 template <typename T>
 DECLARE_INTERFACE(IIterator)
 {
-public:
+    virtual ~IIterator() = default;
     virtual T GetNext() PURE;
     virtual bool HasNext() const PURE;
     virtual void Reset() PURE;
@@ -41,11 +47,12 @@ public:
 class coinit
 {
 public:
-    coinit ()
+    coinit()
     {
-        CoInitialize(NULL);
+        CoInitialize(nullptr);
     }
-    ~coinit ()
+
+    ~coinit()
     {
         CoUninitialize();
     }
@@ -53,15 +60,16 @@ public:
 
 /////////////////////////////////////////////////////////////////////////////
 // COM allocated string construction
-typedef std::basic_string<TCHAR, std::char_traits<TCHAR>,
-        coallocator<TCHAR> > costring;
+using costring = std::basic_string<TCHAR, std::char_traits<TCHAR>,
+                                   coallocator<TCHAR>>;
 
-typedef coobject<costring, coallocator<costring> > costringptr;
+using costringptr = coobject<costring, coallocator<costring>>;
 
 /////////////////////////////////////////////////////////////////////////////
 // case insensitive costring comparison
-struct stringless : std::binary_function <costring, costring, bool> {
-    bool operator () (const costring & x, const costring & y) const
+struct stringless : std::binary_function<costring, costring, bool>
+{
+    bool operator ()(const costring& x, const costring& y) const
     {
         return (_tcsicmp(x.c_str(), y.c_str()) > 0);
     }
@@ -69,34 +77,36 @@ struct stringless : std::binary_function <costring, costring, bool> {
 
 /////////////////////////////////////////////////////////////////////////////
 // COM allocated vector construction
-typedef std::vector<costring, coallocator<costring> > costringvec;
-typedef coobject<costringvec, coallocator<costringvec> > costringvecptr;
+using costringvec = std::vector<costring, coallocator<costring>>;
+using costringvecptr = coobject<costringvec, coallocator<costringvec>>;
 
 /////////////////////////////////////////////////////////////////////////////
 // COM allocated map construction
-typedef std::pair<costring, costring> costringpair;
-typedef std::map<costring, costring, stringless,
-        coallocator <costringpair> > costringmap;
-typedef coobject<costringmap, coallocator<costringmap> > costringmapptr;
+using costringpair = std::pair<costring, costring>;
+using costringmap = std::map<costring, costring, stringless,
+                             coallocator<costringpair>>;
+using costringmapptr = coobject<costringmap, coallocator<costringmap>>;
 
 /////////////////////////////////////////////////////////////////////////////
 // COM allocated list construction
-typedef std::list<costring, coallocator<costring> > costringlist;
-typedef coobject<costringlist, coallocator<costringlist> > costringlistptr;
+using costringlist = std::list<costring, coallocator<costring>>;
+using costringlistptr = coobject<costringlist, coallocator<costringlist>>;
 
 /////////////////////////////////////////////////////////////////////////////
 class StringVecIterator : public IIterator<costring>
 {
 public:
-    StringVecIterator(const costringvec &vec) : v(vec)
+    StringVecIterator(costringvec vec) : v(std::move(vec))
     {
         Reset();
     }
-    StringVecIterator(const StringVecIterator &rhs)
+
+    StringVecIterator(const StringVecIterator& rhs)
     {
         *this = rhs;
     }
-    StringVecIterator &operator = (const StringVecIterator &rhs)
+
+    StringVecIterator& operator =(const StringVecIterator& rhs)
     {
         if (this != &rhs) {
             v = rhs.v;
@@ -104,18 +114,22 @@ public:
         }
         return *this;
     }
-    costring GetNext()
+
+    costring GetNext() override
     {
         return *it++;
     }
-    bool HasNext() const
+
+    bool HasNext() const override
     {
         return it != v.end();
     }
-    void Reset()
+
+    void Reset() override
     {
         it = v.begin();
     }
+
 private:
     costringvec v;
     costringvec::const_iterator it;
@@ -125,15 +139,17 @@ private:
 class StringListIterator : public IIterator<costring>
 {
 public:
-    StringListIterator(const costringlist &list) : l(list)
+    StringListIterator(costringlist list) : l(std::move(list))
     {
         Reset();
     }
-    StringListIterator(const StringListIterator &rhs)
+
+    StringListIterator(const StringListIterator& rhs)
     {
         *this = rhs;
     }
-    StringListIterator &operator = (const StringListIterator &rhs)
+
+    StringListIterator& operator =(const StringListIterator& rhs)
     {
         if (this != &rhs) {
             l = rhs.l;
@@ -141,18 +157,22 @@ public:
         }
         return *this;
     }
-    costring GetNext()
+
+    costring GetNext() override
     {
         return *it++;
     }
-    bool HasNext() const
+
+    bool HasNext() const override
     {
         return it != l.end();
     }
-    void Reset()
+
+    void Reset() override
     {
         it = l.begin();
     }
+
 private:
     costringlist l;
     costringlist::const_iterator it;
@@ -162,15 +182,17 @@ private:
 class StringMapIterator : public IIterator<costringpair>
 {
 public:
-    StringMapIterator(const costringmap &map) : m(map)
+    StringMapIterator(costringmap map) : m(std::move(map))
     {
         Reset();
     }
-    StringMapIterator(const StringMapIterator &rhs)
+
+    StringMapIterator(const StringMapIterator& rhs)
     {
         *this = rhs;
     }
-    StringMapIterator &operator = (const StringMapIterator &rhs)
+
+    StringMapIterator& operator =(const StringMapIterator& rhs)
     {
         if (this != &rhs) {
             m = rhs.m;
@@ -178,18 +200,22 @@ public:
         }
         return *this;
     }
-    costringpair GetNext()
+
+    costringpair GetNext() override
     {
         return *it++;
     }
-    bool HasNext() const
+
+    bool HasNext() const override
     {
         return it != m.end();
     }
-    void Reset()
+
+    void Reset() override
     {
         it = m.begin();
     }
+
 private:
     costringmap m;
     costringmap::const_iterator it;
@@ -198,31 +224,31 @@ private:
 /////////////////////////////////////////////////////////////////////////////
 class cofiletime
 {
-private:
-    cofiletime() {}
-public:
-    typedef coobject<FILETIME> filetime;
-    typedef coobject<SYSTEMTIME> systemtime;
+    cofiletime() = default;
 
-    static filetime get()
+public:
+    using filetime = coobject<FILETIME>;
+    using systemtime = coobject<SYSTEMTIME>;
+
+    filetime get()
     {
         FILETIME ft;
-        HRESULT hr = CoFileTimeNow(&ft);
+        auto hr = CoFileTimeNow(&ft);
         _com_util::CheckError(hr);
         return ft;
     }
 
-    static systemtime getsystime()
+    systemtime getsystime()
     {
-        filetime f = get();
+        auto f = get();
         SYSTEMTIME st;
         FileTimeToSystemTime(&*f, &st);
         return st;
     }
 
-    static costring fmttime(const costring &fmt)
+    costring fmttime(const costring& fmt)
     {
-        systemtime s = getsystime();
+        auto s = getsystime();
 
         struct tm atm;
         atm.tm_sec = (*s).wSecond;
@@ -231,16 +257,54 @@ public:
         atm.tm_mday = (*s).wDay;
         atm.tm_mon = (*s).wMonth - 1;
         atm.tm_year = (*s).wYear - 1900;
-        __time64_t t = _mktime64(&atm);
+        auto t = _mktime64(&atm);
 
         TCHAR buf[128];
-        struct tm* tmp = _localtime64(&t);
+        auto tmp = _localtime64(&t);
         _tcsftime(buf, 128, fmt.c_str(), tmp);
 
         return buf;
     }
 };
 
-extern StringMapIterator GetClassGuids();
+enum class ObjectType
+{
+    NONE,
+    APPID,
+    CLSID,
+    IID,
+    TYPELIB
+};
 
-#endif // __COMMON_H__
+/////////////////////////////////////////////////////////////////////////////
+struct ObjectData
+{
+    ObjectData() : type(ObjectType::NONE), guid(GUID_NULL)
+    {
+    }
+
+    ObjectData(ObjectType t, LPCTSTR strGuid) : type(t), guid(GUID_NULL)
+    {
+        switch (type) {
+        case ObjectType::IID:
+            IIDFromString(strGuid, &guid);
+            break;
+        case ObjectType::APPID:
+        case ObjectType::CLSID:
+        case ObjectType::TYPELIB:
+            CLSIDFromString(strGuid, &guid); // may work generally
+            break;
+        default:
+            break;
+        }
+
+        if (IsEqualGUID(guid, GUID_NULL)) {
+            ATLTRACE(_T("Failed to parse guid: \"%s\".\n"), strGuid);
+        }
+    }
+
+    ObjectType type;
+    GUID guid;
+};
+
+using LPOBJECTDATA = ObjectData*;

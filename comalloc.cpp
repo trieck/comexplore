@@ -2,21 +2,18 @@
 //
 //	COMALLOC.CPP : COM Allocation
 //
-//	Copyright(c) 2003 KnowX.com, All Rights Reserved
-//
 
 #include "stdafx.h"
 #include "comalloc.h"
-#include <atlbase.h>
 
 /////////////////////////////////////////////////////////////////////////////
-void *comalloc(size_t cb)
+void* comalloc(size_t cb)
 {
     return CoTaskMemAlloc(cb);
 }
 
 /////////////////////////////////////////////////////////////////////////////
-void cofree(void *pv)
+void cofree(void* pv)
 {
     CoTaskMemFree(pv);
 }

@@ -1,22 +1,9 @@
-// comexplore.cpp : main source file for comexplore.exe
-//
-
 #include "stdafx.h"
-
-#include <atlframe.h>
-#include <atlctrls.h>
-#include <atldlgs.h>
-#include <atlctrlw.h>
-
-#include "resource.h"
-
-#include "comexploreView.h"
-#include "aboutdlg.h"
 #include "MainFrm.h"
 
 CAppModule _Module;
 
-int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
+int Run(LPTSTR /*lpstrCmdLine*/  = nullptr, int nCmdShow = SW_SHOWDEFAULT)
 {
     CMessageLoop theLoop;
     _Module.AddMessageLoop(&theLoop);
@@ -30,7 +17,7 @@ int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 
     wndMain.ShowWindow(nCmdShow);
 
-    int nRet = theLoop.Run();
+    auto nRet = theLoop.Run();
 
     _Module.RemoveMessageLoop();
     return nRet;
@@ -38,18 +25,18 @@ int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 
 int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lpstrCmdLine, int nCmdShow)
 {
-    HRESULT hRes = ::CoInitialize(NULL);
+    auto hRes = CoInitialize(nullptr);
     ATLASSERT(SUCCEEDED(hRes));
 
-    AtlInitCommonControls(ICC_COOL_CLASSES | ICC_BAR_CLASSES);	// add flags to support other controls
+    AtlInitCommonControls(ICC_COOL_CLASSES | ICC_BAR_CLASSES | ICC_USEREX_CLASSES);
 
-    hRes = _Module.Init(NULL, hInstance);
+    hRes = _Module.Init(nullptr, hInstance);
     ATLASSERT(SUCCEEDED(hRes));
 
-    int nRet = Run(lpstrCmdLine, nCmdShow);
+    auto nRet = Run(lpstrCmdLine, nCmdShow);
 
     _Module.Term();
-    ::CoUninitialize();
+    CoUninitialize();
 
     return nRet;
 }
