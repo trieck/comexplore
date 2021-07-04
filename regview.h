@@ -4,6 +4,7 @@ class RegistryView : public CWindowImpl<ComTreeView, CTreeViewCtrlEx>
 {
 public:
 BEGIN_MSG_MAP_EX(RegistryView)
+        MSG_WM_CREATE(OnCreate)
         MESSAGE_HANDLER(WM_SELCHANGED, OnSelChanged)
     END_MSG_MAP()
 
@@ -11,6 +12,29 @@ BEGIN_MSG_MAP_EX(RegistryView)
 
     RegistryView(): m_bMsgHandled(0)
     {
+    }
+
+    LRESULT OnCreate(LPCREATESTRUCT /*pcs*/)
+    {
+        auto bResult = DefWindowProc();
+
+        m_ImageList = ImageList_Create(16, 16, ILC_MASK | ILC_COLOR32, 1, 0);
+
+        for (auto icon : { IDI_REGNODE }) {
+            auto hIcon = LoadIcon(_Module.GetResourceInstance(), MAKEINTRESOURCE(icon));
+            ATLASSERT(hIcon);
+            m_ImageList.AddIcon(hIcon);
+        }
+
+        SetImageList(m_ImageList, TVSIL_NORMAL);
+        CTreeViewCtrl::SetWindowLong(GWL_STYLE,
+                                     CTreeViewCtrl::GetWindowLong(GWL_STYLE)
+                                     | TVS_HASBUTTONS | TVS_HASLINES | TVS_FULLROWSELECT | TVS_INFOTIP
+                                     | TVS_LINESATROOT | TVS_SHOWSELALWAYS);
+
+        SetMsgHandled(FALSE);
+
+        return bResult;
     }
 
     LRESULT OnSelChanged(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& bHandled)
@@ -136,4 +160,6 @@ private:
         root.Expand();
         guid.Expand();
     }
+
+    CImageList m_ImageList;
 };

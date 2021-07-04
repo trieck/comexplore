@@ -18,7 +18,16 @@ BEGIN_MSG_MAP(ComDetailView)
             return false;
         }
 
+        m_imageList = ImageList_Create(16, 16, ILC_MASK | ILC_COLOR32, 1, 0);
+
+        for (auto icon : { IDI_REGISTRY }) {
+            auto hIcon = LoadIcon(_Module.GetResourceInstance(), MAKEINTRESOURCE(icon));
+            ATLASSERT(hIcon);
+            m_imageList.AddIcon(hIcon);
+        }
+
         m_tab.ModifyStyle(TCS_FLATBUTTONS, 0);
+        m_tab.SetImageList(m_imageList);
 
         return true;
     }
@@ -48,7 +57,7 @@ BEGIN_MSG_MAP(ComDetailView)
                                  TVS_SHOWSELALWAYS, WS_EX_CLIENTEDGE);
 
                 if (m_regView.IsWindow()) {
-                    AddPage(m_regView, _T("Registry"));
+                    AddPage(m_regView, _T("Registry"), 0);
                 }
             }
 
@@ -76,4 +85,5 @@ BEGIN_MSG_MAP(ComDetailView)
 
 private:
     RegistryView m_regView{};
+    CImageList m_imageList;
 };

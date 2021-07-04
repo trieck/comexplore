@@ -297,7 +297,10 @@
   <ItemGroup>
     <Image Include="res\coclass.ico" />
     <Image Include="res\comexplore.ico" />
+    <Image Include="res\interface.ico" />
     <Image Include="res\node.ico" />
+    <Image Include="res\reg.ico" />
+    <Image Include="res\regnode.ico" />
     <Image Include="res\toolbar.bmp" />
   </ItemGroup>
   <ItemGroup>

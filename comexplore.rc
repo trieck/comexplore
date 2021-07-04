@@ -100,19 +100,25 @@ IDI_COCLASS             ICON                    "res\\coclass.ico"
 
 IDI_NODE                ICON                    "res\\node.ico"
 
+IDI_INTERFACE           ICON                    "res\\interface.ico"
+
+IDI_REGNODE             ICON                    "res\\regnode.ico"
+
+IDI_REGISTRY            ICON                    "res\\reg.ico"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
 // Dialog
 //
 
-IDD_ABOUTBOX DIALOGEX 0, 0, 177, 66
+IDD_ABOUTBOX DIALOGEX 0, 0, 179, 66
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "About"
-FONT 8, "MS Sans Serif", 0, 0, 0x0
+CAPTION "About COM Explorer"
+FONT 8, "Tahoma", 400, 0, 0x0
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,55,45,50,14
-    LTEXT           "COM Explorer\nCopyright© 2003-2021 Rieck Enterprises\nAll Rights Reserved",IDC_STATIC,36,7,134,26
+    LTEXT           "COM Explorer\nCopyright© 2003-2021 Rieck Enterprises\nAll Rights Reserved",IDC_STATIC,37,9,134,26
     ICON            IDR_MAINFRAME,IDC_STATIC,7,7,21,20
 END
 
@@ -128,7 +134,7 @@ BEGIN
     IDD_ABOUTBOX, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 170
+        RIGHTMARGIN, 172
         TOPMARGIN, 7
         BOTTOMMARGIN, 59
     END
