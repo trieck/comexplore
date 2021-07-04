@@ -22,6 +22,7 @@
 #define WM_SELCHANGED (WM_APP + 1)
 
 #include <atltrace.h>
+#include <atlstr.h>
 #include <windows.h>
 #include <objbase.h>
 #include <tchar.h>
@@ -276,6 +277,8 @@ enum class ObjectType
     TYPELIB
 };
 
+constexpr auto REG_BUFFER_SIZE = 1024;
+
 /////////////////////////////////////////////////////////////////////////////
 struct ObjectData
 {
@@ -283,23 +286,34 @@ struct ObjectData
     {
     }
 
-    ObjectData(ObjectType t, LPCTSTR strGuid) : type(t), guid(GUID_NULL)
+    ObjectData(ObjectType t, const GUID& uuid) : type(t), guid(uuid)
     {
+    }
+
+    ObjectData(ObjectType t, LPCTSTR pGUID) : type(t), guid(GUID_NULL)
+    {
+        ATLASSERT(pGUID);
+
+        CString strGUID(pGUID);
+        if (pGUID[0] != _T('{') && pGUID[strGUID.GetLength() - 1] != _T('}')) {
+            strGUID.Format(_T("{%s}"), pGUID);
+        }
+
         switch (type) {
         case ObjectType::IID:
-            IIDFromString(strGuid, &guid);
+            IIDFromString(strGUID, &guid);
             break;
         case ObjectType::APPID:
         case ObjectType::CLSID:
         case ObjectType::TYPELIB:
-            CLSIDFromString(strGuid, &guid); // may work generally
+            CLSIDFromString(strGUID, &guid); // may work generally
             break;
         default:
             break;
         }
 
         if (IsEqualGUID(guid, GUID_NULL)) {
-            ATLTRACE(_T("Failed to parse guid: \"%s\".\n"), strGuid);
+            ATLTRACE(_T("Failed to parse guid: \"%s\".\n"), static_cast<LPCTSTR>(strGUID));
         }
     }
 

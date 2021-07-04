@@ -39,9 +39,25 @@ BEGIN_MSG_MAP_EX(RegistryView)
 
     LRESULT OnSelChanged(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& bHandled)
     {
+        CWaitCursor cursor;
+
+        DeleteAllItems();
+
         auto pdata = reinterpret_cast<LPOBJECTDATA>(lParam);
         if (pdata != nullptr && pdata->guid != GUID_NULL) {
-            BuildTree(pdata);
+            switch (pdata->type) {
+            case ObjectType::APPID:
+                BuildAppID(pdata);
+                break;
+            case ObjectType::CLSID:
+                BuildCLSID(pdata);
+                break;
+            case ObjectType::IID:
+                BuildIID(pdata);
+                break;
+            default:
+                break;
+            }
         }
 
         return 0;
@@ -50,7 +66,7 @@ BEGIN_MSG_MAP_EX(RegistryView)
 private:
     CTreeItem InsertValue(HTREEITEM hParentItem, LPCTSTR keyName, LPCTSTR value, LPCTSTR data)
     {
-        TString strItem;
+        CString strItem;
 
         if (value[0] == _T('\0')) {
             strItem.Format(_T("%s[<default>] = %s"), keyName, data);
@@ -63,7 +79,7 @@ private:
 
     CTreeItem InsertValue(HTREEITEM hParentItem, LPCTSTR keyName, LPCTSTR value, DWORD dwData)
     {
-        TString strItem;
+        CString strItem;
 
         if (value[0] == _T('\0')) {
             strItem.Format(_T("%s[<default>] = %ld"), keyName, dwData);
@@ -76,15 +92,20 @@ private:
 
     CTreeItem InsertValues(HKEY hKey, HTREEITEM hParentItem, LPCTSTR keyName)
     {
-        DWORD index = 0, length = MAX_PATH + 1, type;
-        TCHAR val[MAX_PATH + 1];
+        DWORD index = 0, length, type;
+        TCHAR val[REG_BUFFER_SIZE];
         BYTE data[4096]{};
         DWORD dwSize = sizeof(data);
         CTreeItem item;
 
-        while (RegEnumValue(hKey, index++, val, &length, nullptr,
-                            &type, data, &dwSize) == ERROR_SUCCESS) {
-            val[length] = _T('\0');
+        for (;;) {
+            length = REG_BUFFER_SIZE;
+            dwSize = sizeof(data);
+
+            auto lResult = RegEnumValue(hKey, index++, val, &length, nullptr, &type, data, &dwSize);
+            if (lResult != ERROR_SUCCESS) {
+                break;
+            }
 
             if (type == REG_SZ || type == REG_MULTI_SZ || type == REG_EXPAND_SZ) {
                 auto lpszData = reinterpret_cast<LPTSTR>(data);
@@ -94,9 +115,6 @@ private:
                 DWORD dwData = (data[0] << 24) | (data[1] << 16) | (data[2] << 8) || data[3];
                 item = InsertValue(hParentItem, keyName, val, dwData);
             }
-
-            length = MAX_PATH + 1;
-            dwSize = sizeof(data);
         }
 
         if (!item.m_hTreeItem) {
@@ -108,12 +126,14 @@ private:
 
     void InsertSubkeys(CRegKey& key, HTREEITEM hParentItem)
     {
-        DWORD index = 0, length = MAX_PATH + 1;
-        TCHAR strSubKey[MAX_PATH + 1];
+        DWORD index = 0, length;
+        TCHAR strSubKey[REG_BUFFER_SIZE];
 
         CRegKey subKey;
-        LONG lResult;
-        while ((lResult = key.EnumKey(index++, strSubKey, &length)) != ERROR_NO_MORE_ITEMS) {
+
+        for (;;) {
+            length = REG_BUFFER_SIZE;
+            auto lResult = key.EnumKey(index++, strSubKey, &length);
             if (lResult != ERROR_SUCCESS) {
                 break;
             }
@@ -128,37 +148,204 @@ private:
             InsertSubkeys(subKey, item.m_hTreeItem);
 
             item.Expand();
-
-            length = MAX_PATH + 1;
         }
     }
 
-    void BuildTree(LPOBJECTDATA pdata)
+    void BuildCLSID(LPOBJECTDATA pdata)
     {
-        ATLASSERT(pdata);
+        ATLASSERT(pdata && pdata->type == ObjectType::CLSID && pdata->guid != GUID_NULL);
 
-        this->DeleteAllItems();
-
-        TString strGUID;
+        CString strGUID;
         StringFromGUID2(pdata->guid, strGUID.GetBuffer(40), 40);
 
-        TString strPath;
-        strPath.Format(_T("SOFTWARE\\Classes\\CLSID\\%s"), static_cast<LPCTSTR>(strGUID));
+        BuildCLSID(strGUID);
 
-        CWaitCursor cursor;
-        CRegKey key, subkey;
+        CString strPath;
+        strPath.Format(_T("SOFTWARE\\Classes\\CLSID\\%s\\TypeLib"), static_cast<LPCTSTR>(strGUID));
+
+        CRegKey key;
+        auto lResult = key.Open(HKEY_LOCAL_MACHINE, strPath, KEY_ENUMERATE_SUB_KEYS | KEY_QUERY_VALUE);
+        if (lResult != ERROR_SUCCESS) {
+            return;
+        }
+
+        TCHAR typelib[REG_BUFFER_SIZE];
+        DWORD length = REG_BUFFER_SIZE;
+        lResult = key.QueryStringValue(nullptr, typelib, &length);
+        if (lResult != ERROR_SUCCESS) {
+            return;
+        }
+
+        typelib[length] = _T('\0');
+
+        BuildTypeLib(typelib);
+
+        strPath.Format(_T("SOFTWARE\\Classes\\CLSID\\%s\\ProgID"), static_cast<LPCTSTR>(strGUID));
+
+        lResult = key.Open(HKEY_LOCAL_MACHINE, strPath, KEY_ENUMERATE_SUB_KEYS | KEY_QUERY_VALUE);
+        if (lResult != ERROR_SUCCESS) {
+            return;
+        }
+
+        TCHAR progID[REG_BUFFER_SIZE];
+        length = REG_BUFFER_SIZE;
+        lResult = key.QueryStringValue(nullptr, progID, &length);
+        if (lResult != ERROR_SUCCESS) {
+            return;
+        }
+
+        progID[length] = _T('\0');
+
+        BuildProgID(progID);
+    }
+
+    void BuildCLSID(LPCTSTR pCLSID)
+    {
+        CString strPath;
+        strPath.Format(_T("SOFTWARE\\Classes\\CLSID\\%s"), pCLSID);
+
+        CRegKey key;
         auto lResult = key.Open(HKEY_LOCAL_MACHINE, strPath, KEY_ENUMERATE_SUB_KEYS | KEY_QUERY_VALUE);
         if (lResult != ERROR_SUCCESS) {
             return;
         }
 
         auto root = InsertItem(_T("CLSID="), TVI_ROOT, TVI_LAST);
-        auto guid = InsertValues(key, root.m_hTreeItem, strGUID);
+        auto guid = InsertValues(key, root.m_hTreeItem, pCLSID);
 
         InsertSubkeys(key, guid.m_hTreeItem);
 
         root.Expand();
         guid.Expand();
+    }
+
+    void BuildTypeLib(LPCTSTR pTypeLib)
+    {
+        CString strPath;
+        strPath.Format(_T("SOFTWARE\\Classes\\TypeLib\\%s"), pTypeLib);
+
+        CRegKey key;
+        auto lResult = key.Open(HKEY_LOCAL_MACHINE, strPath, KEY_ENUMERATE_SUB_KEYS | KEY_QUERY_VALUE);
+        if (lResult != ERROR_SUCCESS) {
+            return;
+        }
+
+        auto root = InsertItem(_T("TypeLib="), TVI_ROOT, TVI_LAST);
+        auto guid = InsertValues(key, root.m_hTreeItem, pTypeLib);
+
+        InsertSubkeys(key, guid.m_hTreeItem);
+
+        root.Expand();
+        guid.Expand();
+    }
+
+    void BuildProgID(LPCTSTR pProgID)
+    {
+        CString strPath;
+        strPath.Format(_T("SOFTWARE\\Classes\\%s"), pProgID);
+
+        CRegKey key;
+        auto lResult = key.Open(HKEY_LOCAL_MACHINE, strPath, KEY_ENUMERATE_SUB_KEYS | KEY_QUERY_VALUE);
+        if (lResult != ERROR_SUCCESS) {
+            return;
+        }
+
+        auto root = InsertItem(_T("ProgID="), TVI_ROOT, TVI_LAST);
+        auto guid = InsertValues(key, root.m_hTreeItem, pProgID);
+
+        InsertSubkeys(key, guid.m_hTreeItem);
+
+        root.Expand();
+        guid.Expand();
+    }
+
+    void BuildAppID(LPOBJECTDATA pdata)
+    {
+        ATLASSERT(pdata && pdata->type == ObjectType::APPID && pdata->guid != GUID_NULL);
+
+        CString strAppID;
+        StringFromGUID2(pdata->guid, strAppID.GetBuffer(40), 40);
+
+        CString strPath;
+        strPath.Format(_T("SOFTWARE\\Classes\\AppID\\%s"), static_cast<LPCTSTR>(strAppID));
+
+        CRegKey key;
+        auto lResult = key.Open(HKEY_LOCAL_MACHINE, strPath, KEY_ENUMERATE_SUB_KEYS | KEY_QUERY_VALUE);
+        if (lResult != ERROR_SUCCESS) {
+            return;
+        }
+
+        auto appidRoot = InsertItem(_T("AppID="), TVI_ROOT, TVI_LAST);
+        auto appid = InsertValues(key, appidRoot.m_hTreeItem, strAppID);
+
+        InsertSubkeys(key, appid.m_hTreeItem);
+
+        appidRoot.Expand();
+        appid.Expand();
+    }
+
+    void BuildIID(LPOBJECTDATA pdata)
+    {
+        ATLASSERT(pdata && pdata->type == ObjectType::IID && pdata->guid != GUID_NULL);
+
+        CString strIID;
+        StringFromGUID2(pdata->guid, strIID.GetBuffer(40), 40);
+
+        CString strPath;
+        strPath.Format(_T("SOFTWARE\\Classes\\Interface\\%s"), static_cast<LPCTSTR>(strIID));
+
+        CRegKey key;
+        auto lResult = key.Open(HKEY_LOCAL_MACHINE, strPath, KEY_ENUMERATE_SUB_KEYS | KEY_QUERY_VALUE);
+        if (lResult != ERROR_SUCCESS) {
+            return;
+        }
+
+        auto iidRoot = InsertItem(_T("IID="), TVI_ROOT, TVI_LAST);
+        auto iid = InsertValues(key, iidRoot.m_hTreeItem, strIID);
+
+        InsertSubkeys(key, iid.m_hTreeItem);
+
+        iidRoot.Expand();
+        iid.Expand();
+
+        strPath.Format(_T("SOFTWARE\\Classes\\Interface\\%s\\ProxyStubClsid32"), static_cast<LPCTSTR>(strIID));
+        lResult = key.Open(HKEY_LOCAL_MACHINE, strPath, KEY_ENUMERATE_SUB_KEYS | KEY_QUERY_VALUE);
+        if (lResult != ERROR_SUCCESS) {
+            strPath.Format(_T("SOFTWARE\\Classes\\Interface\\%s\\ProxyStubClsid"), static_cast<LPCTSTR>(strIID));
+            lResult = key.Open(HKEY_LOCAL_MACHINE, strPath, KEY_ENUMERATE_SUB_KEYS | KEY_QUERY_VALUE);
+        }
+
+        if (lResult != ERROR_SUCCESS) {
+            return;
+        }
+
+        TCHAR clsid[REG_BUFFER_SIZE];
+        DWORD length = REG_BUFFER_SIZE;
+        lResult = key.QueryStringValue(nullptr, clsid, &length);
+        if (lResult != ERROR_SUCCESS) {
+            return;
+        }
+
+        clsid[length] = _T('\0');
+
+        BuildCLSID(clsid);
+
+        strPath.Format(_T("SOFTWARE\\Classes\\Interface\\%s\\TypeLib"), static_cast<LPCTSTR>(strIID));
+        lResult = key.Open(HKEY_LOCAL_MACHINE, strPath, KEY_ENUMERATE_SUB_KEYS | KEY_QUERY_VALUE);
+        if (lResult != ERROR_SUCCESS) {
+            return;
+        }
+
+        TCHAR typelib[REG_BUFFER_SIZE];
+        length = REG_BUFFER_SIZE;
+        lResult = key.QueryStringValue(nullptr, typelib, &length);
+        if (lResult != ERROR_SUCCESS) {
+            return;
+        }
+
+        typelib[length] = _T('\0');
+
+        BuildTypeLib(typelib);
     }
 
     CImageList m_ImageList;

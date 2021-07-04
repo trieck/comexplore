@@ -22,8 +22,6 @@
 #include <atlctrlx.h>
 #include <atlsplit.h>
 
-typedef CStringT<TCHAR, StrTraitATL<TCHAR>> TString;
-
 extern CAppModule _Module;
 
 #if defined _M_IX86

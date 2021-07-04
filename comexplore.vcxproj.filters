@@ -82,6 +82,12 @@
     <Image Include="res\reg.ico">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="res\interface_grp.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\appid.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="comexplore.rc">

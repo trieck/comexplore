@@ -106,6 +106,10 @@ IDI_REGNODE             ICON                    "res\\regnode.ico"
 
 IDI_REGISTRY            ICON                    "res\\reg.ico"
 
+IDI_INTERFACE_GROUP     ICON                    "res\\interface_grp.ico"
+
+IDI_APPID               ICON                    "res\\appid.ico"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
