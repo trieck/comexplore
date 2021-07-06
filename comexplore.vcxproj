@@ -70,24 +70,24 @@
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <LinkIncremental>true</LinkIncremental>
     <GenerateManifest>true</GenerateManifest>
-    <IncludePath>$(WTL_INCLUDE);$(IncludePath)</IncludePath>
+    <IncludePath>$(WTL_INCLUDE);$(BOOST_ROOT);$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <GenerateManifest>true</GenerateManifest>
-    <IncludePath>$(WTL_INCLUDE);$(IncludePath)</IncludePath>
+    <IncludePath>$(WTL_INCLUDE);$(BOOST_ROOT);$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
     <GenerateManifest>true</GenerateManifest>
-    <IncludePath>$(WTL_INCLUDE);$(IncludePath)</IncludePath>
+    <IncludePath>$(WTL_INCLUDE);$(BOOST_ROOT);$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <GenerateManifest>true</GenerateManifest>
-    <IncludePath>$(WTL_INCLUDE);$(IncludePath)</IncludePath>
+    <IncludePath>$(WTL_INCLUDE);$(BOOST_ROOT);$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Midl>
@@ -264,11 +264,17 @@
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="aboutdlg.cpp" />
     <ClCompile Include="comalloc.cpp" />
+    <ClCompile Include="comdetailview.cpp" />
     <ClCompile Include="comexplore.cpp">
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
+    <ClCompile Include="comtreeview.cpp" />
+    <ClCompile Include="mainfrm.cpp" />
+    <ClCompile Include="objdata.cpp" />
+    <ClCompile Include="regview.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -277,6 +283,9 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="typelibtree.cpp" />
+    <ClCompile Include="typelibview.cpp" />
+    <ClCompile Include="util.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="comexplore.rc" />
@@ -290,23 +299,34 @@
     <ClInclude Include="coobject.h" />
     <ClInclude Include="comdetailview.h" />
     <ClInclude Include="mainfrm.h" />
+    <ClInclude Include="objdata.h" />
     <ClInclude Include="regview.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="typelibtree.h" />
+    <ClInclude Include="typelibview.h" />
+    <ClInclude Include="util.h" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="res\alias.ico" />
     <Image Include="res\appid.ico" />
     <Image Include="res\coclass.ico" />
     <Image Include="res\comexplore.ico" />
+    <Image Include="res\dispatch.ico" />
+    <Image Include="res\enum.ico" />
+    <Image Include="res\function.ico" />
+    <Image Include="res\icon4.ico" />
     <Image Include="res\interface.ico" />
     <Image Include="res\interface_grp.ico" />
+    <Image Include="res\module.ico" />
     <Image Include="res\node.ico" />
+    <Image Include="res\record.ico" />
     <Image Include="res\reg.ico" />
     <Image Include="res\regnode.ico" />
     <Image Include="res\toolbar.bmp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="cpp.hint" />
+    <Image Include="res\typelib.ico" />
+    <Image Include="res\typelib_grp.ico" />
+    <Image Include="res\union.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

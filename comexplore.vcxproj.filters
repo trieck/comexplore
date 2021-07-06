@@ -24,6 +24,33 @@
     <ClCompile Include="comalloc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="objdata.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mainfrm.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="comdetailview.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="comtreeview.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="regview.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="aboutdlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="typelibview.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="typelibtree.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="util.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="aboutdlg.h">
@@ -59,6 +86,18 @@
     <ClInclude Include="regview.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="objdata.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="typelibview.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="typelibtree.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="util.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\comexplore.ico">
@@ -88,13 +127,40 @@
     <Image Include="res\appid.ico">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="res\typelib_grp.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\typelib.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\dispatch.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\record.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\enum.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\union.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\module.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\alias.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\icon4.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\function.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="comexplore.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="cpp.hint" />
   </ItemGroup>
 </Project>

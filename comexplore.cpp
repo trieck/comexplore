@@ -20,6 +20,7 @@ int Run(LPTSTR /*lpstrCmdLine*/  = nullptr, int nCmdShow = SW_SHOWDEFAULT)
     auto nRet = theLoop.Run();
 
     _Module.RemoveMessageLoop();
+
     return nRet;
 }
 
@@ -36,6 +37,7 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
     auto nRet = Run(lpstrCmdLine, nCmdShow);
 
     _Module.Term();
+
     CoUninitialize();
 
     return nRet;

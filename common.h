@@ -14,6 +14,12 @@
 #include <utility>
 #include <vector>
 
+#ifdef _UNICODE
+using tstring = std::wstring;
+#else
+using tstring = std::string;
+#endif
+
 #define WINVER          _WIN32_WINNT_WIN10
 #define _WIN32_WINNT    _WIN32_WINNT_WIN10
 #define WIN32_LEAN_AND_MEAN
@@ -268,57 +274,11 @@ public:
     }
 };
 
-enum class ObjectType
-{
-    NONE,
-    APPID,
-    CLSID,
-    IID,
-    TYPELIB
-};
+#include "objdata.h"
 
 constexpr auto REG_BUFFER_SIZE = 1024;
 
-/////////////////////////////////////////////////////////////////////////////
-struct ObjectData
-{
-    ObjectData() : type(ObjectType::NONE), guid(GUID_NULL)
-    {
-    }
-
-    ObjectData(ObjectType t, const GUID& uuid) : type(t), guid(uuid)
-    {
-    }
-
-    ObjectData(ObjectType t, LPCTSTR pGUID) : type(t), guid(GUID_NULL)
-    {
-        ATLASSERT(pGUID);
-
-        CString strGUID(pGUID);
-        if (pGUID[0] != _T('{') && pGUID[strGUID.GetLength() - 1] != _T('}')) {
-            strGUID.Format(_T("{%s}"), pGUID);
-        }
-
-        switch (type) {
-        case ObjectType::IID:
-            IIDFromString(strGUID, &guid);
-            break;
-        case ObjectType::APPID:
-        case ObjectType::CLSID:
-        case ObjectType::TYPELIB:
-            CLSIDFromString(strGUID, &guid); // may work generally
-            break;
-        default:
-            break;
-        }
-
-        if (IsEqualGUID(guid, GUID_NULL)) {
-            ATLTRACE(_T("Failed to parse guid: \"%s\".\n"), static_cast<LPCTSTR>(strGUID));
-        }
-    }
-
-    ObjectType type;
-    GUID guid;
-};
-
-using LPOBJECTDATA = ObjectData*;
+#define MAKE_TREEITEM(n, t) \
+    CTreeItem(((LPNMTREEVIEW)(n))->itemNew.hItem, t)
+#define MAKE_OLDTREEITEM(n, t) \
+    CTreeItem(((LPNMTREEVIEW)(n))->itemOld.hItem, t)

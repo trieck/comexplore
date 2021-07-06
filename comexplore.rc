@@ -110,6 +110,24 @@ IDI_INTERFACE_GROUP     ICON                    "res\\interface_grp.ico"
 
 IDI_APPID               ICON                    "res\\appid.ico"
 
+IDI_TYPELIB_GROUP       ICON                    "res\\typelib_grp.ico"
+
+IDI_TYPELIB             ICON                    "res\\typelib.ico"
+
+IDI_DISPATCH            ICON                    "res\\dispatch.ico"
+
+IDI_RECORD              ICON                    "res\\record.ico"
+
+IDI_ENUM                ICON                    "res\\enum.ico"
+
+IDI_UNION               ICON                    "res\\union.ico"
+
+IDI_MODULE              ICON                    "res\\module.ico"
+
+IDI_ALIAS               ICON                    "res\\alias.ico"
+
+IDI_FUNCTION            ICON                    "res\\function.ico"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
