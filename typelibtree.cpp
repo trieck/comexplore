@@ -1,5 +1,10 @@
 #include "stdafx.h"
+
+
+#include "autodesc.h"
+#include "autotypeattr.h"
 #include "resource.h"
+#include "typeinfonode.h"
 #include "TypeLibTree.h"
 #include "util.h"
 
@@ -21,7 +26,8 @@ LRESULT TypeLibTree::OnCreate(LPCREATESTRUCT pcs)
         IDI_UNION,
         IDI_MODULE,
         IDI_ALIAS,
-        IDI_FUNCTION
+        IDI_FUNCTION,
+        IDI_VARIABLE
     };
 
     m_ImageList = ImageList_Create(16, 16, ILC_MASK | ILC_COLOR32, sizeof(icons) / sizeof(int), 0);
@@ -94,10 +100,11 @@ BOOL TypeLibTree::BuildView()
     return TRUE;
 }
 
-HTREEITEM TypeLibTree::AddTypeInfo(HTREEITEM hParent, LPTYPEINFO pTypeInfo, TYPEKIND kind)
+HTREEITEM TypeLibTree::AddTypeInfo(HTREEITEM hParent, LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr)
 {
     ATLASSERT(hParent != nullptr);
     ATLASSERT(pTypeInfo != nullptr);
+    ATLASSERT(pAttr != nullptr);
 
     CComBSTR bstrName;
     auto hr = pTypeInfo->GetDocumentation(MEMBERID_NIL, &bstrName, nullptr, nullptr, nullptr);
@@ -105,37 +112,49 @@ HTREEITEM TypeLibTree::AddTypeInfo(HTREEITEM hParent, LPTYPEINFO pTypeInfo, TYPE
         return nullptr;
     }
 
+    CString strName(bstrName), strTitle;
+
     int nImage;
-    switch (kind) {
+    switch (pAttr->typekind) {
     case TKIND_COCLASS:
+        strTitle.Format(_T("coclass %s"), static_cast<LPCTSTR>(strName));
         nImage = 1;
         break;
     case TKIND_INTERFACE:
+        strTitle.Format(_T("interface %s"), static_cast<LPCTSTR>(strName));
         nImage = 2;
         break;
     case TKIND_DISPATCH:
+        strTitle.Format(_T("dispinterface %s"), static_cast<LPCTSTR>(strName));
         nImage = 3;
         break;
     case TKIND_RECORD:
+        strTitle.Format(_T("typedef struct %s"), static_cast<LPCTSTR>(strName));
         nImage = 4;
         break;
     case TKIND_ENUM:
+        strTitle.Format(_T("typedef enum %s"), static_cast<LPCTSTR>(strName));
         nImage = 5;
         break;
     case TKIND_UNION:
+        strTitle.Format(_T("typedef union %s"), static_cast<LPCTSTR>(strName));
         nImage = 6;
         break;
     case TKIND_MODULE:
+        strTitle.Format(_T("module %s"), static_cast<LPCTSTR>(strName));
         nImage = 7;
         break;
     case TKIND_ALIAS:
+        strTitle.Format(_T("typedef %s %s"),
+                        static_cast<LPCTSTR>(TYPEDESCtoString(pTypeInfo, &pAttr->tdescAlias)),
+                        static_cast<LPCTSTR>(strName));
         nImage = 8;
         break;
     default:
         return nullptr;
     }
 
-    return InsertItem(bstrName, nImage, nImage, 1, hParent, TVI_LAST, pTypeInfo);
+    return InsertItem(strTitle, nImage, 1, hParent, pTypeInfo, MEMBERID_NIL);
 }
 
 void TypeLibTree::BuildTypeInfo(HTREEITEM hParent)
@@ -150,8 +169,8 @@ void TypeLibTree::BuildTypeInfo(HTREEITEM hParent)
             continue;
         }
 
-        TYPEKIND kind;
-        hr = m_pTypeLib->GetTypeInfoType(i, &kind);
+        AutoTypeAttr attr(pTypeInfo);
+        hr = attr.Get();
         if (FAILED(hr)) {
             continue;
         }
@@ -162,22 +181,17 @@ void TypeLibTree::BuildTypeInfo(HTREEITEM hParent)
             CComPtr<ITypeInfo> pTypeInfo2;
             hr = pTypeInfo->GetRefTypeInfo(hRefType, &pTypeInfo2);
             if (SUCCEEDED(hr)) {
-                TYPEATTR* pnewAttr;
-                hr = pTypeInfo2->GetTypeAttr(&pnewAttr);
+                AutoTypeAttr attr2(pTypeInfo2);
+                hr = attr2.Get();
                 if (FAILED(hr)) {
                     continue;
                 }
 
-                auto hTreeItem = AddTypeInfo(hParent, pTypeInfo2, pnewAttr->typekind);
-                pTypeInfo2->ReleaseTypeAttr(pnewAttr);
-
-                if (hTreeItem) {
-                    pTypeInfo2.Detach(); // tree owns
-                }
+                AddTypeInfo(hParent, pTypeInfo2, static_cast<LPTYPEATTR>(attr2));
             }
         }
 
-        AddTypeInfo(hParent, pTypeInfo.Detach(), kind);
+        AddTypeInfo(hParent, pTypeInfo, static_cast<LPTYPEATTR>(attr));
     }
 }
 
@@ -186,33 +200,27 @@ void TypeLibTree::AddFunctions(const CTreeItem& item, LPTYPEINFO pTypeInfo, LPTY
     ATLASSERT(pTypeInfo != nullptr);
     ATLASSERT(pAttr != nullptr);
 
+    AutoDesc<FUNCDESC> funcdesc(pTypeInfo);
+
     // Add functions
     for (auto i = 0u; i < pAttr->cFuncs; ++i) {
-        LPFUNCDESC pFuncDesc;
-        auto hr = pTypeInfo->GetFuncDesc(i, &pFuncDesc);
+        auto hr = funcdesc.Get(i);
         if (FAILED(hr)) {
             continue;
         }
 
         UINT cNames;
         CComBSTR bstrName;
-        hr = pTypeInfo->GetNames(pFuncDesc->memid, &bstrName, 1, &cNames);
+        hr = pTypeInfo->GetNames(funcdesc->memid, &bstrName, 1, &cNames);
         if (FAILED(hr)) {
-            pTypeInfo->ReleaseFuncDesc(pFuncDesc);
             continue;
         }
 
         if (cNames == 0) {
-            pTypeInfo->ReleaseFuncDesc(pFuncDesc);
             continue;
         }
 
-        auto hItem = InsertItem(bstrName, 9, 9, 0, item.m_hTreeItem, TVI_LAST, pTypeInfo);
-        if (hItem != nullptr) {
-            pTypeInfo->AddRef();
-        }
-
-        pTypeInfo->ReleaseFuncDesc(pFuncDesc);
+        InsertItem(bstrName, 9, 0, item.m_hTreeItem, pTypeInfo, funcdesc->memid);
     }
 }
 
@@ -236,18 +244,13 @@ void TypeLibTree::AddImplTypes(const CTreeItem& item, LPTYPEINFO pTypeInfo, LPTY
             continue;
         }
 
-        TYPEATTR* pnewAttr;
-        hr = pTypeInfo2->GetTypeAttr(&pnewAttr);
+        AutoTypeAttr newAttr(pTypeInfo2);
+        hr = newAttr.Get();
         if (FAILED(hr)) {
             continue;
         }
 
-        auto hTreeItem = AddTypeInfo(item.m_hTreeItem, pTypeInfo2, pnewAttr->typekind);
-
-        pTypeInfo2->ReleaseTypeAttr(pnewAttr);
-        if (hTreeItem != nullptr) {
-            pTypeInfo2.Detach(); // tree owns
-        }
+        AddTypeInfo(item.m_hTreeItem, pTypeInfo2, static_cast<LPTYPEATTR>(newAttr));
     }
 }
 
@@ -256,54 +259,88 @@ void TypeLibTree::AddVars(const CTreeItem& item, LPTYPEINFO pTypeInfo, LPTYPEATT
     ATLASSERT(pTypeInfo != nullptr);
     ATLASSERT(pAttr != nullptr);
 
+    AutoDesc<VARDESC> vardesc(pTypeInfo);
+
     // Add variables
     for (auto i = 0u; i < pAttr->cVars; ++i) {
-
-        LPVARDESC pVarDesc = nullptr;
-        auto hr = pTypeInfo->GetVarDesc(i, &pVarDesc);
+        auto hr = vardesc.Get(i);
         if (FAILED(hr)) {
             continue;
         }
 
         UINT cNames;
         CComBSTR bstrName;
-        hr = pTypeInfo->GetNames(pVarDesc->memid, &bstrName, 1, &cNames);
+        hr = pTypeInfo->GetNames(vardesc->memid, &bstrName, 1, &cNames);
         if (FAILED(hr)) {
-            pTypeInfo->ReleaseVarDesc(pVarDesc);
             continue;
         }
 
         if (cNames == 0) {
-            pTypeInfo->ReleaseVarDesc(pVarDesc);
             continue;
         }
 
-        if (pVarDesc->varkind == VAR_CONST) {
-            auto desc = TYPEDESCtoString(pTypeInfo, &pVarDesc->elemdescVar.tdesc);
-        }
+        if (vardesc->varkind == VAR_CONST) {
+            // what about properties?
+            auto desc = TYPEDESCtoString(pTypeInfo, &vardesc->elemdescVar.tdesc);
 
-        pTypeInfo->ReleaseVarDesc(pVarDesc);
+            CComVariant vtValue;
+            hr = vtValue.ChangeType(VT_BSTR, vardesc->lpvarValue);
+            if (FAILED(hr)) {
+                if (vardesc->lpvarValue->vt == VT_ERROR || vardesc->lpvarValue->vt == VT_HRESULT) {
+                    vtValue.bstrVal = CComBSTR(GetScodeString(vardesc->lpvarValue->scode));
+                } else {
+                    continue;
+                }
+            }
+
+            auto strEscaped = Escape(CString(vtValue));
+
+            CString strName(bstrName);
+            CString strValue;
+            if (V_VT(vardesc->lpvarValue) == VT_BSTR) {
+                strValue.Format(_T("const %s %s = \"%s\""),
+                                static_cast<LPCTSTR>(desc),
+                                static_cast<LPCTSTR>(strName),
+                                static_cast<LPCTSTR>(strEscaped));
+            } else {
+                strValue.Format(_T("const %s %s = %s"),
+                                static_cast<LPCTSTR>(desc),
+                                static_cast<LPCTSTR>(strName),
+                                static_cast<LPCTSTR>(strEscaped));
+            }
+
+            InsertItem(strValue, 10, 0, item.m_hTreeItem, pTypeInfo, vardesc->memid);
+        }
     }
 }
 
 void TypeLibTree::ConstructChildren(const CTreeItem& item)
 {
-    auto pTypeInfo = reinterpret_cast<LPTYPEINFO>(item.GetData());
-    if (pTypeInfo == nullptr) {
+    auto pNode = reinterpret_cast<LPTYPEINFONODE>(item.GetData());
+    if (pNode == nullptr || pNode->pTypeInfo == nullptr) {
         return;
     }
 
-    TYPEATTR* pAttr = nullptr;
-    auto hr = pTypeInfo->GetTypeAttr(&pAttr);
+    CComPtr<ITypeInfo> pTypeInfo(pNode->pTypeInfo);
+
+    AutoTypeAttr attr(pTypeInfo);
+    auto hr = attr.Get();
     if (FAILED(hr)) {
         return;
     }
 
-    AddFunctions(item, pTypeInfo, pAttr);
-    AddImplTypes(item, pTypeInfo, pAttr);
-    AddVars(item, pTypeInfo, pAttr);
+    if (pNode->memberID == MEMBERID_NIL) {
+        AddFunctions(item, pTypeInfo, static_cast<LPTYPEATTR>(attr));
+        AddImplTypes(item, pTypeInfo, static_cast<LPTYPEATTR>(attr));
+        AddVars(item, pTypeInfo, static_cast<LPTYPEATTR>(attr));
+    }
+}
 
-    pTypeInfo->ReleaseTypeAttr(pAttr);
+HTREEITEM TypeLibTree::InsertItem(LPCTSTR lpszName, int nImage, int nChildren, HTREEITEM hParent, LPTYPEINFO pTypeInfo,
+                                  MEMBERID memberID)
+{
+    auto* pNode = new TypeInfoNode(pTypeInfo, memberID);
+    return InsertItem(lpszName, nImage, nImage, nChildren, hParent, TVI_LAST, pNode);
 }
 
 HTREEITEM TypeLibTree::InsertItem(LPCTSTR lpszItem, int nImage, int nSelectedImage, int nChildren, HTREEITEM hParent,
@@ -335,8 +372,8 @@ LRESULT TypeLibTree::OnItemExpanding(LPNMHDR pnmh)
 
     const auto item = MAKE_TREEITEM(pnmh, this);
 
-    auto pTypeInfo = reinterpret_cast<LPTYPEINFO>(item.GetData());
-    if (pTypeInfo == nullptr) {
+    auto pNode = reinterpret_cast<LPTYPEINFONODE>(item.GetData());
+    if (pNode == nullptr) {
         return 0;
     }
 
@@ -361,10 +398,9 @@ LRESULT TypeLibTree::OnDelete(LPNMHDR pnmh)
 {
     const auto item = MAKE_OLDTREEITEM(pnmh, this);
 
-    auto* pTypeInfo = reinterpret_cast<LPTYPEINFO>(item.GetData());
-    if (pTypeInfo != nullptr) {
-        (void)pTypeInfo->Release();
-    }
+    auto* pNode = reinterpret_cast<LPTYPEINFONODE>(item.GetData());
+
+    delete pNode;
 
     return 0;
 }

@@ -265,6 +265,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="aboutdlg.cpp" />
+    <ClCompile Include="autotypeattr.cpp" />
     <ClCompile Include="comalloc.cpp" />
     <ClCompile Include="comdetailview.cpp" />
     <ClCompile Include="comexplore.cpp">
@@ -283,6 +284,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="typeinfonode.cpp" />
     <ClCompile Include="typelibtree.cpp" />
     <ClCompile Include="typelibview.cpp" />
     <ClCompile Include="util.cpp" />
@@ -292,6 +294,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="aboutdlg.h" />
+    <ClInclude Include="autodesc.h" />
+    <ClInclude Include="autotypeattr.h" />
     <ClInclude Include="coallocator.h" />
     <ClInclude Include="comalloc.h" />
     <ClInclude Include="comtreeview.h" />
@@ -303,6 +307,7 @@
     <ClInclude Include="regview.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="typeinfonode.h" />
     <ClInclude Include="typelibtree.h" />
     <ClInclude Include="typelibview.h" />
     <ClInclude Include="util.h" />
@@ -315,7 +320,6 @@
     <Image Include="res\dispatch.ico" />
     <Image Include="res\enum.ico" />
     <Image Include="res\function.ico" />
-    <Image Include="res\icon4.ico" />
     <Image Include="res\interface.ico" />
     <Image Include="res\interface_grp.ico" />
     <Image Include="res\module.ico" />
@@ -327,6 +331,7 @@
     <Image Include="res\typelib.ico" />
     <Image Include="res\typelib_grp.ico" />
     <Image Include="res\union.ico" />
+    <Image Include="res\variable.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

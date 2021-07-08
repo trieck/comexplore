@@ -25,8 +25,11 @@ private:
     HTREEITEM InsertItem(LPCTSTR lpszItem, int nImage, int nSelectedImage,
                          int nChildren, HTREEITEM hParent, HTREEITEM hInsertAfter,
                          LPVOID = nullptr);
-    HTREEITEM AddTypeInfo(HTREEITEM hParent, LPTYPEINFO pTypeInfo, TYPEKIND kind);
+    HTREEITEM InsertItem(LPCTSTR lpszName, int nImage, int nChildren, HTREEITEM hParent, 
+        LPTYPEINFO pTypeInfo, MEMBERID memberID = MEMBERID_NIL);
+
     void BuildTypeInfo(HTREEITEM hParent);
+    HTREEITEM AddTypeInfo(HTREEITEM hParent, LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr);
     void AddFunctions(const CTreeItem& item, LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr);
     void AddImplTypes(const CTreeItem& item, LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr);
     void AddVars(const CTreeItem& item, LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr);

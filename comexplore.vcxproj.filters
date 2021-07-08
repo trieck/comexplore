@@ -51,6 +51,12 @@
     <ClCompile Include="util.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="autotypeattr.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="typeinfonode.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="aboutdlg.h">
@@ -96,6 +102,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="util.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="autodesc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="autotypeattr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="typeinfonode.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -151,10 +166,10 @@
     <Image Include="res\alias.ico">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="res\icon4.ico">
+    <Image Include="res\function.ico">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="res\function.ico">
+    <Image Include="res\variable.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
