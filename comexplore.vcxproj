@@ -273,6 +273,7 @@
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <ClCompile Include="comtreeview.cpp" />
+    <ClCompile Include="idlview.cpp" />
     <ClCompile Include="mainfrm.cpp" />
     <ClCompile Include="objdata.cpp" />
     <ClCompile Include="regview.cpp" />
@@ -302,6 +303,7 @@
     <ClInclude Include="common.h" />
     <ClInclude Include="coobject.h" />
     <ClInclude Include="comdetailview.h" />
+    <ClInclude Include="idlview.h" />
     <ClInclude Include="mainfrm.h" />
     <ClInclude Include="objdata.h" />
     <ClInclude Include="regview.h" />
@@ -331,7 +333,7 @@
     <Image Include="res\typelib.ico" />
     <Image Include="res\typelib_grp.ico" />
     <Image Include="res\union.ico" />
-    <Image Include="res\variable.ico" />
+    <Image Include="res\constant.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

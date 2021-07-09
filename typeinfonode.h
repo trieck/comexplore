@@ -6,6 +6,6 @@ typedef struct TypeInfoNode
     TypeInfoNode(LPTYPEINFO pTypeInfo, MEMBERID memberID = MEMBERID_NIL);
     ~TypeInfoNode();
 
-    LPTYPEINFO pTypeInfo;
+    CComPtr<ITypeInfo> pTypeInfo;
     MEMBERID memberID;
 }* LPTYPEINFONODE;

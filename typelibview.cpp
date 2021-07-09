@@ -11,14 +11,29 @@ LRESULT TypeLibView::OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHa
 
     if (!m_tree.Create(*this, rcDefault, nullptr,
                        WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | TVS_HASLINES |
-                       TVS_LINESATROOT | TVS_SHOWSELALWAYS, WS_EX_CLIENTEDGE, 0U, pcs->lpCreateParams)) {
+                       TVS_LINESATROOT | TVS_SHOWSELALWAYS, 0, 0U, pcs->lpCreateParams)) {
+        return -1;
+    }
+
+    if (!m_idlView.Create(*this, rcDefault, nullptr, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN)) {
         return -1;
     }
 
     auto bResult = CSplitterWindow::OnCreate(uMsg, wParam, lParam, bHandled);
 
     SetSplitterPane(SPLIT_PANE_LEFT, m_tree);
+    SetSplitterPane(SPLIT_PANE_RIGHT, m_idlView);
     SetSplitterPosPct(50);
 
     return bResult;
+}
+
+LRESULT TypeLibView::OnTVSelChanged(LPNMHDR pnmhdr)
+{
+    if (pnmhdr != nullptr && pnmhdr->hwndFrom == m_tree) {
+        auto item = CTreeItem(reinterpret_cast<LPNMTREEVIEW>(pnmhdr)->itemNew.hItem, &m_tree);
+        m_idlView.SendMessage(WM_SELCHANGED, 0, item.GetData());
+    }
+
+    return 0;
 }

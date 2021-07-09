@@ -9,14 +9,13 @@ TypeInfoNode::TypeInfoNode()
 TypeInfoNode::TypeInfoNode(LPTYPEINFO pTypeInfo, MEMBERID memberID)
     : pTypeInfo(pTypeInfo), memberID(memberID)
 {
-    pTypeInfo->AddRef();
 }
 
 TypeInfoNode::~TypeInfoNode()
 {
     if (pTypeInfo != nullptr) {
-        auto* p = pTypeInfo;
-        auto result = pTypeInfo->Release();
-        ATLTRACE("(0x%p) ITypeInfo::Release() == %d.\n", p, result);
+        auto* p = pTypeInfo.Detach();
+        auto result = p->Release();
+        ATLTRACE("(0x%p) ITypeInfo::Release() == %d.\n", p, result);        
     }
 }

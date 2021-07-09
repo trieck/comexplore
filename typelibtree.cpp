@@ -27,7 +27,8 @@ LRESULT TypeLibTree::OnCreate(LPCREATESTRUCT pcs)
         IDI_MODULE,
         IDI_ALIAS,
         IDI_FUNCTION,
-        IDI_VARIABLE
+        IDI_CONSTANT,
+        IDI_PROPERTY
     };
 
     m_ImageList = ImageList_Create(16, 16, ILC_MASK | ILC_COLOR32, sizeof(icons) / sizeof(int), 0);
@@ -279,8 +280,8 @@ void TypeLibTree::AddVars(const CTreeItem& item, LPTYPEINFO pTypeInfo, LPTYPEATT
             continue;
         }
 
+        CString strValue;
         if (vardesc->varkind == VAR_CONST) {
-            // what about properties?
             auto desc = TYPEDESCtoString(pTypeInfo, &vardesc->elemdescVar.tdesc);
 
             CComVariant vtValue;
@@ -296,7 +297,6 @@ void TypeLibTree::AddVars(const CTreeItem& item, LPTYPEINFO pTypeInfo, LPTYPEATT
             auto strEscaped = Escape(CString(vtValue));
 
             CString strName(bstrName);
-            CString strValue;
             if (V_VT(vardesc->lpvarValue) == VT_BSTR) {
                 strValue.Format(_T("const %s %s = \"%s\""),
                                 static_cast<LPCTSTR>(desc),
@@ -310,6 +310,35 @@ void TypeLibTree::AddVars(const CTreeItem& item, LPTYPEINFO pTypeInfo, LPTYPEATT
             }
 
             InsertItem(strValue, 10, 0, item.m_hTreeItem, pTypeInfo, vardesc->memid);
+
+        } else if (pAttr->typekind == TKIND_RECORD || pAttr->typekind == TKIND_UNION) {
+            static TCHAR szNameless[] = _T("(nameless)");
+
+            if ((vardesc->elemdescVar.tdesc.vt & 0x0FFF) == VT_CARRAY) {
+                strValue.Format(
+                    _T("%s "), static_cast<LPCTSTR>(TYPEDESCtoString(
+                        pTypeInfo, &vardesc->elemdescVar.tdesc.lpadesc->tdescElem)));
+                if (bstrName.Length() > 0) {
+                    strValue += bstrName;
+                } else {
+                    strValue += szNameless;
+                }
+
+                CString str;
+                for (auto n = 0u; n < vardesc->elemdescVar.tdesc.lpadesc->cDims; n++) {
+                    str.Format(_T("[%d]"), vardesc->elemdescVar.tdesc.lpadesc->rgbounds[n].cElements);
+                    strValue += str;
+                }
+            } else {
+                strValue.Format(
+                    _T("%s "), static_cast<LPCTSTR>(TYPEDESCtoString(pTypeInfo, &vardesc->elemdescVar.tdesc)));
+                if (bstrName.Length() > 0) {
+                    strValue += bstrName;
+                } else {
+                    strValue += szNameless;
+                }
+            }
+            InsertItem(strValue, 11, 0, item.m_hTreeItem, pTypeInfo, vardesc->memid);
         }
     }
 }
@@ -388,6 +417,18 @@ LRESULT TypeLibTree::OnItemExpanding(LPNMHDR pnmh)
     }
 
     ConstructChildren(item);
+
+    child = item.GetChild();
+    if (child.IsNull()) {
+        // no children
+        TVITEM tvitem = {};
+        tvitem.hItem = item.m_hTreeItem;
+        tvitem.mask = TVIF_CHILDREN;
+        GetItem(&tvitem);
+        tvitem.cChildren = 0;
+        SetItem(&tvitem);
+        return 0;
+    }
 
     SortChildren(item.m_hTreeItem);
 

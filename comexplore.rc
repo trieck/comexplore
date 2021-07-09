@@ -128,7 +128,9 @@ IDI_ALIAS               ICON                    "res\\alias.ico"
 
 IDI_FUNCTION            ICON                    "res\\function.ico"
 
-IDI_VARIABLE            ICON                    "res\\variable.ico"
+IDI_CONSTANT            ICON                    "res\\constant.ico"
+
+IDI_PROPERTY            ICON                    "res\\property.ico"
 
 
 /////////////////////////////////////////////////////////////////////////////

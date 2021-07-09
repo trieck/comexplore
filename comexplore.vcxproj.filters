@@ -57,6 +57,9 @@
     <ClCompile Include="typeinfonode.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="idlview.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="aboutdlg.h">
@@ -111,6 +114,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="typeinfonode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="idlview.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -169,7 +175,7 @@
     <Image Include="res\function.ico">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="res\variable.ico">
+    <Image Include="res\constant.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
