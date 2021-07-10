@@ -178,10 +178,16 @@
     <Image Include="res\constant.ico">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="res\property.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="comexplore.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>

@@ -22,6 +22,7 @@
 #include <atlctrlx.h>
 #include <atlsplit.h>
 #include <atltypes.h>
+#include <atlscrl.h>
 
 extern CAppModule _Module;
 

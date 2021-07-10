@@ -1,23 +1,44 @@
 #include "stdafx.h"
 #include "idlview.h"
-
-
 #include "autotypeattr.h"
 #include "typeinfonode.h"
+
+void IDLView::DoPaint(CDCHandle dc)
+{
+    if (m_memDC && m_bitmap) {
+        auto hOldBitmap = m_memDC.SelectBitmap(m_bitmap);
+
+        CRect rc;
+        dc.GetClipBox(&rc);
+
+        dc.BitBlt(rc.left, rc.top,
+                  rc.Width(), rc.Height(), m_memDC,
+                  rc.left, rc.top, SRCCOPY);
+
+        m_memDC.SelectBitmap(hOldBitmap);
+    }
+}
 
 LRESULT IDLView::OnCreate(LPCREATESTRUCT pcs)
 {
     auto lRet = DefWindowProc();
 
-    if (m_font.m_hFont != nullptr) {
+    if (m_font) {
         m_font.DeleteObject();
+    }
+
+    m_pStream.Release();
+    m_memDC.DeleteDC();
+    if (m_bitmap) {
+        m_bitmap.DeleteObject();
     }
 
     if (!m_font.CreatePointFont(100, _T("Cascadia Mono"))) {
         return -1;
     }
 
-    SetFont(m_font);
+    SetScrollOffset(0, 0, FALSE);
+    SetScrollSize({ 1, 1 });
 
     return lRet;
 }
@@ -36,30 +57,36 @@ LRESULT IDLView::OnSelChanged(UINT, WPARAM, LPARAM lParam, BOOL& bHandled)
 void IDLView::Update(LPTYPEINFONODE pNode)
 {
     m_pStream.Release();
-
-    SetWindowText(_T(""));
-
-    if (pNode == nullptr || pNode->pTypeInfo == nullptr) {
-        return;
+    m_memDC.DeleteDC();
+    if (m_bitmap) {
+        m_bitmap.DeleteObject();
     }
 
-    m_pStream = SHCreateMemStream(nullptr, 0);
-    if (m_pStream == nullptr) {
-        return;
+    SetScrollOffset(0, 0, FALSE);
+    SetScrollSize({ 1, 1 });
+
+    if (pNode != nullptr && pNode->pTypeInfo != nullptr) {
+        m_pStream = SHCreateMemStream(nullptr, 0);
+        
+        Decompile(pNode);
+
+        WriteStream();
     }
 
-    Decompile(pNode);
-
-    FlushStream();
+    Invalidate();
 }
 
-BOOL IDLView::FlushStream()
+BOOL IDLView::WriteStream()
 {
     ATLASSERT(m_pStream != nullptr);
 
     STATSTG statstg;
     auto hr = m_pStream->Stat(&statstg, STATFLAG_NONAME);
     if (FAILED(hr)) {
+        return FALSE;
+    }
+
+    if (statstg.cbSize.LowPart == 0) {
         return FALSE;
     }
 
@@ -81,9 +108,37 @@ BOOL IDLView::FlushStream()
     buffer[uRead / sizeof(TCHAR)] = _T('\0');
     strText.ReleaseBuffer();
 
-    SetWindowText(strText);
-
     m_pStream.Release();
+
+    CClientDC dc(*this);
+    if (!m_memDC.CreateCompatibleDC(dc)) {
+        return FALSE;
+    }
+
+    m_memDC.SetMapMode(dc.GetMapMode());
+    auto hOldFont = m_memDC.SelectFont(m_font);
+
+    CRect rc;
+    m_memDC.DrawText(strText, -1, &rc, DT_CALCRECT);
+
+    if (!m_bitmap.CreateCompatibleBitmap(dc, rc.Width(), rc.Height())) {
+        return FALSE;
+    }
+
+    auto hOldBitmap = m_memDC.SelectBitmap(m_bitmap);
+
+    auto clrWindow = GetSysColor(COLOR_WINDOW);
+    auto clrText = RGB(0, 128, 0);
+
+    m_memDC.FillSolidRect(rc, clrWindow);
+    m_memDC.SetBkColor(clrWindow);
+    m_memDC.SetTextColor(clrText);
+    m_memDC.DrawText(strText, -1, &rc, 0);
+    m_memDC.SelectBitmap(hOldBitmap);
+    m_memDC.SelectFont(hOldFont);
+
+    SetScrollOffset(0, 0, FALSE);
+    SetScrollSize(CSize(rc.Width(), rc.Height()));
 
     return TRUE;
 }

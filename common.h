@@ -282,3 +282,13 @@ constexpr auto REG_BUFFER_SIZE = 1024;
     CTreeItem(((LPNMTREEVIEW)(n))->itemNew.hItem, t)
 #define MAKE_OLDTREEITEM(n, t) \
     CTreeItem(((LPNMTREEVIEW)(n))->itemOld.hItem, t)
+
+#define MSG_WM_PAINT2(func) \
+	if (uMsg == WM_PAINT) \
+	{ \
+		this->SetMsgHandled(TRUE); \
+		func(CPaintDC(*this)); \
+		lResult = 0; \
+		if(this->IsMsgHandled()) \
+			return TRUE; \
+	}

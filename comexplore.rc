@@ -212,12 +212,13 @@ VS_VERSION_INFO VERSIONINFO
 BEGIN
     BLOCK "StringFileInfo"
     BEGIN
-        BLOCK "040904B0"
+        BLOCK "040904b0"
         BEGIN
-            VALUE "FileDescription", "test1 Module"
+            VALUE "CompanyName", "Rieck Enterprises"
+            VALUE "FileDescription", "COM Explorer"
             VALUE "FileVersion", "1, 0, 0, 1"
-            VALUE "InternalName", "TEST1"
-            VALUE "LegalCopyright", "Copyright 2003"
+            VALUE "InternalName", "comexplore"
+            VALUE "LegalCopyright", "Copyright 2003-2021 Rieck Enterprises"
             VALUE "OriginalFilename", "comexplore.exe"
             VALUE "ProductName", "comexplore Module"
             VALUE "ProductVersion", "1, 0, 0, 1"
