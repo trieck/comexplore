@@ -119,6 +119,9 @@
     <ClInclude Include="idlview.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="autobstrarray.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\comexplore.ico">

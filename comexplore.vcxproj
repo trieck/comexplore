@@ -295,6 +295,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="aboutdlg.h" />
+    <ClInclude Include="autobstrarray.h" />
     <ClInclude Include="autodesc.h" />
     <ClInclude Include="autotypeattr.h" />
     <ClInclude Include="coallocator.h" />

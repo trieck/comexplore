@@ -17,8 +17,13 @@ BEGIN_MSG_MAP(IDLView)
 private:
     void Decompile(LPTYPEINFONODE pNode);
     void DecompileCoClass(LPTYPEINFONODE pNode, LPTYPEATTR pAttr);
+    void DecompileFunc(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, MEMBERID memID, int level = 0);
+    void DecompileInterface(LPTYPEINFONODE pNode, LPTYPEATTR pAttr);
+    void DecompileDispatch(LPTYPEINFONODE pNode, LPTYPEATTR pAttr);
     void Update(LPTYPEINFONODE pNode);
+    void WriteAttributes(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr);
     BOOL Write(LPCTSTR format, ...);
+    BOOL WriteIndent(int level = 1);
     BOOL WriteStream();
 
     CComPtr<IStream> m_pStream;
@@ -26,3 +31,4 @@ private:
     CDC m_memDC;
     CBitmap m_bitmap;
 };
+

@@ -210,6 +210,12 @@ void TypeLibTree::AddFunctions(const CTreeItem& item, LPTYPEINFO pTypeInfo, LPTY
             continue;
         }
 
+        if (funcdesc->wFuncFlags & (FUNCFLAG_FHIDDEN | FUNCFLAG_FNONBROWSABLE | FUNCFLAG_FRESTRICTED)) {
+            if (pAttr->guid != IID_IUnknown && pAttr->guid != IID_IDispatch) {
+                continue;
+            }
+        }
+
         UINT cNames;
         CComBSTR bstrName;
         hr = pTypeInfo->GetNames(funcdesc->memid, &bstrName, 1, &cNames);
@@ -221,7 +227,7 @@ void TypeLibTree::AddFunctions(const CTreeItem& item, LPTYPEINFO pTypeInfo, LPTY
             continue;
         }
 
-        InsertItem(bstrName, 9, 0, item.m_hTreeItem, pTypeInfo, funcdesc->memid);
+        InsertItem(bstrName, 9, 0, item.m_hTreeItem, pTypeInfo, i);
     }
 }
 
