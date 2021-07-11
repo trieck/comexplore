@@ -315,7 +315,7 @@ void TypeLibTree::AddVars(const CTreeItem& item, LPTYPEINFO pTypeInfo, LPTYPEATT
                                 static_cast<LPCTSTR>(strEscaped));
             }
 
-            InsertItem(strValue, 10, 0, item.m_hTreeItem, pTypeInfo, vardesc->memid);
+            InsertItem(strValue, 10, 0, item.m_hTreeItem, pTypeInfo, i);
 
         } else if (pAttr->typekind == TKIND_RECORD || pAttr->typekind == TKIND_UNION) {
             static TCHAR szNameless[] = _T("(nameless)");
@@ -344,7 +344,7 @@ void TypeLibTree::AddVars(const CTreeItem& item, LPTYPEINFO pTypeInfo, LPTYPEATT
                     strValue += szNameless;
                 }
             }
-            InsertItem(strValue, 11, 0, item.m_hTreeItem, pTypeInfo, vardesc->memid);
+            InsertItem(strValue, 11, 0, item.m_hTreeItem, pTypeInfo, i);
         }
     }
 }
@@ -356,7 +356,11 @@ void TypeLibTree::ConstructChildren(const CTreeItem& item)
         return;
     }
 
-    CComPtr<ITypeInfo> pTypeInfo(pNode->pTypeInfo);
+    if (pNode->memberID != MEMBERID_NIL) {
+        return;
+    }
+
+    auto pTypeInfo(pNode->pTypeInfo);
 
     AutoTypeAttr attr(pTypeInfo);
     auto hr = attr.Get();
@@ -364,11 +368,9 @@ void TypeLibTree::ConstructChildren(const CTreeItem& item)
         return;
     }
 
-    if (pNode->memberID == MEMBERID_NIL) {
-        AddFunctions(item, pTypeInfo, static_cast<LPTYPEATTR>(attr));
-        AddImplTypes(item, pTypeInfo, static_cast<LPTYPEATTR>(attr));
-        AddVars(item, pTypeInfo, static_cast<LPTYPEATTR>(attr));
-    }
+    AddFunctions(item, pTypeInfo, static_cast<LPTYPEATTR>(attr));
+    AddImplTypes(item, pTypeInfo, static_cast<LPTYPEATTR>(attr));
+    AddVars(item, pTypeInfo, static_cast<LPTYPEATTR>(attr));
 }
 
 HTREEITEM TypeLibTree::InsertItem(LPCTSTR lpszName, int nImage, int nChildren, HTREEITEM hParent, LPTYPEINFO pTypeInfo,

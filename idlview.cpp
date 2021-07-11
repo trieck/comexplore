@@ -82,14 +82,19 @@ void IDLView::Update(LPTYPEINFONODE pNode)
 
 void IDLView::WriteAttributes(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr)
 {
-    Write(_T("[\n"));
+    ATLASSERT(pTypeInfo != nullptr);
+    ATLASSERT(pAttr != nullptr);
 
-    CString strGUID;
-    StringFromGUID2(pAttr->guid, strGUID.GetBuffer(40), 40);
-    Write(_T("  uuid(%.36s)"), static_cast<LPCTSTR>(strGUID) + 1);
+    auto fAttributes = FALSE;
+
+    if (pAttr->guid != GUID_NULL) {
+        CString strGUID;
+        StringFromGUID2(pAttr->guid, strGUID.GetBuffer(40), 40);
+        WriteAttr(fAttributes, TRUE, _T("  uuid(%.36s)"), static_cast<LPCTSTR>(strGUID) + 1);
+    }
 
     if (pAttr->wMajorVerNum || pAttr->wMinorVerNum) {
-        Write(_T(",\n  version(%d.%d)"), pAttr->wMajorVerNum, pAttr->wMinorVerNum);
+        WriteAttr(fAttributes, TRUE, _T("  version(%d.%d)"), pAttr->wMajorVerNum, pAttr->wMinorVerNum);
     }
 
     CComBSTR bstrDoc;
@@ -97,42 +102,48 @@ void IDLView::WriteAttributes(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr)
 
     pTypeInfo->GetDocumentation(MEMBERID_NIL, nullptr, &bstrDoc, &dwHelpID, nullptr);
     if (bstrDoc.Length()) {
-        Write(_T(",\n  helpstring(\"%s\")"), CString(bstrDoc));
+        WriteAttr(fAttributes, TRUE, _T("  helpstring(\"%s\")"), CString(bstrDoc));
     }
 
     if (dwHelpID > 0) {
-        Write(_T(",\n  helpcontext(%#08.8x)"), dwHelpID);
+        WriteAttr(fAttributes, TRUE, _T("  helpcontext(%#08.8x)"), dwHelpID);
     }
 
     if (pAttr->wTypeFlags & TYPEFLAG_FAPPOBJECT) {
-        Write(_T(",\n  appobject"));
+        WriteAttr(fAttributes, TRUE, _T("  appobject"));
     }
 
     if (pAttr->wTypeFlags & TYPEFLAG_FCONTROL) {
-        Write(_T(",\n  control"));
+        WriteAttr(fAttributes, TRUE, _T("  control"));
     }
 
     if (pAttr->wTypeFlags & TYPEFLAG_FDUAL) {
-        Write(_T(",\n  dual"));
+        WriteAttr(fAttributes, TRUE, _T("  dual"));
     }
 
     if (pAttr->wTypeFlags & TYPEFLAG_FHIDDEN) {
-        Write(_T(",\n  hidden"));
+        WriteAttr(fAttributes, TRUE, _T("  hidden"));
     }
 
     if (pAttr->wTypeFlags & TYPEFLAG_FLICENSED) {
-        Write(_T(",\n  licensed"));
+        WriteAttr(fAttributes, TRUE, _T("  licensed"));
+    }
+
+    if (pAttr->typekind == TKIND_COCLASS && !(pAttr->wTypeFlags & TYPEFLAG_FCANCREATE)) {
+        WriteAttr(fAttributes, TRUE, _T("  noncreatable"));
     }
 
     if (pAttr->wTypeFlags & TYPEFLAG_FNONEXTENSIBLE) {
-        Write(_T(",\n  nonextensible"));
+        WriteAttr(fAttributes, TRUE, _T("  nonextensible"));
     }
 
     if (pAttr->wTypeFlags & TYPEFLAG_FOLEAUTOMATION) {
-        Write(_T(",\n  oleautomation"));
+        WriteAttr(fAttributes, TRUE, _T("  oleautomation"));
     }
 
-    Write(_T("\n]\n"));
+    if (fAttributes) {
+        Write(_T("\n]\n"));
+    }
 }
 
 BOOL IDLView::WriteStream()
@@ -202,20 +213,53 @@ BOOL IDLView::WriteStream()
     return TRUE;
 }
 
-BOOL IDLView::Write(LPCTSTR format, ...)
+BOOL IDLView::WriteV(LPCTSTR format, va_list args)
 {
     ATLASSERT(m_pStream != nullptr && format != nullptr);
 
     CString strValue;
-
-    va_list argList;
-    va_start(argList, format);
-    strValue.FormatV(format, argList);
-    va_end(argList);
+    strValue.FormatV(format, args);
 
     auto hr = m_pStream->Write(strValue, strValue.GetLength() * sizeof(TCHAR), nullptr);
 
     return SUCCEEDED(hr);
+}
+
+BOOL IDLView::Write(LPCTSTR format, ...)
+{
+    va_list argList;
+    va_start(argList, format);
+    auto result = WriteV(format, argList);
+    va_end(argList);
+
+    return result;
+}
+
+BOOL IDLView::WriteAttr(BOOL& hasAttributes, BOOL bNewLine, LPCTSTR format, ...)
+{
+    auto result = TRUE;
+    if (!hasAttributes) {
+        result &= Write(_T("["));
+        if (bNewLine) {
+            result &= Write(_T("\n"));
+        }
+        hasAttributes = TRUE;
+    } else {
+        result &= Write(_T(","));
+
+        if (bNewLine) {
+            result &= Write(_T("\n"));
+        } else {
+            result &= Write(_T(" "));
+        }
+    }
+
+    va_list argList;
+    va_start(argList, format);
+    result &= WriteV(format, argList);
+    va_end(argList);
+
+    return result;
 }
 
 BOOL IDLView::WriteIndent(int level)
@@ -240,18 +284,53 @@ void IDLView::Decompile(LPTYPEINFONODE pNode)
     }
 
     switch (attr->typekind) {
-    case TKIND_INTERFACE:
-        DecompileInterface(pNode, static_cast<LPTYPEATTR>(attr));
-        break;
-    case TKIND_DISPATCH:
-        DecompileDispatch(pNode, static_cast<LPTYPEATTR>(attr));
+    case TKIND_ALIAS:
         break;
     case TKIND_COCLASS:
         DecompileCoClass(pNode, static_cast<LPTYPEATTR>(attr));
         break;
+    case TKIND_DISPATCH:
+        DecompileDispatch(pNode, static_cast<LPTYPEATTR>(attr));
+        break;
+    case TKIND_ENUM:
+        break;
+    case TKIND_INTERFACE:
+        DecompileInterface(pNode, static_cast<LPTYPEATTR>(attr));
+        break;
+    case TKIND_RECORD:
+        DecompileRecord(pNode, static_cast<LPTYPEATTR>(attr));
+        break;
+    case TKIND_UNION:
+        break;
     default:
         break;
     }
+}
+
+void IDLView::DecompileRecord(LPTYPEINFONODE pNode, LPTYPEATTR pAttr)
+{
+    ATLASSERT(pNode != nullptr && pNode->pTypeInfo != nullptr);
+    ATLASSERT(pAttr != nullptr);
+    ATLASSERT(pAttr->typekind == TKIND_RECORD);
+
+    if (pNode->memberID != MEMBERID_NIL) {
+        DecompileVar(pNode->pTypeInfo, pAttr, pNode->memberID);
+        return;
+    }
+
+    auto pTypeInfo(pNode->pTypeInfo);
+    WriteAttributes(pTypeInfo, pAttr);
+
+    CComBSTR bstrName;
+    pTypeInfo->GetDocumentation(MEMBERID_NIL, &bstrName, nullptr, nullptr, nullptr);
+
+    Write(_T("typedef struct tag%s {\n"), bstrName);
+
+    for (auto i = 0u; i < pAttr->cVars; ++i) {
+        DecompileVar(pNode->pTypeInfo, pAttr, i, 1);
+    }
+
+    Write(_T("} %s;"), bstrName);
 }
 
 void IDLView::DecompileCoClass(LPTYPEINFONODE pNode, LPTYPEATTR pAttr)
@@ -303,29 +382,23 @@ void IDLView::DecompileCoClass(LPTYPEINFONODE pNode, LPTYPEATTR pAttr)
 
         WriteIndent();
 
+        auto fAttributes = FALSE;
         if (impltype) {
-            Write(_T("["));
-            auto fComma = FALSE;
-
             if (impltype & IMPLTYPEFLAG_FDEFAULT) {
-                Write(_T("default"));
-                fComma = TRUE;
+                WriteAttr(fAttributes, FALSE, _T("default"));
             }
 
             if (impltype & IMPLTYPEFLAG_FSOURCE) {
-                if (fComma)
-                    Write(_T(", "));
-                Write(_T("source"));
-                fComma = TRUE;
+                WriteAttr(fAttributes, FALSE, _T("source"));
             }
 
             if (impltype & IMPLTYPEFLAG_FRESTRICTED) {
-                if (fComma)
-                    Write(_T(", "));
-                Write(_T("restricted"));
+                WriteAttr(fAttributes, FALSE, _T("restricted"));
             }
 
-            Write(_T("] "));
+            if (fAttributes) {
+                Write(_T("] "));
+            }
         }
 
         if (attrImpl->typekind == TKIND_INTERFACE) {
@@ -363,97 +436,56 @@ void IDLView::DecompileFunc(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, MEMBERID mem
 
     WriteIndent(level);
 
-    auto fAttributes = FALSE, fAttribute = FALSE;
+    auto fAttributes = FALSE;
 
     if (pAttr->typekind == TKIND_DISPATCH || pAttr->wTypeFlags & TYPEFLAG_FDUAL) {
-        fAttributes = TRUE;
-        fAttribute = TRUE;
-        Write(_T("[id(0x%.8x)"), funcdesc->memid);
+        WriteAttr(fAttributes, FALSE, _T("id(0x%.8x)"), funcdesc->memid);
     } else if (pAttr->typekind == TKIND_MODULE) {
-        fAttributes = TRUE;
-        fAttribute = TRUE;
-        Write(_T("[entry(%d)"), memID);
-    } else if ((funcdesc->invkind > 1) || funcdesc->wFuncFlags || funcdesc->cParamsOpt == -1) {
-        Write(_T("["));
-        fAttributes = TRUE;
+        WriteAttr(fAttributes, FALSE, _T("entry(%d)"), memID);
     }
 
     if (funcdesc->invkind & INVOKE_PROPERTYGET) {
-        if (fAttribute)
-            Write(_T(", "));
-        fAttribute = TRUE;
-        Write(_T("propget"));
+        WriteAttr(fAttributes, FALSE, _T("propget"));
     }
 
     if (funcdesc->invkind & INVOKE_PROPERTYPUT) {
-        if (fAttribute)
-            Write(_T(", "));
-        fAttribute = TRUE;
-        Write(_T("propput"));
+        WriteAttr(fAttributes, FALSE, _T("propput"));
     }
 
     if (funcdesc->invkind & INVOKE_PROPERTYPUTREF) {
-        if (fAttribute)
-            Write(_T(", "));
-        fAttribute = TRUE;
-        Write(_T("propputref"));
+        WriteAttr(fAttributes, FALSE, _T("propputref"));
     }
 
     if (funcdesc->wFuncFlags & FUNCFLAG_FRESTRICTED) {
-        if (fAttribute)
-            Write(_T(", "));
-        fAttribute = TRUE;
-        Write(_T("restricted"));
+        WriteAttr(fAttributes, FALSE, _T("restricted"));
     }
 
     if (funcdesc->wFuncFlags & FUNCFLAG_FSOURCE) {
-        if (fAttribute)
-            Write(_T(", "));
-        fAttribute = TRUE;
-        Write(_T("source"));
+        WriteAttr(fAttributes, FALSE, _T("source"));
     }
 
     if (funcdesc->wFuncFlags & FUNCFLAG_FBINDABLE) {
-        if (fAttribute)
-            Write(_T(", "));
-        fAttribute = TRUE;
-        Write(_T("bindable"));
+        WriteAttr(fAttributes, FALSE, _T("bindable"));
     }
 
     if (funcdesc->wFuncFlags & FUNCFLAG_FREQUESTEDIT) {
-        if (fAttribute)
-            Write(_T(", "));
-        fAttribute = TRUE;
-        Write(_T("requestedit"));
+        WriteAttr(fAttributes, FALSE, _T("requestedit"));
     }
 
     if (funcdesc->wFuncFlags & FUNCFLAG_FDISPLAYBIND) {
-        if (fAttribute)
-            Write(_T(", "));
-        fAttribute = TRUE;
-        Write(_T("displaybind"));
+        WriteAttr(fAttributes, FALSE, _T("displaybind"));
     }
 
     if (funcdesc->wFuncFlags & FUNCFLAG_FDEFAULTBIND) {
-        if (fAttribute)
-            Write(_T(", "));
-        fAttribute = TRUE;
-        Write(_T("defaultbind"));
+        WriteAttr(fAttributes, FALSE, _T("defaultbind"));
     }
 
     if (funcdesc->wFuncFlags & FUNCFLAG_FHIDDEN) {
-        if (fAttribute)
-            Write(_T(", "));
-        fAttribute = TRUE;
-        Write(_T("hidden"));
+        WriteAttr(fAttributes, FALSE, _T("hidden"));
     }
 
     if (funcdesc->cParamsOpt == -1) {
-        // cParamsOpt > 0 indicates VARIANT style
-        if (fAttribute)
-            Write(_T(", "));
-
-        Write(_T("vararg")); // optional params
+        WriteAttr(fAttributes, FALSE, _T("vararg")); // optional params
     }
 
     CComBSTR bstrDoc;
@@ -461,28 +493,12 @@ void IDLView::DecompileFunc(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, MEMBERID mem
     pTypeInfo->GetDocumentation(funcdesc->memid, nullptr, &bstrDoc, &dwHelpID, nullptr);
 
     if (bstrDoc.Length()) {
-        if (!fAttributes) {
-            Write(_T("["));
-            fAttributes = TRUE;
-        }
-        if (fAttribute) {
-            Write(_T(", "));
-        }
-        Write(_T("helpstring(\"%s\")"), CString(bstrDoc));
+        WriteAttr(fAttributes, FALSE, _T("helpstring(\"%s\")"), CString(bstrDoc));
         if (dwHelpID > 0) {
-            Write(_T(", helpcontext(%#08.8x)"), dwHelpID);
+            WriteAttr(fAttributes, FALSE, _T(", helpcontext(%#08.8x)"), dwHelpID);
         }
     } else if (dwHelpID > 0) {
-        if (!fAttributes) {
-            Write(_T("["));
-            fAttributes = TRUE;
-        }
-
-        if (fAttribute) {
-            Write(_T(", "));
-        }
-
-        Write(_T("helpcontext(%#08.8x)"), dwHelpID);
+        WriteAttr(fAttributes, FALSE, _T("helpcontext(%#08.8x)"), dwHelpID);
     }
 
     if (fAttributes) {
@@ -533,50 +549,28 @@ void IDLView::DecompileFunc(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, MEMBERID mem
 
     for (auto i = 0; i < funcdesc->cParams; ++i) {
         fAttributes = FALSE;
-        fAttribute = FALSE;
-
-        if (funcdesc->lprgelemdescParam[i].idldesc.wIDLFlags) {
-            Write(_T("["));
-            fAttributes = TRUE;
-        }
 
         if (funcdesc->lprgelemdescParam[i].idldesc.wIDLFlags & IDLFLAG_FIN) {
-            if (fAttribute)
-                Write(_T(", "));
-            Write(_T("in"));
-            fAttribute = TRUE;
+            WriteAttr(fAttributes, FALSE, _T("in"));
         }
 
         if (funcdesc->lprgelemdescParam[i].idldesc.wIDLFlags & IDLFLAG_FOUT) {
-            if (fAttribute)
-                Write(_T(", "));
-            Write(_T("out"));
-            fAttribute = TRUE;
+            WriteAttr(fAttributes, FALSE, _T("out"));
         }
 
         if (funcdesc->lprgelemdescParam[i].idldesc.wIDLFlags & IDLFLAG_FLCID) {
-            if (fAttribute)
-                Write(_T(", "));
-            Write(_T("lcid"));
-            fAttribute = TRUE;
+            WriteAttr(fAttributes, FALSE, _T("lcid"));
         }
 
         if (funcdesc->lprgelemdescParam[i].idldesc.wIDLFlags & IDLFLAG_FRETVAL) {
-            if (fAttribute)
-                Write(_T(", "));
-            Write(_T("retval"));
-            fAttribute = TRUE;
+            WriteAttr(fAttributes, FALSE, _T("retval"));
         }
 
         // If we have an optional last parameter and we're on the last paramter
         // or we are into the optional parameters...
         if ((funcdesc->cParamsOpt == -1 && i == funcdesc->cParams - 1) ||
             (i > (funcdesc->cParams - funcdesc->cParamsOpt))) {
-            if (fAttribute)
-                Write(_T(", "));
-            if (!fAttributes)
-                Write(_T("["));
-            Write(_T("optional"));
+            WriteAttr(fAttributes, FALSE, _T("optional"));
             fAttributes = TRUE;
         }
 
@@ -593,8 +587,7 @@ void IDLView::DecompileFunc(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, MEMBERID mem
                 Write(_T("[%d]"), funcdesc->lprgelemdescParam[i].tdesc.lpadesc->rgbounds[j].cElements);
             }
         } else {
-            Write(_T("%s %s"),
-                  TYPEDESCtoString(pTypeInfo, &funcdesc->lprgelemdescParam[i].tdesc)
+            Write(_T("%s %s"), TYPEDESCtoString(pTypeInfo, &funcdesc->lprgelemdescParam[i].tdesc)
                   , bstrNames[i + 1]);
         }
 
@@ -605,6 +598,98 @@ void IDLView::DecompileFunc(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, MEMBERID mem
     }
 
     Write(_T(");\n"));
+}
+
+void IDLView::DecompileConst(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, LPVARDESC pVarDesc, int level)
+{
+    ATLASSERT(pTypeInfo != nullptr);
+    ATLASSERT(pAttr != nullptr);
+    ATLASSERT(pVarDesc != nullptr);
+    ATLASSERT(pVarDesc->varkind == VAR_CONST);
+
+    WriteAttributes(pTypeInfo, pAttr);
+}
+
+void IDLView::DecompileVar(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, MEMBERID memID, int level)
+{
+    ATLASSERT(pTypeInfo != nullptr);
+    ATLASSERT(pAttr != nullptr);
+    ATLASSERT(memID != MEMBERID_NIL);
+
+    AutoDesc<VARDESC> vardesc(pTypeInfo);
+    auto hr = vardesc.Get(memID);
+    if (FAILED(hr)) {
+        return;
+    }
+
+    if (vardesc->varkind == VAR_CONST) {
+        DecompileConst(pTypeInfo, pAttr, static_cast<LPVARDESC>(vardesc), level);
+        return;
+    }
+
+    WriteIndent(level);
+
+    auto fAttributes = FALSE;
+
+    if (pAttr->typekind == TKIND_DISPATCH || pAttr->wTypeFlags & TYPEFLAG_FDUAL) {
+        WriteAttr(fAttributes, FALSE, _T("id(0x%.8x)"), vardesc->memid);
+
+        if (vardesc->wVarFlags & VARFLAG_FREADONLY) {
+            WriteAttr(fAttributes, FALSE, _T("readonly"));
+        }
+        if (vardesc->wVarFlags & VARFLAG_FSOURCE) {
+            WriteAttr(fAttributes, FALSE, _T("source"));
+        }
+        if (vardesc->wVarFlags & VARFLAG_FBINDABLE) {
+            WriteAttr(fAttributes, FALSE, _T("bindable"));
+        }
+        if (vardesc->wVarFlags & VARFLAG_FREQUESTEDIT) {
+            WriteAttr(fAttributes, FALSE, _T("requestedit"));
+        }
+        if (vardesc->wVarFlags & VARFLAG_FDISPLAYBIND) {
+            WriteAttr(fAttributes, FALSE, _T("displaybind"));
+        }
+        if (vardesc->wVarFlags & VARFLAG_FDEFAULTBIND) {
+            WriteAttr(fAttributes, FALSE, _T("defaultbind"));
+        }
+        if (vardesc->wVarFlags & VARFLAG_FHIDDEN) {
+            WriteAttr(fAttributes, FALSE, _T("hidden"));
+        }
+    }
+
+    CComBSTR bstrName, bstrDoc;
+    DWORD dwHelpID = 0;
+
+    pTypeInfo->GetDocumentation(vardesc->memid, &bstrName, &bstrDoc, &dwHelpID, nullptr);
+    if (!bstrName.Length()) {
+        bstrName = _T("(nameless)");
+    }
+
+    if (bstrDoc.Length()) {
+        WriteAttr(fAttributes, FALSE, _T("helpstring(\"%s\")"), CString(bstrDoc));
+    }
+
+    if (dwHelpID > 0) {
+        WriteAttr(fAttributes, TRUE, _T("helpcontext(%#08.8x)"), dwHelpID);
+    }
+
+    if (fAttributes) {
+        Write(_T("] "));
+    }
+        
+    if ((vardesc->elemdescVar.tdesc.vt & 0x0FFF) == VT_CARRAY) {
+        Write(_T("%s "), TYPEDESCtoString(pTypeInfo, &vardesc->elemdescVar.tdesc.lpadesc->tdescElem));
+        Write(bstrName);
+
+        for (auto i = 0u; i < vardesc->elemdescVar.tdesc.lpadesc->cDims; ++i) {
+            Write(_T("[%d]"), vardesc->elemdescVar.tdesc.lpadesc->rgbounds[i].cElements);
+        }
+    } else {
+        Write(_T("%s "), TYPEDESCtoString(pTypeInfo, &vardesc->elemdescVar.tdesc));
+        Write(bstrName);
+    }
+
+    Write(_T(";\n"));
 }
 
 void IDLView::DecompileDispatch(LPTYPEINFONODE pNode, LPTYPEATTR pAttr)
@@ -627,7 +712,7 @@ void IDLView::DecompileDispatch(LPTYPEINFONODE pNode, LPTYPEATTR pAttr)
 
     Write(_T("    properties:\n"));
     for (auto i = 0u; i < pAttr->cVars; ++i) {
-        // TODO: DumpVar(pstm, pti, pattr, n, uiIndent + 2);
+        DecompileVar(pTypeInfo, pAttr, i, 2);
     }
 
     Write(_T("    methods:\n"));

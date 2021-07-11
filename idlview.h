@@ -18,11 +18,16 @@ private:
     void Decompile(LPTYPEINFONODE pNode);
     void DecompileCoClass(LPTYPEINFONODE pNode, LPTYPEATTR pAttr);
     void DecompileFunc(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, MEMBERID memID, int level = 0);
+    void DecompileConst(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, LPVARDESC pVarDesc, int level = 0);
+    void DecompileVar(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, MEMBERID memID, int level = 0);
+    void DecompileRecord(LPTYPEINFONODE pNode, LPTYPEATTR pAttr);
     void DecompileInterface(LPTYPEINFONODE pNode, LPTYPEATTR pAttr);
     void DecompileDispatch(LPTYPEINFONODE pNode, LPTYPEATTR pAttr);
     void Update(LPTYPEINFONODE pNode);
     void WriteAttributes(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr);
     BOOL Write(LPCTSTR format, ...);
+    BOOL WriteV(LPCTSTR format, va_list args);
+    BOOL WriteAttr(BOOL& hasAttributes, BOOL bNewLine, LPCTSTR format, ...);
     BOOL WriteIndent(int level = 1);
     BOOL WriteStream();
 
@@ -31,4 +36,5 @@ private:
     CDC m_memDC;
     CBitmap m_bitmap;
 };
+
 

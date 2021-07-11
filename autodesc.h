@@ -11,6 +11,7 @@ public:
     void Release();
 
     T* operator->();
+    explicit operator T*();
 
 private:
     CComPtr<ITypeInfo> m_pTypeInfo;
@@ -33,6 +34,14 @@ AutoDesc<T>::~AutoDesc()
 
 template <typename T>
 T* AutoDesc<T>::operator->()
+{
+    ATLASSERT(m_pDesc != nullptr);
+
+    return m_pDesc;
+}
+
+template <typename T>
+AutoDesc<T>::operator T*()
 {
     ATLASSERT(m_pDesc != nullptr);
 
