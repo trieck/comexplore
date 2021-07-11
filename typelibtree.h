@@ -33,6 +33,7 @@ private:
     void AddFunctions(const CTreeItem& item, LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr);
     void AddImplTypes(const CTreeItem& item, LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr);
     void AddVars(const CTreeItem& item, LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr);
+    void AddAliases(const CTreeItem& item, LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr);
     void ConstructChildren(const CTreeItem& item);
 
     CImageList m_ImageList;

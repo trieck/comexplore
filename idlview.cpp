@@ -80,7 +80,7 @@ void IDLView::Update(LPTYPEINFONODE pNode)
     Invalidate();
 }
 
-void IDLView::WriteAttributes(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr)
+void IDLView::WriteAttributes(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, BOOL fNewLine, MEMBERID memID)
 {
     ATLASSERT(pTypeInfo != nullptr);
     ATLASSERT(pAttr != nullptr);
@@ -90,59 +90,67 @@ void IDLView::WriteAttributes(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr)
     if (pAttr->guid != GUID_NULL) {
         CString strGUID;
         StringFromGUID2(pAttr->guid, strGUID.GetBuffer(40), 40);
-        WriteAttr(fAttributes, TRUE, _T("  uuid(%.36s)"), static_cast<LPCTSTR>(strGUID) + 1);
+        WriteAttr(fAttributes, fNewLine, _T("uuid(%.36s)"), static_cast<LPCTSTR>(strGUID) + 1);
     }
 
     if (pAttr->wMajorVerNum || pAttr->wMinorVerNum) {
-        WriteAttr(fAttributes, TRUE, _T("  version(%d.%d)"), pAttr->wMajorVerNum, pAttr->wMinorVerNum);
+        WriteAttr(fAttributes, fNewLine, _T("version(%d.%d)"), pAttr->wMajorVerNum, pAttr->wMinorVerNum);
     }
 
     CComBSTR bstrDoc;
     DWORD dwHelpID = 0;
 
-    pTypeInfo->GetDocumentation(MEMBERID_NIL, nullptr, &bstrDoc, &dwHelpID, nullptr);
+    pTypeInfo->GetDocumentation(memID, nullptr, &bstrDoc, &dwHelpID, nullptr);
     if (bstrDoc.Length()) {
-        WriteAttr(fAttributes, TRUE, _T("  helpstring(\"%s\")"), CString(bstrDoc));
+        WriteAttr(fAttributes, fNewLine, _T("helpstring(\"%s\")"), CString(bstrDoc));
     }
 
     if (dwHelpID > 0) {
-        WriteAttr(fAttributes, TRUE, _T("  helpcontext(%#08.8x)"), dwHelpID);
+        WriteAttr(fAttributes, fNewLine, _T("helpcontext(%#08.8x)"), dwHelpID);
     }
 
     if (pAttr->wTypeFlags & TYPEFLAG_FAPPOBJECT) {
-        WriteAttr(fAttributes, TRUE, _T("  appobject"));
+        WriteAttr(fAttributes, fNewLine, _T("appobject"));
     }
 
     if (pAttr->wTypeFlags & TYPEFLAG_FCONTROL) {
-        WriteAttr(fAttributes, TRUE, _T("  control"));
+        WriteAttr(fAttributes, fNewLine, _T("control"));
     }
 
     if (pAttr->wTypeFlags & TYPEFLAG_FDUAL) {
-        WriteAttr(fAttributes, TRUE, _T("  dual"));
+        WriteAttr(fAttributes, fNewLine, _T("dual"));
     }
 
     if (pAttr->wTypeFlags & TYPEFLAG_FHIDDEN) {
-        WriteAttr(fAttributes, TRUE, _T("  hidden"));
+        WriteAttr(fAttributes, fNewLine, _T("hidden"));
     }
 
     if (pAttr->wTypeFlags & TYPEFLAG_FLICENSED) {
-        WriteAttr(fAttributes, TRUE, _T("  licensed"));
+        WriteAttr(fAttributes, fNewLine, _T("licensed"));
     }
 
     if (pAttr->typekind == TKIND_COCLASS && !(pAttr->wTypeFlags & TYPEFLAG_FCANCREATE)) {
-        WriteAttr(fAttributes, TRUE, _T("  noncreatable"));
+        WriteAttr(fAttributes, fNewLine, _T("noncreatable"));
     }
 
     if (pAttr->wTypeFlags & TYPEFLAG_FNONEXTENSIBLE) {
-        WriteAttr(fAttributes, TRUE, _T("  nonextensible"));
+        WriteAttr(fAttributes, fNewLine, _T("nonextensible"));
     }
 
     if (pAttr->wTypeFlags & TYPEFLAG_FOLEAUTOMATION) {
-        WriteAttr(fAttributes, TRUE, _T("  oleautomation"));
+        WriteAttr(fAttributes, fNewLine, _T("oleautomation"));
+    }
+
+    if (pAttr->typekind == TKIND_ALIAS) {
+        WriteAttr(fAttributes, fNewLine, _T("public"));
     }
 
     if (fAttributes) {
-        Write(_T("\n]\n"));
+        if (fNewLine) {
+            Write(_T("\n]\n"));
+        } else {
+            Write(_T("] "));
+        }
     }
 }
 
@@ -198,7 +206,7 @@ BOOL IDLView::WriteStream()
     auto hOldBitmap = m_memDC.SelectBitmap(m_bitmap);
 
     auto clrWindow = GetSysColor(COLOR_WINDOW);
-    auto clrText = RGB(0, 80, 128);
+    auto clrText = RGB(0, 0, 128);
 
     m_memDC.FillSolidRect(rc, clrWindow);
     m_memDC.SetBkColor(clrWindow);
@@ -235,23 +243,27 @@ BOOL IDLView::Write(LPCTSTR format, ...)
     return result;
 }
 
-BOOL IDLView::WriteAttr(BOOL& hasAttributes, BOOL bNewLine, LPCTSTR format, ...)
+BOOL IDLView::WriteAttr(BOOL& hasAttributes, BOOL fNewLine, LPCTSTR format, ...)
 {
     auto result = TRUE;
     if (!hasAttributes) {
         result &= Write(_T("["));
-        if (bNewLine) {
+        if (fNewLine) {
             result &= Write(_T("\n"));
         }
         hasAttributes = TRUE;
     } else {
         result &= Write(_T(","));
 
-        if (bNewLine) {
+        if (fNewLine) {
             result &= Write(_T("\n"));
         } else {
             result &= Write(_T(" "));
         }
+    }
+
+    if (fNewLine) {
+        WriteIndent();
     }
 
     va_list argList;
@@ -285,6 +297,7 @@ void IDLView::Decompile(LPTYPEINFONODE pNode)
 
     switch (attr->typekind) {
     case TKIND_ALIAS:
+        DecompileAlias(pNode, static_cast<LPTYPEATTR>(attr));
         break;
     case TKIND_COCLASS:
         DecompileCoClass(pNode, static_cast<LPTYPEATTR>(attr));
@@ -293,6 +306,7 @@ void IDLView::Decompile(LPTYPEINFONODE pNode)
         DecompileDispatch(pNode, static_cast<LPTYPEATTR>(attr));
         break;
     case TKIND_ENUM:
+        DecompileEnum(pNode, static_cast<LPTYPEATTR>(attr));
         break;
     case TKIND_INTERFACE:
         DecompileInterface(pNode, static_cast<LPTYPEATTR>(attr));
@@ -301,10 +315,30 @@ void IDLView::Decompile(LPTYPEINFONODE pNode)
         DecompileRecord(pNode, static_cast<LPTYPEATTR>(attr));
         break;
     case TKIND_UNION:
+        DecompileUnion(pNode, static_cast<LPTYPEATTR>(attr));
         break;
     default:
         break;
     }
+}
+
+void IDLView::DecompileAlias(LPTYPEINFONODE pNode, LPTYPEATTR pAttr)
+{
+    ATLASSERT(pNode != nullptr && pNode->pTypeInfo != nullptr);
+    ATLASSERT(pAttr != nullptr);
+    ATLASSERT(pAttr->typekind == TKIND_ALIAS);
+
+    Write(_T("typedef "));
+
+    auto pTypeInfo(pNode->pTypeInfo);
+    WriteAttributes(pTypeInfo, pAttr, FALSE);
+
+    CComBSTR bstrName;
+    pTypeInfo->GetDocumentation(MEMBERID_NIL, &bstrName, nullptr, nullptr, nullptr);
+
+    auto typeDesc = TYPEDESCtoString(pTypeInfo, &pAttr->tdescAlias);
+
+    Write(_T("%s %s;\n"), typeDesc, bstrName);
 }
 
 void IDLView::DecompileRecord(LPTYPEINFONODE pNode, LPTYPEATTR pAttr)
@@ -319,18 +353,48 @@ void IDLView::DecompileRecord(LPTYPEINFONODE pNode, LPTYPEATTR pAttr)
     }
 
     auto pTypeInfo(pNode->pTypeInfo);
-    WriteAttributes(pTypeInfo, pAttr);
 
     CComBSTR bstrName;
     pTypeInfo->GetDocumentation(MEMBERID_NIL, &bstrName, nullptr, nullptr, nullptr);
 
-    Write(_T("typedef struct tag%s {\n"), bstrName);
+    Write(_T("typedef "));
+    WriteAttributes(pTypeInfo, pAttr, FALSE);
+
+    Write(_T("struct tag%s {\n"), bstrName);
 
     for (auto i = 0u; i < pAttr->cVars; ++i) {
         DecompileVar(pNode->pTypeInfo, pAttr, i, 1);
     }
 
-    Write(_T("} %s;"), bstrName);
+    Write(_T("} %s;\n"), bstrName);
+}
+
+void IDLView::DecompileUnion(LPTYPEINFONODE pNode, LPTYPEATTR pAttr)
+{
+    ATLASSERT(pNode != nullptr && pNode->pTypeInfo != nullptr);
+    ATLASSERT(pAttr != nullptr);
+    ATLASSERT(pAttr->typekind == TKIND_UNION);
+
+    if (pNode->memberID != MEMBERID_NIL) {
+        DecompileVar(pNode->pTypeInfo, pAttr, pNode->memberID);
+        return;
+    }
+
+    auto pTypeInfo(pNode->pTypeInfo);
+
+    CComBSTR bstrName;
+    pTypeInfo->GetDocumentation(MEMBERID_NIL, &bstrName, nullptr, nullptr, nullptr);
+
+    Write(_T("typedef "));
+    WriteAttributes(pTypeInfo, pAttr, FALSE);
+
+    Write(_T("union tag%s {\n"), bstrName);
+
+    for (auto i = 0u; i < pAttr->cVars; ++i) {
+        DecompileVar(pNode->pTypeInfo, pAttr, i, 1);
+    }
+
+    Write(_T("} %s;\n"), bstrName);
 }
 
 void IDLView::DecompileCoClass(LPTYPEINFONODE pNode, LPTYPEATTR pAttr)
@@ -415,6 +479,34 @@ void IDLView::DecompileCoClass(LPTYPEINFONODE pNode, LPTYPEATTR pAttr)
     Write(_T("};\n"));
 }
 
+void IDLView::DecompileEnum(LPTYPEINFONODE pNode, LPTYPEATTR pAttr)
+{
+    ATLASSERT(pNode != nullptr && pNode->pTypeInfo != nullptr);
+    ATLASSERT(pAttr != nullptr);
+    ATLASSERT(pAttr->typekind == TKIND_ENUM);
+
+    if (pNode->memberID != MEMBERID_NIL) {
+        DecompileConst(pNode->pTypeInfo, pAttr, pNode->memberID);
+        return;
+    }
+
+    Write(_T("typedef "));
+
+    auto pTypeInfo(pNode->pTypeInfo);
+    WriteAttributes(pTypeInfo, pAttr, FALSE);
+
+    CComBSTR bstrName;
+    pTypeInfo->GetDocumentation(MEMBERID_NIL, &bstrName, nullptr, nullptr, nullptr);
+
+    Write(_T("enum %s {\n"), bstrName);
+
+    for (auto i = 0u; i < pAttr->cVars; ++i) {
+        DecompileConst(pNode->pTypeInfo, pAttr, i, 1);
+    }
+
+    Write(_T("};\n"));
+}
+
 void IDLView::DecompileFunc(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, MEMBERID memID, int level)
 {
     ATLASSERT(pTypeInfo != nullptr);
@@ -494,10 +586,9 @@ void IDLView::DecompileFunc(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, MEMBERID mem
 
     if (bstrDoc.Length()) {
         WriteAttr(fAttributes, FALSE, _T("helpstring(\"%s\")"), CString(bstrDoc));
-        if (dwHelpID > 0) {
-            WriteAttr(fAttributes, FALSE, _T(", helpcontext(%#08.8x)"), dwHelpID);
-        }
-    } else if (dwHelpID > 0) {
+    }
+
+    if (dwHelpID > 0) {
         WriteAttr(fAttributes, FALSE, _T("helpcontext(%#08.8x)"), dwHelpID);
     }
 
@@ -600,14 +691,70 @@ void IDLView::DecompileFunc(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, MEMBERID mem
     Write(_T(");\n"));
 }
 
-void IDLView::DecompileConst(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, LPVARDESC pVarDesc, int level)
+void IDLView::DecompileConst(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, MEMBERID memID, int level)
 {
     ATLASSERT(pTypeInfo != nullptr);
     ATLASSERT(pAttr != nullptr);
-    ATLASSERT(pVarDesc != nullptr);
-    ATLASSERT(pVarDesc->varkind == VAR_CONST);
 
-    WriteAttributes(pTypeInfo, pAttr);
+    AutoDesc<VARDESC> vardesc(pTypeInfo);
+    auto hr = vardesc.Get(memID);
+    if (FAILED(hr)) {
+        return;
+    }
+
+    ATLASSERT(vardesc->varkind == VAR_CONST);
+
+    WriteIndent(level);
+
+    auto fAttributes = FALSE;
+
+    if (pAttr->typekind == TKIND_MODULE) {
+        WriteAttr(fAttributes, FALSE, _T("entry(%d)"), vardesc->memid);
+    }
+
+    CComBSTR bstrName, bstrDoc;
+    DWORD dwHelpID = 0;
+    pTypeInfo->GetDocumentation(vardesc->memid, &bstrName, &bstrDoc, &dwHelpID, nullptr);
+
+    if (bstrDoc.Length()) {
+        WriteAttr(fAttributes, FALSE, _T("helpstring(\"%s\")"), CString(bstrDoc));
+    }
+
+    if (dwHelpID > 0) {
+        WriteAttr(fAttributes, TRUE, _T("helpcontext(%#08.8x)"), dwHelpID);
+    }
+
+    if (fAttributes) {
+        Write(_T("] "));
+    }
+
+    auto typeDesc = TYPEDESCtoString(pTypeInfo, &vardesc->elemdescVar.tdesc);
+
+    CComVariant vtValue;
+    hr = vtValue.ChangeType(VT_BSTR, vardesc->lpvarValue);
+    if (FAILED(hr)) {
+        if (vardesc->lpvarValue->vt == VT_ERROR || vardesc->lpvarValue->vt == VT_HRESULT) {
+            vtValue.bstrVal = CComBSTR(GetScodeString(vardesc->lpvarValue->scode));
+        }
+    }
+
+    auto strEscaped = Escape(CString(vtValue));
+
+    CString strValue;
+    CString strName(bstrName);
+    if (V_VT(vardesc->lpvarValue) == VT_BSTR) {
+        strValue.Format(_T("const %s %s = \"%s\";\n"),
+                        static_cast<LPCTSTR>(typeDesc),
+                        static_cast<LPCTSTR>(strName),
+                        static_cast<LPCTSTR>(strEscaped));
+    } else {
+        strValue.Format(_T("const %s %s = %s;\n"),
+                        static_cast<LPCTSTR>(typeDesc),
+                        static_cast<LPCTSTR>(strName),
+                        static_cast<LPCTSTR>(strEscaped));
+    }
+
+    Write(strValue);
 }
 
 void IDLView::DecompileVar(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, MEMBERID memID, int level)
@@ -622,10 +769,7 @@ void IDLView::DecompileVar(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, MEMBERID memI
         return;
     }
 
-    if (vardesc->varkind == VAR_CONST) {
-        DecompileConst(pTypeInfo, pAttr, static_cast<LPVARDESC>(vardesc), level);
-        return;
-    }
+    ATLASSERT(vardesc->varkind != VAR_CONST);
 
     WriteIndent(level);
 
@@ -676,7 +820,7 @@ void IDLView::DecompileVar(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, MEMBERID memI
     if (fAttributes) {
         Write(_T("] "));
     }
-        
+
     if ((vardesc->elemdescVar.tdesc.vt & 0x0FFF) == VT_CARRAY) {
         Write(_T("%s "), TYPEDESCtoString(pTypeInfo, &vardesc->elemdescVar.tdesc.lpadesc->tdescElem));
         Write(bstrName);

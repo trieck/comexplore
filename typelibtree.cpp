@@ -349,6 +349,28 @@ void TypeLibTree::AddVars(const CTreeItem& item, LPTYPEINFO pTypeInfo, LPTYPEATT
     }
 }
 
+void TypeLibTree::AddAliases(const CTreeItem& item, LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr)
+{
+    ATLASSERT(pTypeInfo != nullptr);
+    ATLASSERT(pAttr != nullptr);
+
+    if (pAttr->typekind == TKIND_ALIAS && pAttr->tdescAlias.vt == VT_USERDEFINED) {
+        CComPtr<ITypeInfo> pRefTypeInfo = nullptr;
+        auto hr = pTypeInfo->GetRefTypeInfo(pAttr->tdescAlias.hreftype, &pRefTypeInfo);
+        if (FAILED(hr)) {
+            return;
+        }
+
+        AutoTypeAttr attr2(pRefTypeInfo);
+        hr = attr2.Get();
+        if (FAILED(hr)) {
+            return;
+        }
+
+        AddTypeInfo(item.m_hTreeItem, pRefTypeInfo, static_cast<LPTYPEATTR>(attr2));
+    }
+}
+
 void TypeLibTree::ConstructChildren(const CTreeItem& item)
 {
     auto pNode = reinterpret_cast<LPTYPEINFONODE>(item.GetData());
@@ -371,6 +393,7 @@ void TypeLibTree::ConstructChildren(const CTreeItem& item)
     AddFunctions(item, pTypeInfo, static_cast<LPTYPEATTR>(attr));
     AddImplTypes(item, pTypeInfo, static_cast<LPTYPEATTR>(attr));
     AddVars(item, pTypeInfo, static_cast<LPTYPEATTR>(attr));
+    AddAliases(item, pTypeInfo, static_cast<LPTYPEATTR>(attr));
 }
 
 HTREEITEM TypeLibTree::InsertItem(LPCTSTR lpszName, int nImage, int nChildren, HTREEITEM hParent, LPTYPEINFO pTypeInfo,
