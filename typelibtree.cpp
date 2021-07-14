@@ -4,7 +4,6 @@
 #include "autodesc.h"
 #include "autotypeattr.h"
 #include "resource.h"
-#include "typeinfonode.h"
 #include "TypeLibTree.h"
 #include "util.h"
 
@@ -114,48 +113,57 @@ HTREEITEM TypeLibTree::AddTypeInfo(HTREEITEM hParent, LPTYPEINFO pTypeInfo, LPTY
     }
 
     CString strName(bstrName), strTitle;
+    TypeInfoType type;
 
     int nImage;
     switch (pAttr->typekind) {
     case TKIND_COCLASS:
         strTitle.Format(_T("coclass %s"), static_cast<LPCTSTR>(strName));
         nImage = 1;
+        type = TypeInfoType::T_COCLASS;
         break;
     case TKIND_INTERFACE:
         strTitle.Format(_T("interface %s"), static_cast<LPCTSTR>(strName));
         nImage = 2;
+        type = TypeInfoType::T_INTERFACE;
         break;
     case TKIND_DISPATCH:
         strTitle.Format(_T("dispinterface %s"), static_cast<LPCTSTR>(strName));
         nImage = 3;
+        type = TypeInfoType::T_DISPATCH;
         break;
     case TKIND_RECORD:
         strTitle.Format(_T("typedef struct %s"), static_cast<LPCTSTR>(strName));
         nImage = 4;
+        type = TypeInfoType::T_RECORD;
         break;
     case TKIND_ENUM:
         strTitle.Format(_T("typedef enum %s"), static_cast<LPCTSTR>(strName));
         nImage = 5;
+        type = TypeInfoType::T_ENUM;
         break;
     case TKIND_UNION:
         strTitle.Format(_T("typedef union %s"), static_cast<LPCTSTR>(strName));
         nImage = 6;
+        type = TypeInfoType::T_UNION;
         break;
     case TKIND_MODULE:
         strTitle.Format(_T("module %s"), static_cast<LPCTSTR>(strName));
         nImage = 7;
+        type = TypeInfoType::T_MODULE;
         break;
     case TKIND_ALIAS:
         strTitle.Format(_T("typedef %s %s"),
                         static_cast<LPCTSTR>(TYPEDESCtoString(pTypeInfo, &pAttr->tdescAlias)),
                         static_cast<LPCTSTR>(strName));
         nImage = 8;
+        type = TypeInfoType::T_ALIAS;
         break;
     default:
         return nullptr;
     }
 
-    return InsertItem(strTitle, nImage, 1, hParent, pTypeInfo, MEMBERID_NIL);
+    return InsertItem(strTitle, nImage, 1, hParent, type, pTypeInfo, MEMBERID_NIL);
 }
 
 void TypeLibTree::BuildTypeInfo(HTREEITEM hParent)
@@ -227,7 +235,7 @@ void TypeLibTree::AddFunctions(const CTreeItem& item, LPTYPEINFO pTypeInfo, LPTY
             continue;
         }
 
-        InsertItem(bstrName, 9, 0, item.m_hTreeItem, pTypeInfo, i);
+        InsertItem(bstrName, 9, 0, item.m_hTreeItem, TypeInfoType::T_FUNCTION, pTypeInfo, i);
     }
 }
 
@@ -315,7 +323,7 @@ void TypeLibTree::AddVars(const CTreeItem& item, LPTYPEINFO pTypeInfo, LPTYPEATT
                                 static_cast<LPCTSTR>(strEscaped));
             }
 
-            InsertItem(strValue, 10, 0, item.m_hTreeItem, pTypeInfo, i);
+            InsertItem(strValue, 10, 0, item.m_hTreeItem, TypeInfoType::T_CONST, pTypeInfo, i);
 
         } else if (pAttr->typekind == TKIND_RECORD || pAttr->typekind == TKIND_UNION) {
             static TCHAR szNameless[] = _T("(nameless)");
@@ -344,7 +352,7 @@ void TypeLibTree::AddVars(const CTreeItem& item, LPTYPEINFO pTypeInfo, LPTYPEATT
                     strValue += szNameless;
                 }
             }
-            InsertItem(strValue, 11, 0, item.m_hTreeItem, pTypeInfo, i);
+            InsertItem(strValue, 11, 0, item.m_hTreeItem, TypeInfoType::T_VAR, pTypeInfo, i);
         }
     }
 }
@@ -396,10 +404,11 @@ void TypeLibTree::ConstructChildren(const CTreeItem& item)
     AddAliases(item, pTypeInfo, static_cast<LPTYPEATTR>(attr));
 }
 
-HTREEITEM TypeLibTree::InsertItem(LPCTSTR lpszName, int nImage, int nChildren, HTREEITEM hParent, LPTYPEINFO pTypeInfo,
+HTREEITEM TypeLibTree::InsertItem(LPCTSTR lpszName, int nImage, int nChildren, HTREEITEM hParent, TypeInfoType type,
+                                  LPTYPEINFO pTypeInfo,
                                   MEMBERID memberID)
 {
-    auto* pNode = new TypeInfoNode(pTypeInfo, memberID);
+    auto* pNode = new TypeInfoNode(type, pTypeInfo, memberID);
     return InsertItem(lpszName, nImage, nImage, nChildren, hParent, TVI_LAST, pNode);
 }
 
@@ -475,4 +484,21 @@ LRESULT TypeLibTree::OnDelete(LPNMHDR pnmh)
     delete pNode;
 
     return 0;
+}
+
+HRESULT TypeLibTree::GetTypeLib(ITypeLib** pTypeLib)
+{
+    if (pTypeLib == nullptr) {
+        return E_POINTER;
+    }
+
+    if (m_pTypeLib == nullptr) {
+        return E_FAIL;
+    }
+
+    *pTypeLib = m_pTypeLib;
+
+    (*pTypeLib)->AddRef();
+
+    return S_OK;
 }

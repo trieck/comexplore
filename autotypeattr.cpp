@@ -42,3 +42,45 @@ AutoTypeAttr::operator LPTYPEATTR()
 
     return m_pTypeAttr;
 }
+
+AutoTypeLibAttr::AutoTypeLibAttr(LPTYPELIB pTypeLib)
+    : m_pTypeLib(pTypeLib), m_pTypeLibAttr(nullptr)
+{
+}
+
+AutoTypeLibAttr::~AutoTypeLibAttr()
+{
+    Release();
+    m_pTypeLib.Release();
+}
+
+HRESULT AutoTypeLibAttr::Get()
+{
+    Release();
+
+    auto hr = m_pTypeLib->GetLibAttr(&m_pTypeLibAttr);
+
+    return hr;
+}
+
+void AutoTypeLibAttr::Release()
+{
+    if (m_pTypeLibAttr != nullptr) {
+        m_pTypeLib->ReleaseTLibAttr(m_pTypeLibAttr);
+        m_pTypeLibAttr = nullptr;
+    }
+}
+
+LPTLIBATTR AutoTypeLibAttr::operator->()
+{
+    ATLASSERT(m_pTypeLibAttr != nullptr);
+
+    return m_pTypeLibAttr;
+}
+
+AutoTypeLibAttr::operator LPTLIBATTR()
+{
+    ATLASSERT(m_pTypeLibAttr != nullptr);
+
+    return m_pTypeLibAttr;
+}

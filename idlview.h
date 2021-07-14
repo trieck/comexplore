@@ -16,27 +16,31 @@ BEGIN_MSG_MAP(IDLView)
 
 private:
     // Main selectors
-    void Decompile(LPTYPEINFONODE pNode);
-    void DecompileAlias(LPTYPEINFONODE pNode, LPTYPEATTR pAttr);
-    void DecompileCoClass(LPTYPEINFONODE pNode, LPTYPEATTR pAttr);
-    void DecompileDispatch(LPTYPEINFONODE pNode, LPTYPEATTR pAttr);
-    void DecompileEnum(LPTYPEINFONODE pNode, LPTYPEATTR pAttr);
-    void DecompileInterface(LPTYPEINFONODE pNode, LPTYPEATTR pAttr);
-    void DecompileRecord(LPTYPEINFONODE pNode, LPTYPEATTR pAttr);
-    void DecompileUnion(LPTYPEINFONODE pNode, LPTYPEATTR pAttr);
+    void Decompile(LPTYPELIB pTypeLib);
+    void Decompile(LPTYPEINFONODE pNode, int level);
+    void Decompile(LPTYPEINFO pTypeInfo, int level);
+    void DecompileAlias(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, int level);
+    void DecompileCoClass(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, int level);
+    void DecompileDispatch(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, int level);
+    void DecompileEnum(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, int level);
+    void DecompileInterface(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, int level);
+    void DecompileModule(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, int level);
+    void DecompileRecord(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, int level);
+    void DecompileUnion(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, int level);
 
-    // Ancillary selectors
-    void DecompileFunc(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, MEMBERID memID, int level = 0);
-    void DecompileConst(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, MEMBERID memID, int level = 0);
-    void DecompileVar(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, MEMBERID memID, int level = 0);
+    void DecompileFunc(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, MEMBERID memID, int level);
+    void DecompileConst(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, MEMBERID memID, int level);
+    void DecompileVar(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, MEMBERID memID, int level);
 
     // Helpers
-    void Update(LPTYPEINFONODE pNode);
-    void WriteAttributes(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, BOOL fNewLine = TRUE, MEMBERID memID = MEMBERID_NIL);
+    void Update(LPTYPELIB pTypeLib, LPTYPEINFONODE pNode);
+    void WriteAttributes(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, BOOL fNewLine,
+                         MEMBERID memID, int level);
     BOOL Write(LPCTSTR format, ...);
+    BOOL WriteLevel(int level, LPCTSTR format, ...);
     BOOL WriteV(LPCTSTR format, va_list args);
-    BOOL WriteAttr(BOOL& hasAttributes, BOOL fNewLine, LPCTSTR format, ...);
-    BOOL WriteIndent(int level = 1);
+    BOOL WriteAttr(BOOL& hasAttributes, BOOL fNewLine, int level, LPCTSTR format, ...);
+    BOOL WriteIndent(int level);
     BOOL WriteStream();
 
     CComPtr<IStream> m_pStream;

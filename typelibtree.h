@@ -1,5 +1,7 @@
 #pragma once
 
+#include "typeinfonode.h"
+
 class TypeLibTree : public CWindowImpl<TypeLibTree, CTreeViewCtrlEx>
 {
 public:
@@ -18,15 +20,15 @@ BEGIN_MSG_MAP_EX(TypeLibTree)
     void OnDestroy();
     LRESULT OnItemExpanding(LPNMHDR pnmh);
     LRESULT OnDelete(LPNMHDR pnmh);
-
+    HRESULT GetTypeLib(ITypeLib** pTypeLib);
 private:
     BOOL BuildView();
     BOOL BuildView(LPOBJECTDATA pdata);
     HTREEITEM InsertItem(LPCTSTR lpszItem, int nImage, int nSelectedImage,
                          int nChildren, HTREEITEM hParent, HTREEITEM hInsertAfter,
                          LPVOID = nullptr);
-    HTREEITEM InsertItem(LPCTSTR lpszName, int nImage, int nChildren, HTREEITEM hParent, 
-        LPTYPEINFO pTypeInfo, MEMBERID memberID = MEMBERID_NIL);
+    HTREEITEM InsertItem(LPCTSTR lpszName, int nImage, int nChildren, HTREEITEM hParent,
+                         TypeInfoType type, LPTYPEINFO pTypeInfo, MEMBERID memberID = MEMBERID_NIL);
 
     void BuildTypeInfo(HTREEITEM hParent);
     HTREEITEM AddTypeInfo(HTREEITEM hParent, LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr);

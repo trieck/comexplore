@@ -32,7 +32,14 @@ LRESULT TypeLibView::OnTVSelChanged(LPNMHDR pnmhdr)
 {
     if (pnmhdr != nullptr && pnmhdr->hwndFrom == m_tree) {
         auto item = CTreeItem(reinterpret_cast<LPNMTREEVIEW>(pnmhdr)->itemNew.hItem, &m_tree);
-        m_idlView.SendMessage(WM_SELCHANGED, 0, item.GetData());
+
+        CComPtr<ITypeLib> pTypeLib;
+        auto hr = m_tree.GetTypeLib(&pTypeLib);
+        if (FAILED(hr)) {
+            return 0;
+        }
+
+        m_idlView.SendMessage(WM_SELCHANGED, reinterpret_cast<WPARAM>(pTypeLib.p), item.GetData());
     }
 
     return 0;

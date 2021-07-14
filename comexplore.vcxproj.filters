@@ -51,13 +51,13 @@
     <ClCompile Include="util.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="autotypeattr.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="typeinfonode.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="idlview.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="autotypeattr.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

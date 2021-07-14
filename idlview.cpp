@@ -49,19 +49,25 @@ LRESULT IDLView::OnCreate(LPCREATESTRUCT /*pcs*/)
     return lRet;
 }
 
-LRESULT IDLView::OnSelChanged(UINT, WPARAM, LPARAM lParam, BOOL& bHandled)
+LRESULT IDLView::OnSelChanged(UINT, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
+    CComPtr<ITypeLib> pTypeLib(reinterpret_cast<ITypeLib*>(wParam));
+
     auto pNode = reinterpret_cast<LPTYPEINFONODE>(lParam);
 
-    Update(pNode);
+    Update(pTypeLib, pNode);
 
     bHandled = TRUE;
 
     return 0;
 }
 
-void IDLView::Update(LPTYPEINFONODE pNode)
+void IDLView::Update(LPTYPELIB pTypeLib, LPTYPEINFONODE pNode)
 {
+    ATLASSERT(pTypeLib != nullptr);
+
+    CWaitCursor cursor;
+
     m_pStream.Release();
     m_memDC.DeleteDC();
     if (m_bitmap) {
@@ -71,16 +77,20 @@ void IDLView::Update(LPTYPEINFONODE pNode)
     SetScrollOffset(0, 0, FALSE);
     SetScrollSize({ 1, 1 });
 
+    m_pStream = SHCreateMemStream(nullptr, 0);
+
     if (pNode != nullptr && pNode->pTypeInfo != nullptr) {
-        m_pStream = SHCreateMemStream(nullptr, 0);
-        Decompile(pNode);
-        WriteStream();
+        Decompile(pNode, 0);
+    } else {
+        Decompile(pTypeLib);
     }
+
+    WriteStream();
 
     Invalidate();
 }
 
-void IDLView::WriteAttributes(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, BOOL fNewLine, MEMBERID memID)
+void IDLView::WriteAttributes(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, BOOL fNewLine, MEMBERID memID, int level)
 {
     ATLASSERT(pTypeInfo != nullptr);
     ATLASSERT(pAttr != nullptr);
@@ -90,11 +100,11 @@ void IDLView::WriteAttributes(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, BOOL fNewL
     if (pAttr->guid != GUID_NULL) {
         CString strGUID;
         StringFromGUID2(pAttr->guid, strGUID.GetBuffer(40), 40);
-        WriteAttr(fAttributes, fNewLine, _T("uuid(%.36s)"), static_cast<LPCTSTR>(strGUID) + 1);
+        WriteAttr(fAttributes, fNewLine, level, _T("uuid(%.36s)"), static_cast<LPCTSTR>(strGUID) + 1);
     }
 
     if (pAttr->wMajorVerNum || pAttr->wMinorVerNum) {
-        WriteAttr(fAttributes, fNewLine, _T("version(%d.%d)"), pAttr->wMajorVerNum, pAttr->wMinorVerNum);
+        WriteAttr(fAttributes, fNewLine, level, _T("version(%d.%d)"), pAttr->wMajorVerNum, pAttr->wMinorVerNum);
     }
 
     CComBSTR bstrDoc;
@@ -102,52 +112,63 @@ void IDLView::WriteAttributes(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, BOOL fNewL
 
     pTypeInfo->GetDocumentation(memID, nullptr, &bstrDoc, &dwHelpID, nullptr);
     if (bstrDoc.Length()) {
-        WriteAttr(fAttributes, fNewLine, _T("helpstring(\"%s\")"), CString(bstrDoc));
+        WriteAttr(fAttributes, fNewLine, level, _T("helpstring(\"%s\")"), CString(bstrDoc));
     }
 
     if (dwHelpID > 0) {
-        WriteAttr(fAttributes, fNewLine, _T("helpcontext(%#08.8x)"), dwHelpID);
+        WriteAttr(fAttributes, fNewLine, level, _T("helpcontext(%#08.8x)"), dwHelpID);
     }
 
     if (pAttr->wTypeFlags & TYPEFLAG_FAPPOBJECT) {
-        WriteAttr(fAttributes, fNewLine, _T("appobject"));
+        WriteAttr(fAttributes, fNewLine, level, _T("appobject"));
     }
 
     if (pAttr->wTypeFlags & TYPEFLAG_FCONTROL) {
-        WriteAttr(fAttributes, fNewLine, _T("control"));
+        WriteAttr(fAttributes, fNewLine, level, _T("control"));
     }
 
     if (pAttr->wTypeFlags & TYPEFLAG_FDUAL) {
-        WriteAttr(fAttributes, fNewLine, _T("dual"));
+        WriteAttr(fAttributes, fNewLine, level, _T("dual"));
     }
 
     if (pAttr->wTypeFlags & TYPEFLAG_FHIDDEN) {
-        WriteAttr(fAttributes, fNewLine, _T("hidden"));
+        WriteAttr(fAttributes, fNewLine, level, _T("hidden"));
     }
 
     if (pAttr->wTypeFlags & TYPEFLAG_FLICENSED) {
-        WriteAttr(fAttributes, fNewLine, _T("licensed"));
+        WriteAttr(fAttributes, fNewLine, level, _T("licensed"));
     }
 
     if (pAttr->typekind == TKIND_COCLASS && !(pAttr->wTypeFlags & TYPEFLAG_FCANCREATE)) {
-        WriteAttr(fAttributes, fNewLine, _T("noncreatable"));
+        WriteAttr(fAttributes, fNewLine, level, _T("noncreatable"));
     }
 
     if (pAttr->wTypeFlags & TYPEFLAG_FNONEXTENSIBLE) {
-        WriteAttr(fAttributes, fNewLine, _T("nonextensible"));
+        WriteAttr(fAttributes, fNewLine, level, _T("nonextensible"));
     }
 
     if (pAttr->wTypeFlags & TYPEFLAG_FOLEAUTOMATION) {
-        WriteAttr(fAttributes, fNewLine, _T("oleautomation"));
+        WriteAttr(fAttributes, fNewLine, level, _T("oleautomation"));
     }
 
     if (pAttr->typekind == TKIND_ALIAS) {
-        WriteAttr(fAttributes, fNewLine, _T("public"));
+        WriteAttr(fAttributes, fNewLine, level, _T("public"));
+    }
+
+    if (pAttr->typekind == TKIND_MODULE) {
+        CComBSTR bstrName;
+        auto hr = pTypeInfo->GetDllEntry(MEMBERID_NIL, INVOKE_FUNC, &bstrName, nullptr, nullptr);
+        if (FAILED(hr) || bstrName.Length() == 0) {
+            bstrName = _T("<no entry points>");
+        }
+
+        WriteAttr(fAttributes, fNewLine, level, _T("dllname(\"%s\")"), bstrName);
     }
 
     if (fAttributes) {
         if (fNewLine) {
-            Write(_T("\n]\n"));
+            Write(_T("\n"));
+            WriteLevel(level, _T("]\n"));
         } else {
             Write(_T("] "));
         }
@@ -243,13 +264,26 @@ BOOL IDLView::Write(LPCTSTR format, ...)
     return result;
 }
 
-BOOL IDLView::WriteAttr(BOOL& hasAttributes, BOOL fNewLine, LPCTSTR format, ...)
+BOOL IDLView::WriteLevel(int level, LPCTSTR format, ...)
+{
+    auto result = WriteIndent(level);
+
+    va_list argList;
+    va_start(argList, format);
+    result &= WriteV(format, argList);
+    va_end(argList);
+
+    return result;
+}
+
+BOOL IDLView::WriteAttr(BOOL& hasAttributes, BOOL fNewLine, int level, LPCTSTR format, ...)
 {
     auto result = TRUE;
     if (!hasAttributes) {
-        result &= Write(_T("["));
         if (fNewLine) {
-            result &= Write(_T("\n"));
+            result &= WriteLevel(level, _T("[\n"));
+        } else {
+            result &= WriteLevel(level, _T("["));
         }
         hasAttributes = TRUE;
     } else {
@@ -263,7 +297,7 @@ BOOL IDLView::WriteAttr(BOOL& hasAttributes, BOOL fNewLine, LPCTSTR format, ...)
     }
 
     if (fNewLine) {
-        WriteIndent();
+        result &= WriteIndent(level + 1);
     }
 
     va_list argList;
@@ -285,11 +319,129 @@ BOOL IDLView::WriteIndent(int level)
     return result;
 }
 
-void IDLView::Decompile(LPTYPEINFONODE pNode)
+void IDLView::Decompile(LPTYPELIB pTypeLib)
 {
-    ATLASSERT(pNode != nullptr && pNode->pTypeInfo != nullptr);
+    ATLASSERT(pTypeLib != nullptr);
 
-    AutoTypeAttr attr(pNode->pTypeInfo);
+    AutoTypeLibAttr attr(pTypeLib);
+    auto hr = attr.Get();
+    if (FAILED(hr)) {
+        return;
+    }
+
+    Write(_T("// Generated .IDL file (by COM Explorer)\n"));
+    Write(_T("//\n"));
+    Write(_T("// typelib filename: "));
+
+    CComBSTR bstrFileName;
+    hr = QueryPathOfRegTypeLib(attr->guid, attr->wMajorVerNum, attr->wMinorVerNum, attr->lcid,
+                               &bstrFileName);
+    if (FAILED(hr)) {
+        bstrFileName = _T("<Unable to determine filename>");
+    }
+
+    Write(_T("%s\n"), bstrFileName);
+
+    auto fAttributes = FALSE;
+
+    if (attr->guid != GUID_NULL) {
+        CString strGUID;
+        StringFromGUID2(attr->guid, strGUID.GetBuffer(40), 40);
+        WriteAttr(fAttributes, TRUE, 0, _T("uuid(%.36s)"), static_cast<LPCTSTR>(strGUID) + 1);
+    }
+
+    if (attr->wMajorVerNum || attr->wMinorVerNum) {
+        WriteAttr(fAttributes, TRUE, 0, _T("version(%d.%d)"), attr->wMajorVerNum, attr->wMinorVerNum);
+    }
+
+    CComBSTR bstrName, bstrDoc, bstrHelp;
+    DWORD dwHelpID = 0;
+
+    pTypeLib->GetDocumentation(MEMBERID_NIL, &bstrName, &bstrDoc, &dwHelpID, &bstrHelp);
+    if (bstrDoc.Length()) {
+        WriteAttr(fAttributes, TRUE, 0, _T("helpstring(\"%s\")"), CString(bstrDoc));
+    }
+
+    if (bstrHelp.Length()) {
+        WriteAttr(fAttributes, TRUE, 0,_T("helpfile(\"%s\")"), bstrHelp);
+        WriteAttr(fAttributes, TRUE, 0,_T("helpcontext(%#08.8x)"), dwHelpID);
+    }
+
+    if (fAttributes) {
+        Write(_T("\n]\n"));
+    }
+
+    Write(_T("library %s\n{\n"), bstrName);
+
+    for (auto i = 0u; i < pTypeLib->GetTypeInfoCount(); ++i) {
+        CComPtr<ITypeInfo> pTypeInfo;
+        hr = pTypeLib->GetTypeInfo(i, &pTypeInfo);
+        if (FAILED(hr)) {
+            continue;
+        }
+
+        Decompile(pTypeInfo, 1);
+    }
+
+    Write(_T("};\n"));
+}
+
+void IDLView::Decompile(LPTYPEINFONODE pNode, int level)
+{
+    ATLASSERT(pNode != nullptr);
+    ATLASSERT(pNode->pTypeInfo != nullptr);
+
+    auto pTypeInfo(pNode->pTypeInfo);
+    AutoTypeAttr attr(pTypeInfo);
+    auto hr = attr.Get();
+    if (FAILED(hr)) {
+        return;
+    }
+
+    switch (pNode->type) {
+    case TypeInfoType::T_ENUM:
+        DecompileEnum(pTypeInfo, static_cast<LPTYPEATTR>(attr), level);
+        break;
+    case TypeInfoType::T_RECORD:
+        DecompileRecord(pTypeInfo, static_cast<LPTYPEATTR>(attr), level);
+        break;
+    case TypeInfoType::T_MODULE:
+        DecompileModule(pTypeInfo, static_cast<LPTYPEATTR>(attr), level);
+        break;
+    case TypeInfoType::T_INTERFACE:
+        DecompileInterface(pTypeInfo, static_cast<LPTYPEATTR>(attr), level);
+        break;
+    case TypeInfoType::T_DISPATCH:
+        DecompileDispatch(pTypeInfo, static_cast<LPTYPEATTR>(attr), level);
+        break;
+    case TypeInfoType::T_COCLASS:
+        DecompileCoClass(pTypeInfo, static_cast<LPTYPEATTR>(attr), level);
+        break;
+    case TypeInfoType::T_ALIAS:
+        DecompileAlias(pTypeInfo, static_cast<LPTYPEATTR>(attr), level);
+        break;
+    case TypeInfoType::T_UNION:
+        DecompileUnion(pTypeInfo, static_cast<LPTYPEATTR>(attr), level);
+        break;
+    case TypeInfoType::T_FUNCTION:
+        DecompileFunc(pTypeInfo, static_cast<LPTYPEATTR>(attr), pNode->memberID, level);
+        break;
+    case TypeInfoType::T_VAR:
+        DecompileVar(pTypeInfo, static_cast<LPTYPEATTR>(attr), pNode->memberID, level);
+        break;
+    case TypeInfoType::T_CONST:
+        DecompileConst(pTypeInfo, static_cast<LPTYPEATTR>(attr), pNode->memberID, level);
+        break;
+    default:
+        break;
+    }
+}
+
+void IDLView::Decompile(LPTYPEINFO pTypeInfo, int level)
+{
+    ATLASSERT(pTypeInfo != nullptr);
+
+    AutoTypeAttr attr(pTypeInfo);
     auto hr = attr.Get();
     if (FAILED(hr)) {
         return;
@@ -297,41 +449,42 @@ void IDLView::Decompile(LPTYPEINFONODE pNode)
 
     switch (attr->typekind) {
     case TKIND_ALIAS:
-        DecompileAlias(pNode, static_cast<LPTYPEATTR>(attr));
+        DecompileAlias(pTypeInfo, static_cast<LPTYPEATTR>(attr), level);
         break;
     case TKIND_COCLASS:
-        DecompileCoClass(pNode, static_cast<LPTYPEATTR>(attr));
+        DecompileCoClass(pTypeInfo, static_cast<LPTYPEATTR>(attr), level);
         break;
     case TKIND_DISPATCH:
-        DecompileDispatch(pNode, static_cast<LPTYPEATTR>(attr));
+        DecompileDispatch(pTypeInfo, static_cast<LPTYPEATTR>(attr), level);
         break;
     case TKIND_ENUM:
-        DecompileEnum(pNode, static_cast<LPTYPEATTR>(attr));
+        DecompileEnum(pTypeInfo, static_cast<LPTYPEATTR>(attr), level);
         break;
     case TKIND_INTERFACE:
-        DecompileInterface(pNode, static_cast<LPTYPEATTR>(attr));
+        DecompileInterface(pTypeInfo, static_cast<LPTYPEATTR>(attr), level);
+        break;
+    case TKIND_MODULE:
+        DecompileModule(pTypeInfo, static_cast<LPTYPEATTR>(attr), level);
         break;
     case TKIND_RECORD:
-        DecompileRecord(pNode, static_cast<LPTYPEATTR>(attr));
+        DecompileRecord(pTypeInfo, static_cast<LPTYPEATTR>(attr), level);
         break;
     case TKIND_UNION:
-        DecompileUnion(pNode, static_cast<LPTYPEATTR>(attr));
+        DecompileUnion(pTypeInfo, static_cast<LPTYPEATTR>(attr), level);
         break;
     default:
         break;
     }
 }
 
-void IDLView::DecompileAlias(LPTYPEINFONODE pNode, LPTYPEATTR pAttr)
+void IDLView::DecompileAlias(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, int level)
 {
-    ATLASSERT(pNode != nullptr && pNode->pTypeInfo != nullptr);
+    ATLASSERT(pTypeInfo != nullptr);
     ATLASSERT(pAttr != nullptr);
     ATLASSERT(pAttr->typekind == TKIND_ALIAS);
 
-    Write(_T("typedef "));
-
-    auto pTypeInfo(pNode->pTypeInfo);
-    WriteAttributes(pTypeInfo, pAttr, FALSE);
+    WriteLevel(level, _T("typedef "));
+    WriteAttributes(pTypeInfo, pAttr, FALSE, MEMBERID_NIL, 0);
 
     CComBSTR bstrName;
     pTypeInfo->GetDocumentation(MEMBERID_NIL, &bstrName, nullptr, nullptr, nullptr);
@@ -341,75 +494,59 @@ void IDLView::DecompileAlias(LPTYPEINFONODE pNode, LPTYPEATTR pAttr)
     Write(_T("%s %s;\n"), typeDesc, bstrName);
 }
 
-void IDLView::DecompileRecord(LPTYPEINFONODE pNode, LPTYPEATTR pAttr)
+void IDLView::DecompileRecord(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, int level)
 {
-    ATLASSERT(pNode != nullptr && pNode->pTypeInfo != nullptr);
+    ATLASSERT(pTypeInfo != nullptr);
     ATLASSERT(pAttr != nullptr);
     ATLASSERT(pAttr->typekind == TKIND_RECORD);
-
-    if (pNode->memberID != MEMBERID_NIL) {
-        DecompileVar(pNode->pTypeInfo, pAttr, pNode->memberID);
-        return;
-    }
-
-    auto pTypeInfo(pNode->pTypeInfo);
 
     CComBSTR bstrName;
     pTypeInfo->GetDocumentation(MEMBERID_NIL, &bstrName, nullptr, nullptr, nullptr);
 
-    Write(_T("typedef "));
-    WriteAttributes(pTypeInfo, pAttr, FALSE);
+    WriteLevel(level, _T("typedef "));
+    WriteAttributes(pTypeInfo, pAttr, FALSE, MEMBERID_NIL, 0);
 
     Write(_T("struct tag%s {\n"), bstrName);
 
     for (auto i = 0u; i < pAttr->cVars; ++i) {
-        DecompileVar(pNode->pTypeInfo, pAttr, i, 1);
+        DecompileVar(pTypeInfo, pAttr, i, level + 1);
     }
 
-    Write(_T("} %s;\n"), bstrName);
+    WriteLevel(level, _T("} %s;\n"), bstrName);
 }
 
-void IDLView::DecompileUnion(LPTYPEINFONODE pNode, LPTYPEATTR pAttr)
+void IDLView::DecompileUnion(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, int level)
 {
-    ATLASSERT(pNode != nullptr && pNode->pTypeInfo != nullptr);
+    ATLASSERT(pTypeInfo != nullptr);
     ATLASSERT(pAttr != nullptr);
     ATLASSERT(pAttr->typekind == TKIND_UNION);
-
-    if (pNode->memberID != MEMBERID_NIL) {
-        DecompileVar(pNode->pTypeInfo, pAttr, pNode->memberID);
-        return;
-    }
-
-    auto pTypeInfo(pNode->pTypeInfo);
 
     CComBSTR bstrName;
     pTypeInfo->GetDocumentation(MEMBERID_NIL, &bstrName, nullptr, nullptr, nullptr);
 
-    Write(_T("typedef "));
-    WriteAttributes(pTypeInfo, pAttr, FALSE);
+    WriteLevel(level, _T("typedef "));
+    WriteAttributes(pTypeInfo, pAttr, FALSE, MEMBERID_NIL, 0);
 
     Write(_T("union tag%s {\n"), bstrName);
 
     for (auto i = 0u; i < pAttr->cVars; ++i) {
-        DecompileVar(pNode->pTypeInfo, pAttr, i, 1);
+        DecompileVar(pTypeInfo, pAttr, i, level + 1);
     }
 
-    Write(_T("} %s;\n"), bstrName);
+    WriteLevel(level, _T("} %s;\n"), bstrName);
 }
 
-void IDLView::DecompileCoClass(LPTYPEINFONODE pNode, LPTYPEATTR pAttr)
+void IDLView::DecompileCoClass(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, int level)
 {
-    ATLASSERT(pNode != nullptr && pNode->pTypeInfo != nullptr);
-    ATLASSERT(pNode->memberID == MEMBERID_NIL);
+    ATLASSERT(pTypeInfo != nullptr);
     ATLASSERT(pAttr != nullptr);
 
-    auto pTypeInfo(pNode->pTypeInfo);
-    WriteAttributes(pTypeInfo, pAttr);
+    WriteAttributes(pTypeInfo, pAttr, TRUE, MEMBERID_NIL, level);
 
     CComBSTR bstrName;
     auto hr = pTypeInfo->GetDocumentation(MEMBERID_NIL, &bstrName, nullptr, nullptr, nullptr);
     if (SUCCEEDED(hr)) {
-        Write(_T("coclass %s {\n"), CString(bstrName));
+        WriteLevel(level, _T("coclass %s {\n"), CString(bstrName));
     }
 
     for (auto i = 0u; i < pAttr->cImplTypes; ++i) {
@@ -444,20 +581,20 @@ void IDLView::DecompileCoClass(LPTYPEINFONODE pNode, LPTYPEATTR pAttr)
             continue;
         }
 
-        WriteIndent();
+        WriteIndent(level + 1);
 
         auto fAttributes = FALSE;
         if (impltype) {
             if (impltype & IMPLTYPEFLAG_FDEFAULT) {
-                WriteAttr(fAttributes, FALSE, _T("default"));
+                WriteAttr(fAttributes, FALSE, 0, _T("default"));
             }
 
             if (impltype & IMPLTYPEFLAG_FSOURCE) {
-                WriteAttr(fAttributes, FALSE, _T("source"));
+                WriteAttr(fAttributes, FALSE, 0, _T("source"));
             }
 
             if (impltype & IMPLTYPEFLAG_FRESTRICTED) {
-                WriteAttr(fAttributes, FALSE, _T("restricted"));
+                WriteAttr(fAttributes, FALSE, 0, _T("restricted"));
             }
 
             if (fAttributes) {
@@ -476,24 +613,17 @@ void IDLView::DecompileCoClass(LPTYPEINFONODE pNode, LPTYPEATTR pAttr)
         Write(_T("%s;\n"), bstrName);
     }
 
-    Write(_T("};\n"));
+    WriteLevel(level, _T("};\n"));
 }
 
-void IDLView::DecompileEnum(LPTYPEINFONODE pNode, LPTYPEATTR pAttr)
+void IDLView::DecompileEnum(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, int level)
 {
-    ATLASSERT(pNode != nullptr && pNode->pTypeInfo != nullptr);
+    ATLASSERT(pTypeInfo != nullptr);
     ATLASSERT(pAttr != nullptr);
     ATLASSERT(pAttr->typekind == TKIND_ENUM);
 
-    if (pNode->memberID != MEMBERID_NIL) {
-        DecompileConst(pNode->pTypeInfo, pAttr, pNode->memberID);
-        return;
-    }
-
-    Write(_T("typedef "));
-
-    auto pTypeInfo(pNode->pTypeInfo);
-    WriteAttributes(pTypeInfo, pAttr, FALSE);
+    WriteLevel(level, _T("typedef "));
+    WriteAttributes(pTypeInfo, pAttr, FALSE, MEMBERID_NIL, 0);
 
     CComBSTR bstrName;
     pTypeInfo->GetDocumentation(MEMBERID_NIL, &bstrName, nullptr, nullptr, nullptr);
@@ -501,10 +631,10 @@ void IDLView::DecompileEnum(LPTYPEINFONODE pNode, LPTYPEATTR pAttr)
     Write(_T("enum %s {\n"), bstrName);
 
     for (auto i = 0u; i < pAttr->cVars; ++i) {
-        DecompileConst(pNode->pTypeInfo, pAttr, i, 1);
+        DecompileConst(pTypeInfo, pAttr, i, level + 1);
     }
 
-    Write(_T("};\n"));
+    WriteLevel(level, _T("};\n"));
 }
 
 void IDLView::DecompileFunc(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, MEMBERID memID, int level)
@@ -526,58 +656,56 @@ void IDLView::DecompileFunc(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, MEMBERID mem
         }
     }
 
-    WriteIndent(level);
-
     auto fAttributes = FALSE;
 
     if (pAttr->typekind == TKIND_DISPATCH || pAttr->wTypeFlags & TYPEFLAG_FDUAL) {
-        WriteAttr(fAttributes, FALSE, _T("id(0x%.8x)"), funcdesc->memid);
+        WriteAttr(fAttributes, FALSE, level, _T("id(0x%.8x)"), funcdesc->memid);
     } else if (pAttr->typekind == TKIND_MODULE) {
-        WriteAttr(fAttributes, FALSE, _T("entry(%d)"), memID);
+        WriteAttr(fAttributes, FALSE, level, _T("entry(%d)"), memID);
     }
 
     if (funcdesc->invkind & INVOKE_PROPERTYGET) {
-        WriteAttr(fAttributes, FALSE, _T("propget"));
+        WriteAttr(fAttributes, FALSE, level, _T("propget"));
     }
 
     if (funcdesc->invkind & INVOKE_PROPERTYPUT) {
-        WriteAttr(fAttributes, FALSE, _T("propput"));
+        WriteAttr(fAttributes, FALSE, level, _T("propput"));
     }
 
     if (funcdesc->invkind & INVOKE_PROPERTYPUTREF) {
-        WriteAttr(fAttributes, FALSE, _T("propputref"));
+        WriteAttr(fAttributes, FALSE, level, _T("propputref"));
     }
 
     if (funcdesc->wFuncFlags & FUNCFLAG_FRESTRICTED) {
-        WriteAttr(fAttributes, FALSE, _T("restricted"));
+        WriteAttr(fAttributes, FALSE, level, _T("restricted"));
     }
 
     if (funcdesc->wFuncFlags & FUNCFLAG_FSOURCE) {
-        WriteAttr(fAttributes, FALSE, _T("source"));
+        WriteAttr(fAttributes, FALSE, level, _T("source"));
     }
 
     if (funcdesc->wFuncFlags & FUNCFLAG_FBINDABLE) {
-        WriteAttr(fAttributes, FALSE, _T("bindable"));
+        WriteAttr(fAttributes, FALSE, level, _T("bindable"));
     }
 
     if (funcdesc->wFuncFlags & FUNCFLAG_FREQUESTEDIT) {
-        WriteAttr(fAttributes, FALSE, _T("requestedit"));
+        WriteAttr(fAttributes, FALSE, level, _T("requestedit"));
     }
 
     if (funcdesc->wFuncFlags & FUNCFLAG_FDISPLAYBIND) {
-        WriteAttr(fAttributes, FALSE, _T("displaybind"));
+        WriteAttr(fAttributes, FALSE, level, _T("displaybind"));
     }
 
     if (funcdesc->wFuncFlags & FUNCFLAG_FDEFAULTBIND) {
-        WriteAttr(fAttributes, FALSE, _T("defaultbind"));
+        WriteAttr(fAttributes, FALSE, level, _T("defaultbind"));
     }
 
     if (funcdesc->wFuncFlags & FUNCFLAG_FHIDDEN) {
-        WriteAttr(fAttributes, FALSE, _T("hidden"));
+        WriteAttr(fAttributes, FALSE, level, _T("hidden"));
     }
 
     if (funcdesc->cParamsOpt == -1) {
-        WriteAttr(fAttributes, FALSE, _T("vararg")); // optional params
+        WriteAttr(fAttributes, FALSE, level, _T("vararg")); // optional params
     }
 
     CComBSTR bstrDoc;
@@ -585,20 +713,19 @@ void IDLView::DecompileFunc(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, MEMBERID mem
     pTypeInfo->GetDocumentation(funcdesc->memid, nullptr, &bstrDoc, &dwHelpID, nullptr);
 
     if (bstrDoc.Length()) {
-        WriteAttr(fAttributes, FALSE, _T("helpstring(\"%s\")"), CString(bstrDoc));
+        WriteAttr(fAttributes, FALSE, level, _T("helpstring(\"%s\")"), CString(bstrDoc));
     }
 
     if (dwHelpID > 0) {
-        WriteAttr(fAttributes, FALSE, _T("helpcontext(%#08.8x)"), dwHelpID);
+        WriteAttr(fAttributes, FALSE, level, _T("helpcontext(%#08.8x)"), dwHelpID);
     }
 
     if (fAttributes) {
         Write(_T("]\n"));
-        WriteIndent(level);
     }
 
     // Write return type
-    Write(_T("%s "), TYPEDESCtoString(pTypeInfo, &funcdesc->elemdescFunc.tdesc));
+    WriteLevel(level, _T("%s "), TYPEDESCtoString(pTypeInfo, &funcdesc->elemdescFunc.tdesc));
 
     // Calling convention
     if (!(pAttr->wTypeFlags & TYPEFLAG_FDUAL)) {
@@ -642,26 +769,26 @@ void IDLView::DecompileFunc(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, MEMBERID mem
         fAttributes = FALSE;
 
         if (funcdesc->lprgelemdescParam[i].idldesc.wIDLFlags & IDLFLAG_FIN) {
-            WriteAttr(fAttributes, FALSE, _T("in"));
+            WriteAttr(fAttributes, FALSE, 0, _T("in"));
         }
 
         if (funcdesc->lprgelemdescParam[i].idldesc.wIDLFlags & IDLFLAG_FOUT) {
-            WriteAttr(fAttributes, FALSE, _T("out"));
+            WriteAttr(fAttributes, FALSE, 0, _T("out"));
         }
 
         if (funcdesc->lprgelemdescParam[i].idldesc.wIDLFlags & IDLFLAG_FLCID) {
-            WriteAttr(fAttributes, FALSE, _T("lcid"));
+            WriteAttr(fAttributes, FALSE, 0, _T("lcid"));
         }
 
         if (funcdesc->lprgelemdescParam[i].idldesc.wIDLFlags & IDLFLAG_FRETVAL) {
-            WriteAttr(fAttributes, FALSE, _T("retval"));
+            WriteAttr(fAttributes, FALSE, 0, _T("retval"));
         }
 
         // If we have an optional last parameter and we're on the last paramter
         // or we are into the optional parameters...
         if ((funcdesc->cParamsOpt == -1 && i == funcdesc->cParams - 1) ||
             (i > (funcdesc->cParams - funcdesc->cParamsOpt))) {
-            WriteAttr(fAttributes, FALSE, _T("optional"));
+            WriteAttr(fAttributes, FALSE, 0, _T("optional"));
             fAttributes = TRUE;
         }
 
@@ -709,7 +836,7 @@ void IDLView::DecompileConst(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, MEMBERID me
     auto fAttributes = FALSE;
 
     if (pAttr->typekind == TKIND_MODULE) {
-        WriteAttr(fAttributes, FALSE, _T("entry(%d)"), vardesc->memid);
+        WriteAttr(fAttributes, FALSE, 0, _T("entry(%d)"), vardesc->memid);
     }
 
     CComBSTR bstrName, bstrDoc;
@@ -717,11 +844,11 @@ void IDLView::DecompileConst(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, MEMBERID me
     pTypeInfo->GetDocumentation(vardesc->memid, &bstrName, &bstrDoc, &dwHelpID, nullptr);
 
     if (bstrDoc.Length()) {
-        WriteAttr(fAttributes, FALSE, _T("helpstring(\"%s\")"), CString(bstrDoc));
+        WriteAttr(fAttributes, FALSE, 0, _T("helpstring(\"%s\")"), CString(bstrDoc));
     }
 
     if (dwHelpID > 0) {
-        WriteAttr(fAttributes, TRUE, _T("helpcontext(%#08.8x)"), dwHelpID);
+        WriteAttr(fAttributes, FALSE, 0, _T("helpcontext(%#08.8x)"), dwHelpID);
     }
 
     if (fAttributes) {
@@ -776,28 +903,28 @@ void IDLView::DecompileVar(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, MEMBERID memI
     auto fAttributes = FALSE;
 
     if (pAttr->typekind == TKIND_DISPATCH || pAttr->wTypeFlags & TYPEFLAG_FDUAL) {
-        WriteAttr(fAttributes, FALSE, _T("id(0x%.8x)"), vardesc->memid);
+        WriteAttr(fAttributes, FALSE, 0, _T("id(0x%.8x)"), vardesc->memid);
 
         if (vardesc->wVarFlags & VARFLAG_FREADONLY) {
-            WriteAttr(fAttributes, FALSE, _T("readonly"));
+            WriteAttr(fAttributes, FALSE, 0, _T("readonly"));
         }
         if (vardesc->wVarFlags & VARFLAG_FSOURCE) {
-            WriteAttr(fAttributes, FALSE, _T("source"));
+            WriteAttr(fAttributes, FALSE, 0, _T("source"));
         }
         if (vardesc->wVarFlags & VARFLAG_FBINDABLE) {
-            WriteAttr(fAttributes, FALSE, _T("bindable"));
+            WriteAttr(fAttributes, FALSE, 0, _T("bindable"));
         }
         if (vardesc->wVarFlags & VARFLAG_FREQUESTEDIT) {
-            WriteAttr(fAttributes, FALSE, _T("requestedit"));
+            WriteAttr(fAttributes, FALSE, 0, _T("requestedit"));
         }
         if (vardesc->wVarFlags & VARFLAG_FDISPLAYBIND) {
-            WriteAttr(fAttributes, FALSE, _T("displaybind"));
+            WriteAttr(fAttributes, FALSE, 0, _T("displaybind"));
         }
         if (vardesc->wVarFlags & VARFLAG_FDEFAULTBIND) {
-            WriteAttr(fAttributes, FALSE, _T("defaultbind"));
+            WriteAttr(fAttributes, FALSE, 0, _T("defaultbind"));
         }
         if (vardesc->wVarFlags & VARFLAG_FHIDDEN) {
-            WriteAttr(fAttributes, FALSE, _T("hidden"));
+            WriteAttr(fAttributes, FALSE, 0, _T("hidden"));
         }
     }
 
@@ -810,11 +937,11 @@ void IDLView::DecompileVar(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, MEMBERID memI
     }
 
     if (bstrDoc.Length()) {
-        WriteAttr(fAttributes, FALSE, _T("helpstring(\"%s\")"), CString(bstrDoc));
+        WriteAttr(fAttributes, FALSE, 0, _T("helpstring(\"%s\")"), CString(bstrDoc));
     }
 
     if (dwHelpID > 0) {
-        WriteAttr(fAttributes, TRUE, _T("helpcontext(%#08.8x)"), dwHelpID);
+        WriteAttr(fAttributes, FALSE, 0, _T("helpcontext(%#08.8x)"), dwHelpID);
     }
 
     if (fAttributes) {
@@ -836,60 +963,47 @@ void IDLView::DecompileVar(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, MEMBERID memI
     Write(_T(";\n"));
 }
 
-void IDLView::DecompileDispatch(LPTYPEINFONODE pNode, LPTYPEATTR pAttr)
+void IDLView::DecompileDispatch(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, int level)
 {
-    ATLASSERT(pNode != nullptr && pNode->pTypeInfo != nullptr);
+    ATLASSERT(pTypeInfo != nullptr);
     ATLASSERT(pAttr != nullptr);
 
-    if (pNode->memberID != MEMBERID_NIL) {
-        DecompileFunc(pNode->pTypeInfo, pAttr, pNode->memberID);
-        return;
-    }
-
-    auto pTypeInfo(pNode->pTypeInfo);
-    WriteAttributes(pTypeInfo, pAttr);
+    WriteAttributes(pTypeInfo, pAttr, TRUE, MEMBERID_NIL, level);
 
     CComBSTR bstrName;
     pTypeInfo->GetDocumentation(MEMBERID_NIL, &bstrName, nullptr, nullptr, nullptr);
 
-    Write(_T("dispinterface %s {\n"), CString(bstrName));
+    WriteLevel(level, _T("dispinterface %s {\n"), CString(bstrName));
 
-    Write(_T("    properties:\n"));
+    WriteLevel(level + 1, _T("properties:\n"));
     for (auto i = 0u; i < pAttr->cVars; ++i) {
-        DecompileVar(pTypeInfo, pAttr, i, 2);
+        DecompileVar(pTypeInfo, pAttr, i, level + 2);
     }
 
-    Write(_T("    methods:\n"));
+    WriteLevel(level + 1, _T("methods:\n"));
     for (auto i = 0u; i < pAttr->cFuncs; ++i) {
-        DecompileFunc(pTypeInfo, pAttr, i, 2);
+        DecompileFunc(pTypeInfo, pAttr, i, level + 2);
     }
 
-    Write(_T("};\n"));
+    WriteLevel(level, _T("};\n"));
 }
 
-void IDLView::DecompileInterface(LPTYPEINFONODE pNode, LPTYPEATTR pAttr)
+void IDLView::DecompileInterface(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, int level)
 {
-    ATLASSERT(pNode != nullptr && pNode->pTypeInfo != nullptr);
+    ATLASSERT(pTypeInfo != nullptr);
     ATLASSERT(pAttr != nullptr);
 
-    if (pNode->memberID != MEMBERID_NIL) {
-        DecompileFunc(pNode->pTypeInfo, pAttr, pNode->memberID);
-        return;
-    }
-
-    auto pTypeInfo(pNode->pTypeInfo);
-    WriteAttributes(pTypeInfo, pAttr);
+    WriteAttributes(pTypeInfo, pAttr, TRUE, MEMBERID_NIL, level);
 
     CComBSTR bstrName;
-    auto hr = pTypeInfo->GetDocumentation(MEMBERID_NIL, &bstrName, nullptr, nullptr, nullptr);
-    if (SUCCEEDED(hr)) {
-        Write(_T("interface %s"), CString(bstrName));
-    }
+    pTypeInfo->GetDocumentation(MEMBERID_NIL, &bstrName, nullptr, nullptr, nullptr);
+
+    WriteLevel(level, _T("interface %s"), bstrName);
 
     auto bases = 0;
     for (auto i = 0u; i < pAttr->cImplTypes; ++i) {
         HREFTYPE hRef = 0;
-        hr = pTypeInfo->GetRefTypeOfImplType(i, &hRef);
+        auto hr = pTypeInfo->GetRefTypeOfImplType(i, &hRef);
         if (FAILED(hr)) {
             continue;
         }
@@ -915,8 +1029,31 @@ void IDLView::DecompileInterface(LPTYPEINFONODE pNode, LPTYPEATTR pAttr)
     Write(_T(" {\n"));
 
     for (auto i = 0u; i < pAttr->cFuncs; ++i) {
-        DecompileFunc(pTypeInfo, pAttr, i, 1);
+        DecompileFunc(pTypeInfo, pAttr, i, level + 1);
     }
 
-    Write(_T("};"));
+    WriteLevel(level, _T("};\n"));
+}
+
+void IDLView::DecompileModule(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, int level)
+{
+    ATLASSERT(pTypeInfo != nullptr);
+    ATLASSERT(pAttr != nullptr);
+
+    WriteAttributes(pTypeInfo, pAttr, TRUE, MEMBERID_NIL, level);
+
+    CComBSTR bstrName;
+    pTypeInfo->GetDocumentation(MEMBERID_NIL, &bstrName, nullptr, nullptr, nullptr);
+
+    WriteLevel(level, _T("module %s {\n"), bstrName);
+
+    for (auto i = 0u; i < pAttr->cFuncs; ++i) {
+        DecompileFunc(pTypeInfo, pAttr, i, level + 1);
+    }
+
+    for (auto i = 0u; i < pAttr->cVars; ++i) {
+        DecompileConst(pTypeInfo, pAttr, i, level + 1);
+    }
+
+    WriteLevel(level, _T("};\n"));
 }
