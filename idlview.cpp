@@ -11,17 +11,24 @@ static constexpr auto MAX_NAMES = 64;
 
 void IDLView::DoPaint(CDCHandle dc)
 {
-    if (m_memDC && m_bitmap) {
-        auto hOldBitmap = m_memDC.SelectBitmap(m_bitmap);
-
+    if (m_lines.size()) {
         CRect rc;
         dc.GetClipBox(&rc);
 
-        dc.BitBlt(rc.left, rc.top,
-                  rc.Width(), rc.Height(), m_memDC,
-                  rc.left, rc.top, SRCCOPY);
+        auto nstart = rc.top / m_cyChar;
+        auto nend = std::min<int>((int)m_lines.size() - 1,
+            (rc.bottom + m_cyChar - 1) / m_cyChar);
 
-        m_memDC.SelectBitmap(hOldBitmap);
+        auto hOldFont = dc.SelectFont(m_font);
+
+        for (auto i = nstart; i <= nend; ++i) {
+            auto y = m_cyChar * i;
+            auto* pLine = m_lines[i];
+            auto nLen = _tcslen(pLine);
+            dc.TextOut(0, y, pLine, int(nLen));
+        }
+
+        dc.SelectFont(hOldFont);
     }
 }
 
@@ -34,10 +41,9 @@ LRESULT IDLView::OnCreate(LPCREATESTRUCT /*pcs*/)
     }
 
     m_pStream.Release();
-    m_memDC.DeleteDC();
-    if (m_bitmap) {
-        m_bitmap.DeleteObject();
-    }
+    m_strText.Empty();
+    m_lines.clear();
+    m_cxChar = m_cyChar = 0;
 
     if (!m_font.CreatePointFont(100, _T("Cascadia Mono"))) {
         return -1;
@@ -69,10 +75,6 @@ void IDLView::Update(LPTYPELIB pTypeLib, LPTYPEINFONODE pNode)
     CWaitCursor cursor;
 
     m_pStream.Release();
-    m_memDC.DeleteDC();
-    if (m_bitmap) {
-        m_bitmap.DeleteObject();
-    }
 
     SetScrollOffset(0, 0, FALSE);
     SetScrollSize({ 1, 1 });
@@ -195,8 +197,8 @@ BOOL IDLView::WriteStream()
         return FALSE;
     }
 
-    CString strText;
-    auto* buffer = strText.GetBuffer(int(statstg.cbSize.LowPart + 1));
+    m_strText.Empty();
+    auto* buffer = m_strText.GetBuffer(int(statstg.cbSize.LowPart + 1));
 
     ULONG uRead;
     hr = m_pStream->Read(buffer, statstg.cbSize.LowPart, &uRead);
@@ -205,39 +207,37 @@ BOOL IDLView::WriteStream()
     }
 
     buffer[uRead / sizeof(TCHAR)] = _T('\0');
-    strText.ReleaseBuffer();
+    m_strText.ReleaseBuffer();
+    CString strCopy = buffer;
 
     m_pStream.Release();
+    m_lines.clear();
+    m_lines.push_back(buffer);
 
-    CClientDC dc(*this);
-    if (!m_memDC.CreateCompatibleDC(dc)) {
-        return FALSE;
+    for (LPTSTR p = buffer + 1; *p != _T('\0'); ++p) {
+        if (*p == '\n') {
+            if (p[1] != _T('\0')) {
+                p[0] = _T('\0');
+                m_lines.push_back(&p[1]);
+            }
+        }
     }
-
-    m_memDC.SetMapMode(dc.GetMapMode());
-    auto hOldFont = m_memDC.SelectFont(m_font);
 
     CRect rc;
-    m_memDC.DrawText(strText, -1, &rc, DT_CALCRECT);
+    CClientDC dc(*this);
+    auto hOldFont = dc.SelectFont(m_font);
+    dc.DrawText(strCopy, -1, &rc, DT_CALCRECT);
 
-    if (!m_bitmap.CreateCompatibleBitmap(dc, rc.Width(), rc.Height())) {
-        return FALSE;
-    }
+    TEXTMETRIC tm;
+    dc.GetTextMetrics(&tm);
 
-    auto hOldBitmap = m_memDC.SelectBitmap(m_bitmap);
+    dc.GetCharWidth32('X', 'X', &m_cxChar);
+    m_cyChar = tm.tmHeight + tm.tmExternalLeading;
 
-    auto clrWindow = GetSysColor(COLOR_WINDOW);
-    auto clrText = RGB(0, 0, 128);
-
-    m_memDC.FillSolidRect(rc, clrWindow);
-    m_memDC.SetBkColor(clrWindow);
-    m_memDC.SetTextColor(clrText);
-    m_memDC.DrawText(strText, -1, &rc, 0);
-    m_memDC.SelectBitmap(hOldBitmap);
-    m_memDC.SelectFont(hOldFont);
+    dc.SelectFont(hOldFont);
 
     SetScrollOffset(0, 0, FALSE);
-    SetScrollSize(CSize(rc.Width(), rc.Height()));
+    SetScrollSize(rc.Width(), rc.Height());
 
     return TRUE;
 }

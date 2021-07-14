@@ -45,6 +45,7 @@ private:
 
     CComPtr<IStream> m_pStream;
     CFont m_font;
-    CDC m_memDC;
-    CBitmap m_bitmap;
+    int m_cxChar = 0, m_cyChar = 0;
+    CString m_strText;
+    std::vector<LPCTSTR> m_lines;
 };
