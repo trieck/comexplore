@@ -1,6 +1,7 @@
 #include "StdAfx.h"
 #include "comtreeview.h"
 #include "resource.h"
+#include "objdata.h"
 
 #include <boost/algorithm/string.hpp>
 

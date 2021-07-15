@@ -1,13 +1,14 @@
 #pragma once
+#include "textstream.h"
 #include "typeinfonode.h"
 
-class IDLView : public CScrollWindowImpl<IDLView>
+class IDLView : public CZoomScrollWindowImpl<IDLView>
 {
 public:
 BEGIN_MSG_MAP(IDLView)
         MSG_WM_CREATE(OnCreate)
         MESSAGE_HANDLER(WM_SELCHANGED, OnSelChanged)
-        CHAIN_MSG_MAP(CScrollWindowImpl<IDLView>)
+        CHAIN_MSG_MAP(CZoomScrollWindowImpl<IDLView>)
     END_MSG_MAP()
 
     void DoPaint(CDCHandle dc);
@@ -15,7 +16,6 @@ BEGIN_MSG_MAP(IDLView)
     LRESULT OnSelChanged(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& bHandled);
 
 private:
-    // Main selectors
     void Decompile(LPTYPELIB pTypeLib);
     void Decompile(LPTYPEINFONODE pNode, int level);
     void Decompile(LPTYPEINFO pTypeInfo, int level);
@@ -27,7 +27,6 @@ private:
     void DecompileModule(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, int level);
     void DecompileRecord(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, int level);
     void DecompileUnion(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, int level);
-
     void DecompileFunc(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, MEMBERID memID, int level);
     void DecompileConst(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, MEMBERID memID, int level);
     void DecompileVar(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, MEMBERID memID, int level);
@@ -38,14 +37,9 @@ private:
                          MEMBERID memID, int level);
     BOOL Write(LPCTSTR format, ...);
     BOOL WriteLevel(int level, LPCTSTR format, ...);
-    BOOL WriteV(LPCTSTR format, va_list args);
     BOOL WriteAttr(BOOL& hasAttributes, BOOL fNewLine, int level, LPCTSTR format, ...);
     BOOL WriteIndent(int level);
     BOOL WriteStream();
 
-    CComPtr<IStream> m_pStream;
-    CFont m_font;
-    int m_cxChar = 0, m_cyChar = 0;
-    CString m_strText;
-    std::vector<LPCTSTR> m_lines;
+    TextStream m_stream;
 };

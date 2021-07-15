@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "objdata.h"
 
 /////////////////////////////////////////////////////////////////////////////
 ObjectData::ObjectData() : type(ObjectType::NONE), guid(GUID_NULL),

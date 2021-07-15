@@ -266,7 +266,6 @@
   <ItemGroup>
     <ClCompile Include="aboutdlg.cpp" />
     <ClCompile Include="autotypeattr.cpp" />
-    <ClCompile Include="comalloc.cpp" />
     <ClCompile Include="comdetailview.cpp" />
     <ClCompile Include="comexplore.cpp">
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -285,6 +284,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="textstream.cpp" />
     <ClCompile Include="typeinfonode.cpp" />
     <ClCompile Include="typelibtree.cpp" />
     <ClCompile Include="typelibview.cpp" />
@@ -298,11 +298,7 @@
     <ClInclude Include="autobstrarray.h" />
     <ClInclude Include="autodesc.h" />
     <ClInclude Include="autotypeattr.h" />
-    <ClInclude Include="coallocator.h" />
-    <ClInclude Include="comalloc.h" />
     <ClInclude Include="comtreeview.h" />
-    <ClInclude Include="common.h" />
-    <ClInclude Include="coobject.h" />
     <ClInclude Include="comdetailview.h" />
     <ClInclude Include="idlview.h" />
     <ClInclude Include="mainfrm.h" />
@@ -310,6 +306,7 @@
     <ClInclude Include="regview.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="textstream.h" />
     <ClInclude Include="typeinfonode.h" />
     <ClInclude Include="typelibtree.h" />
     <ClInclude Include="typelibview.h" />

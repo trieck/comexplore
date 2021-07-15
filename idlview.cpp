@@ -11,46 +11,21 @@ static constexpr auto MAX_NAMES = 64;
 
 void IDLView::DoPaint(CDCHandle dc)
 {
-    if (m_lines.size()) {
-        CRect rc;
-        dc.GetClipBox(&rc);
-
-        auto nstart = rc.top / m_cyChar;
-        auto nend = std::min<int>((int)m_lines.size() - 1,
-            (rc.bottom + m_cyChar - 1) / m_cyChar);
-
-        auto hOldFont = dc.SelectFont(m_font);
-
-        for (auto i = nstart; i <= nend; ++i) {
-            auto y = m_cyChar * i;
-            auto* pLine = m_lines[i];
-            auto nLen = _tcslen(pLine);
-            dc.TextOut(0, y, pLine, int(nLen));
-        }
-
-        dc.SelectFont(hOldFont);
-    }
+    m_stream.Render(dc);
 }
 
 LRESULT IDLView::OnCreate(LPCREATESTRUCT /*pcs*/)
 {
     auto lRet = DefWindowProc();
 
-    if (m_font) {
-        m_font.DeleteObject();
-    }
-
-    m_pStream.Release();
-    m_strText.Empty();
-    m_lines.clear();
-    m_cxChar = m_cyChar = 0;
-
-    if (!m_font.CreatePointFont(100, _T("Cascadia Mono"))) {
+    if (!m_stream.Create()) {
         return -1;
     }
 
+    SetZoomScale(1.0f);
     SetScrollOffset(0, 0, FALSE);
     SetScrollSize({ 1, 1 });
+    SetScrollLine({ 1, 1 });
 
     return lRet;
 }
@@ -74,12 +49,12 @@ void IDLView::Update(LPTYPELIB pTypeLib, LPTYPEINFONODE pNode)
 
     CWaitCursor cursor;
 
-    m_pStream.Release();
-
+    SetZoomScale(1.0f);
     SetScrollOffset(0, 0, FALSE);
     SetScrollSize({ 1, 1 });
+    SetScrollLine({ 1, 1 });
 
-    m_pStream = SHCreateMemStream(nullptr, 0);
+    m_stream.ResetStream();
 
     if (pNode != nullptr && pNode->pTypeInfo != nullptr) {
         Decompile(pNode, 0);
@@ -179,86 +154,28 @@ void IDLView::WriteAttributes(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, BOOL fNewL
 
 BOOL IDLView::WriteStream()
 {
-    ATLASSERT(m_pStream != nullptr);
-
-    STATSTG statstg;
-    auto hr = m_pStream->Stat(&statstg, STATFLAG_NONAME);
-    if (FAILED(hr)) {
+    if (m_stream.Size() == 0) {
         return FALSE;
     }
 
-    if (statstg.cbSize.LowPart == 0) {
-        return FALSE;
-    }
+    m_stream.Prepare(*this);
 
-    LARGE_INTEGER li{};
-    hr = m_pStream->Seek(li, STREAM_SEEK_SET, nullptr);
-    if (FAILED(hr)) {
-        return FALSE;
-    }
+    auto szChar = m_stream.GetCharSize();
+    auto szDoc = m_stream.GetDocSize();
 
-    m_strText.Empty();
-    auto* buffer = m_strText.GetBuffer(int(statstg.cbSize.LowPart + 1));
-
-    ULONG uRead;
-    hr = m_pStream->Read(buffer, statstg.cbSize.LowPart, &uRead);
-    if (FAILED(hr)) {
-        return FALSE;
-    }
-
-    buffer[uRead / sizeof(TCHAR)] = _T('\0');
-    m_strText.ReleaseBuffer();
-    CString strCopy = buffer;
-
-    m_pStream.Release();
-    m_lines.clear();
-    m_lines.push_back(buffer);
-
-    for (LPTSTR p = buffer + 1; *p != _T('\0'); ++p) {
-        if (*p == '\n') {
-            if (p[1] != _T('\0')) {
-                p[0] = _T('\0');
-                m_lines.push_back(&p[1]);
-            }
-        }
-    }
-
-    CRect rc;
-    CClientDC dc(*this);
-    auto hOldFont = dc.SelectFont(m_font);
-    dc.DrawText(strCopy, -1, &rc, DT_CALCRECT);
-
-    TEXTMETRIC tm;
-    dc.GetTextMetrics(&tm);
-
-    dc.GetCharWidth32('X', 'X', &m_cxChar);
-    m_cyChar = tm.tmHeight + tm.tmExternalLeading;
-
-    dc.SelectFont(hOldFont);
-
+    SetZoomScale(1.0f);
     SetScrollOffset(0, 0, FALSE);
-    SetScrollSize(rc.Width(), rc.Height());
+    SetScrollSize(szDoc);
+    SetScrollLine(szChar);
 
     return TRUE;
-}
-
-BOOL IDLView::WriteV(LPCTSTR format, va_list args)
-{
-    ATLASSERT(m_pStream != nullptr && format != nullptr);
-
-    CString strValue;
-    strValue.FormatV(format, args);
-
-    auto hr = m_pStream->Write(strValue, strValue.GetLength() * sizeof(TCHAR), nullptr);
-
-    return SUCCEEDED(hr);
 }
 
 BOOL IDLView::Write(LPCTSTR format, ...)
 {
     va_list argList;
     va_start(argList, format);
-    auto result = WriteV(format, argList);
+    auto result = m_stream.WriteV(format, argList);
     va_end(argList);
 
     return result;
@@ -270,7 +187,7 @@ BOOL IDLView::WriteLevel(int level, LPCTSTR format, ...)
 
     va_list argList;
     va_start(argList, format);
-    result &= WriteV(format, argList);
+    result &= m_stream.WriteV(format, argList);
     va_end(argList);
 
     return result;
@@ -302,7 +219,7 @@ BOOL IDLView::WriteAttr(BOOL& hasAttributes, BOOL fNewLine, int level, LPCTSTR f
 
     va_list argList;
     va_start(argList, format);
-    result &= WriteV(format, argList);
+    result &= m_stream.WriteV(format, argList);
     va_end(argList);
 
     return result;

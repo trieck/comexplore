@@ -1,6 +1,7 @@
 #pragma once
 
 #include "typeinfonode.h"
+#include "objdata.h"
 
 class TypeLibTree : public CWindowImpl<TypeLibTree, CTreeViewCtrlEx>
 {

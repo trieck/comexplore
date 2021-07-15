@@ -1,5 +1,7 @@
 #pragma once
 
+#include "objdata.h"
+
 class RegistryView : public CWindowImpl<RegistryView, CTreeViewCtrlEx>
 {
 public:

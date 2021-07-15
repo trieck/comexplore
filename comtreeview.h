@@ -1,7 +1,5 @@
 #pragma once
 
-#include "common.h"
-
 class ComTreeView : public CWindowImpl<ComTreeView, CTreeViewCtrlEx>
 {
 public:
