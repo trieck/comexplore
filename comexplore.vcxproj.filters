@@ -57,7 +57,10 @@
     <ClCompile Include="autotypeattr.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="idlstream.cpp">
+    <ClCompile Include="textstream.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="idlstreamrenderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -110,7 +113,10 @@
     <ClInclude Include="autobstrarray.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="idlstream.h">
+    <ClInclude Include="textstream.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="idlstreamrenderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

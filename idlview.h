@@ -1,5 +1,6 @@
 #pragma once
-#include "idlstream.h"
+#include "textstream.h"
+#include "idlstreamrenderer.h"
 #include "typeinfonode.h"
 
 class IDLView : public CScrollWindowImpl<IDLView>
@@ -39,7 +40,8 @@ private:
     BOOL WriteLevel(int level, LPCTSTR format, ...);
     BOOL WriteAttr(BOOL& hasAttributes, BOOL fNewLine, int level, LPCTSTR format, ...);
     BOOL WriteIndent(int level);
-    BOOL WriteStream();
+    BOOL ParseStream();
 
-    IDLStream m_stream;
+    CComObjectStack<TextStream> m_stream;
+    IDLStreamRenderer m_renderer;
 };

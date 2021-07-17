@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "idlstream.h"
+#include "idlstreamrenderer.h"
 
 static const string_set KEYWORDS({
     _T("coclass"),
@@ -81,56 +81,17 @@ struct Token
 };
 
 static Token GetToken(LPCTSTR* ppin);
+static BOOL ParseGUID(LPCTSTR* ppin);
 
-BOOL IDLStream::Create()
+IDLStreamRenderer::IDLStreamRenderer()
 {
-    m_pStream.Release();
-
-    m_pStream = SHCreateMemStream(nullptr, 0);
-    if (m_pStream == nullptr) {
-        return FALSE;
-    }
-
-    if (m_bitmap) {
-        m_bitmap.DeleteObject();
-    }
-
-    if (m_memDC) {
-        m_memDC.DeleteDC();
-    }
-
-    m_cxChar = m_cyChar = 0;
-    m_rc.SetRectEmpty();
-
-    if (m_font) {
-        m_font.DeleteObject();
-    }
-
-    if (!m_font.CreatePointFont(100, _T("Cascadia Mono"))) {
-        return FALSE;
-    }
-
-    return TRUE;
+    m_font.CreatePointFont(100, _T("Cascadia Mono"));
 }
 
-uint64_t IDLStream::Size() const
+void IDLStreamRenderer::Parse(TextStream& stream)
 {
-    ATLASSERT(m_pStream != nullptr);
+    auto strText = stream.ReadString();
 
-    STATSTG statstg;
-    auto hr = m_pStream->Stat(&statstg, STATFLAG_NONAME);
-    if (FAILED(hr)) {
-        return 0;
-    }
-
-    return statstg.cbSize.QuadPart;
-}
-
-void IDLStream::Parse()
-{
-    ATLASSERT(m_pStream != nullptr);
-
-    auto strText = Read();
     LPCTSTR pText = strText;
 
     CClientDC dc(nullptr);
@@ -176,50 +137,56 @@ void IDLStream::Parse()
     m_memDC.SetTextColor(clrText);
 
     auto x = 0, y = 0;
+    string_set::const_iterator it;
 
-    for (;;) {
+    auto bDone = FALSE;
+    while (!bDone) {
         auto token = GetToken(&pText);
-        if (token.type == Token::Type::EMPTY) {
+        LPCTSTR value = token.value;
+
+        switch (token.type) {
+        case Token::Type::EMPTY:
             ATLASSERT(*pText == '\0');
+            bDone = TRUE;
+            break;
+        case Token::Type::NEWLINE:
+            x = 0;
+            y += m_cyChar;
+            break;
+        case Token::Type::ID:
+            it = KEYWORDS.find(value);
+            if (it != KEYWORDS.end()) {
+                m_memDC.SetTextColor(KEYWORD_COLOR);
+            }
+
+            it = PROP_KEYWORDS.find(value);
+            if (it != PROP_KEYWORDS.end()) {
+                m_memDC.SetTextColor(PROP_KEYWORD_COLOR);
+            }
+            break;
+        case Token::Type::COMMENT:
+            m_memDC.SetTextColor(COMMENT_COLOR);
+            break;
+        case Token::Type::LITERAL:
+            m_memDC.SetTextColor(LITERAL_COLOR);
+            break;
+        default:
             break;
         }
 
-        if (token.type == Token::Type::NEWLINE) {
-            x = 0;
-            y += m_cyChar;
-        } else {
-            LPCTSTR value = token.value;
+        CSize sz;
+        m_memDC.GetTextExtent(value, -1, &sz);
+        m_memDC.TextOut(x, y, value);
+        x += sz.cx;
 
-            if (token.type == Token::Type::ID) {
-                auto it = KEYWORDS.find(value);
-                if (it != KEYWORDS.end()) {
-                    m_memDC.SetTextColor(KEYWORD_COLOR);
-                }
-
-                it = PROP_KEYWORDS.find(value);
-                if (it != PROP_KEYWORDS.end()) {
-                    m_memDC.SetTextColor(PROP_KEYWORD_COLOR);
-                }
-            } else if (token.type == Token::Type::COMMENT) {
-                m_memDC.SetTextColor(COMMENT_COLOR);
-            } else if (token.type == Token::Type::LITERAL) {
-                m_memDC.SetTextColor(LITERAL_COLOR);
-            }
-
-            CSize sz;
-            m_memDC.GetTextExtent(value, -1, &sz);
-            m_memDC.TextOut(x, y, value);
-            x += sz.cx;
-
-            m_memDC.SetTextColor(clrText);
-        }
+        m_memDC.SetTextColor(clrText);
     }
 
     m_memDC.SelectFont(hOldFont);
     m_memDC.SelectBitmap(hOldBitmap);
 }
 
-void IDLStream::Render(CDCHandle dc)
+void IDLStreamRenderer::Render(CDCHandle dc)
 {
     if (m_memDC && m_bitmap) {
         auto hOldBitmap = m_memDC.SelectBitmap(m_bitmap);
@@ -235,97 +202,14 @@ void IDLStream::Render(CDCHandle dc)
     }
 }
 
-CSize IDLStream::GetCharSize() const
+CSize IDLStreamRenderer::GetCharSize() const
 {
     return { m_cxChar, m_cyChar };
 }
 
-CSize IDLStream::GetDocSize() const
+CSize IDLStreamRenderer::GetDocSize() const
 {
     return { m_rc.Width(), m_rc.Height() };
-}
-
-BOOL IDLStream::ResetStream()
-{
-    ATLASSERT(m_pStream != nullptr);
-
-    ULARGE_INTEGER uli{};
-
-    auto hr = m_pStream->SetSize(uli);
-    if (FAILED(hr)) {
-        return hr;
-    }
-
-    LARGE_INTEGER li{};
-    hr = m_pStream->Seek(li, STREAM_SEEK_SET, nullptr);
-    if (FAILED(hr)) {
-        return FALSE;
-    }
-
-    return TRUE;
-}
-
-CString IDLStream::Read() const
-{
-    ATLASSERT(m_pStream != nullptr);
-
-    auto size = Size();
-
-    CString strText;
-    auto* buffer = strText.GetBuffer(int(size + 1));
-
-    LARGE_INTEGER li{};
-    auto hr = m_pStream->Seek(li, STREAM_SEEK_SET, nullptr);
-    if (FAILED(hr)) {
-        return _T("");
-    }
-
-    ULONG uRead;
-    hr = m_pStream->Read(buffer, ULONG(size), &uRead);
-    if (FAILED(hr)) {
-        return _T("");
-    }
-
-    if (size != uRead) {
-        return _T("");
-    }
-
-    buffer[uRead / sizeof(TCHAR)] = _T('\0');
-    strText.ReleaseBuffer();
-
-    return strText;
-}
-
-BOOL IDLStream::WriteV(LPCTSTR format, va_list args)
-{
-    ATLASSERT(m_pStream != nullptr && format != nullptr);
-
-    CString strValue;
-    strValue.FormatV(format, args);
-
-    ULONG cb = strValue.GetLength() * sizeof(TCHAR);
-    ULONG written;
-
-    auto hr = m_pStream->Write(strValue, cb, &written);
-    if (FAILED(hr)) {
-        return FALSE;
-    }
-
-    if (written != cb) {
-        return FALSE;
-    }
-
-    return TRUE;
-}
-
-BOOL IDLStream::Write(LPCTSTR format, ...)
-{
-    va_list argList;
-    va_start(argList, format);
-    auto result = WriteV(format, argList);
-    va_end(argList);
-
-    return result;
 }
 
 // Helper functions
@@ -381,22 +265,31 @@ Token GetToken(LPCTSTR* ppin)
             token.type = Token::Type::NEWLINE;
             return token;
         default:
-            if (isdigit(**ppin)) {
-                // hex literal
+            if (isdigit(**ppin) || isxdigit(**ppin)) {
+                if (ParseGUID(ppin)) {
+                    token.value = CString(*ppin, 36);
+                    *ppin += 36;
+                    token.type = Token::Type::LITERAL;
+                    return token;
+                }
+
                 if ((*ppin)[0] == '0' && ((*ppin)[1] == 'x' || (*ppin)[1] == 'X')) {
-                    token.value += *(*ppin)++;
+                    token.value += *(*ppin)++; // hex number
                     token.value += *(*ppin)++;
                     while (isxdigit(**ppin)) {
                         token.value += *(*ppin)++;
                     }
-                } else {
-                    while (isdigit(**ppin)) {
+                    token.type = Token::Type::LITERAL;
+                    return token;
+                }
+                if (isdigit(**ppin)) {
+                    while (isdigit(**ppin) || **ppin == '.') {
                         token.value += *(*ppin)++;
                     }
+                    token.type = Token::Type::LITERAL;
+                    return token;
                 }
-
-                token.type = Token::Type::LITERAL;
-                return token;
+                // fall through
             }
             if (iscsym(**ppin)) {
                 while (iscsym(**ppin)) {
@@ -416,4 +309,19 @@ Token GetToken(LPCTSTR* ppin)
             break;
         }
     }
+}
+
+BOOL ParseGUID(LPCTSTR* ppin)
+{
+    GUID guid;
+    auto result = _stscanf(*ppin, _T("%08lX-%04hX-%04hX-%02hhX%02hhX-%02hhX%02hhX%02hhX%02hhX%02hhX%02hhX"),
+                           &guid.Data1, &guid.Data2, &guid.Data3,
+                           &guid.Data4[0], &guid.Data4[1], &guid.Data4[2],
+                           &guid.Data4[3], &guid.Data4[4], &guid.Data4[5],
+                           &guid.Data4[6], &guid.Data4[7]);
+    if (result != 11) {
+        return FALSE;
+    }
+
+    return TRUE;
 }

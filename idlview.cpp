@@ -11,16 +11,12 @@ static constexpr auto MAX_NAMES = 64;
 
 void IDLView::DoPaint(CDCHandle dc)
 {
-    m_stream.Render(dc);
+    m_renderer.Render(dc);
 }
 
 LRESULT IDLView::OnCreate(LPCREATESTRUCT /*pcs*/)
 {
     auto lRet = DefWindowProc();
-
-    if (!m_stream.Create()) {
-        return -1;
-    }
 
     SetScrollOffset(0, 0, FALSE);
     SetScrollSize({ 1, 1 });
@@ -52,7 +48,7 @@ void IDLView::Update(LPTYPELIB pTypeLib, LPTYPEINFONODE pNode)
     SetScrollSize({ 1, 1 });
     SetScrollLine({ 1, 1 });
 
-    m_stream.ResetStream();
+    m_stream.Reset();
 
     if (pNode != nullptr && pNode->pTypeInfo != nullptr) {
         Decompile(pNode, 0);
@@ -60,7 +56,7 @@ void IDLView::Update(LPTYPELIB pTypeLib, LPTYPEINFONODE pNode)
         Decompile(pTypeLib);
     }
 
-    WriteStream();
+    ParseStream();
 
     Invalidate();
 }
@@ -150,16 +146,13 @@ void IDLView::WriteAttributes(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, BOOL fNewL
     }
 }
 
-BOOL IDLView::WriteStream()
+BOOL IDLView::ParseStream()
 {
-    if (m_stream.Size() == 0) {
-        return FALSE;
-    }
+    m_renderer.Parse(m_stream);
+    m_stream.Reset();
 
-    m_stream.Parse();
-
-    auto szChar = m_stream.GetCharSize();
-    auto szDoc = m_stream.GetDocSize();
+    auto szChar = m_renderer.GetCharSize();
+    auto szDoc = m_renderer.GetDocSize();
 
     SetScrollOffset(0, 0, FALSE);
     SetScrollSize(szDoc);
