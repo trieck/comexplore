@@ -2,6 +2,9 @@
 #include "idlstreamrenderer.h"
 
 static const string_set KEYWORDS({
+    _T("_cdecl"),
+    _T("_pascal"),
+    _T("_stdcall"),
     _T("coclass"),
     _T("const"),
     _T("default"),
@@ -46,6 +49,7 @@ static const string_set PROP_KEYWORDS({
     _T("propget"),
     _T("propput"),
     _T("propputref"),
+    _T("public"),
     _T("readonly"),
     _T("restricted"),
     _T("retval"),
@@ -55,10 +59,71 @@ static const string_set PROP_KEYWORDS({
     _T("version")
 });
 
-static const COLORREF KEYWORD_COLOR = RGB(0, 0, 200);
-static const COLORREF PROP_KEYWORD_COLOR = RGB(200, 0, 0);
-static const COLORREF COMMENT_COLOR = RGB(0, 128, 0);
-static const COLORREF LITERAL_COLOR = RGB(200, 0, 200);
+static const string_set TYPES({
+    _T("BLOB"),
+    _T("BLOB_OBJECT"),
+    _T("boolean"),
+    _T("BSTR"),
+    _T("BSTR*"),
+    _T("CARRAY"),
+    _T("CF"),
+    _T("char"),
+    _T("char*"),
+    _T("CLSID")
+    _T("CURRENCY"),
+    _T("DATE"),
+    _T("DATE*"),
+    _T("double"),
+    _T("double*"),
+    _T("FILETIME"),
+    _T("FILETIME*"),
+    _T("GUID"),
+    _T("GUID*"),
+    _T("float"),
+    _T("float*"),
+    _T("HRESULT"),
+    _T("IDispatch*"),
+    _T("int"),
+    _T("int*"),
+    _T("int64"),
+    _T("int64*"),
+    _T("IUnknown*"),
+    _T("long"),
+    _T("long*"),
+    _T("LPSTR"),
+    _T("LPSTR*"),
+    _T("LPWSTR"),
+    _T("LPWSTR*"),
+    _T("null"),
+    _T("PTR"),
+    _T("SAFEARRAY"),
+    _T("SAFEARRAY*"),
+    _T("SCODE"),
+    _T("short"),
+    _T("short*"),
+    _T("STORAGE"),
+    _T("STORED_OBJECT"),
+    _T("STREAM"),
+    _T("STREAMED_OBJECT"),
+    _T("uint64"),
+    _T("uint64*"),
+    _T("unsigned"),
+    _T("USERDEFINED"),
+    _T("VARIANT"),
+    _T("VARIANT*"),
+    _T("void"),
+    _T("void*"),
+    _T("wchar_t")
+    _T("wchar_t*")
+});
+
+static const COLORREF COLOR_KEYWORD = RGB(0, 0, 200);
+static const COLORREF COLOR_PROPERTY = RGB(200, 0, 0);
+static const COLORREF COLOR_COMMENT = RGB(0, 128, 0);
+static const COLORREF COLOR_LITERAL = RGB(200, 0, 200);
+static const COLORREF COLOR_BKGND = GetSysColor(COLOR_WINDOW);
+static const COLORREF COLOR_TYPE = RGB(128, 0, 0);
+static const COLORREF COLOR_TEXT = RGB(0, 0, 0);
 
 struct Token
 {
@@ -69,7 +134,8 @@ struct Token
         LITERAL,
         COMMENT,
         WHITESPACE,
-        NEWLINE
+        NEWLINE,
+        OTHER
     };
 
     Token() : type(Type::EMPTY)
@@ -83,9 +149,17 @@ struct Token
 static Token GetToken(LPCTSTR* ppin);
 static BOOL ParseGUID(LPCTSTR* ppin);
 
-IDLStreamRenderer::IDLStreamRenderer()
+BOOL IDLStreamRenderer::Create(int nPointSize, LPCTSTR lpszFaceName)
 {
-    m_font.CreatePointFont(100, _T("Cascadia Mono"));
+    if (m_font) {
+        m_font.DeleteObject();
+    }
+
+    if (!m_font.CreatePointFont(nPointSize, lpszFaceName)) {
+        return FALSE;
+    }
+
+    return TRUE;
 }
 
 void IDLStreamRenderer::Parse(TextStream& stream)
@@ -128,13 +202,11 @@ void IDLStreamRenderer::Parse(TextStream& stream)
     }
 
     auto hOldBitmap = m_memDC.SelectBitmap(m_bitmap);
-    auto clrWindow = GetSysColor(COLOR_WINDOW);
-    auto clrText = RGB(0, 0, 0);
 
-    m_memDC.FillSolidRect(m_rc, clrWindow);
-    m_memDC.SetBkColor(clrWindow);
+    m_memDC.FillSolidRect(m_rc, COLOR_BKGND);
+    m_memDC.SetBkColor(COLOR_BKGND);
     m_memDC.SetBkMode(OPAQUE);
-    m_memDC.SetTextColor(clrText);
+    m_memDC.SetTextColor(COLOR_TEXT);
 
     auto x = 0, y = 0;
     string_set::const_iterator it;
@@ -152,23 +224,29 @@ void IDLStreamRenderer::Parse(TextStream& stream)
         case Token::Type::NEWLINE:
             x = 0;
             y += m_cyChar;
-            break;
+            continue;
         case Token::Type::ID:
             it = KEYWORDS.find(value);
             if (it != KEYWORDS.end()) {
-                m_memDC.SetTextColor(KEYWORD_COLOR);
+                m_memDC.SetTextColor(COLOR_KEYWORD);
+                break;
             }
-
             it = PROP_KEYWORDS.find(value);
             if (it != PROP_KEYWORDS.end()) {
-                m_memDC.SetTextColor(PROP_KEYWORD_COLOR);
+                m_memDC.SetTextColor(COLOR_PROPERTY);
+                break;
+            }
+            it = TYPES.find(value);
+            if (it != TYPES.end()) {
+                m_memDC.SetTextColor(COLOR_TYPE);
+                break;
             }
             break;
         case Token::Type::COMMENT:
-            m_memDC.SetTextColor(COMMENT_COLOR);
+            m_memDC.SetTextColor(COLOR_COMMENT);
             break;
         case Token::Type::LITERAL:
-            m_memDC.SetTextColor(LITERAL_COLOR);
+            m_memDC.SetTextColor(COLOR_LITERAL);
             break;
         default:
             break;
@@ -179,7 +257,7 @@ void IDLStreamRenderer::Parse(TextStream& stream)
         m_memDC.TextOut(x, y, value);
         x += sz.cx;
 
-        m_memDC.SetTextColor(clrText);
+        m_memDC.SetTextColor(COLOR_TEXT);
     }
 
     m_memDC.SelectFont(hOldFont);
@@ -215,6 +293,8 @@ CSize IDLStreamRenderer::GetDocSize() const
 // Helper functions
 Token GetToken(LPCTSTR* ppin)
 {
+    ATLASSERT(ppin);
+
     Token token;
 
     for (;;) {
@@ -295,13 +375,19 @@ Token GetToken(LPCTSTR* ppin)
                 while (iscsym(**ppin)) {
                     token.value += *(*ppin)++;
                 }
+
+                // pointer identifier
+                while (**ppin == '*') {
+                    token.value += *(*ppin)++;
+                }
+                
                 token.type = Token::Type::ID;
                 return token;
             }
 
             if (ispunct(**ppin)) {
                 token.value = *(*ppin)++;
-                token.type = Token::Type::ID;
+                token.type = Token::Type::OTHER;
                 return token;
             }
 
@@ -313,6 +399,8 @@ Token GetToken(LPCTSTR* ppin)
 
 BOOL ParseGUID(LPCTSTR* ppin)
 {
+    ATLASSERT(ppin);
+
     GUID guid;
     auto result = _stscanf(*ppin, _T("%08lX-%04hX-%04hX-%02hhX%02hhX-%02hhX%02hhX%02hhX%02hhX%02hhX%02hhX"),
                            &guid.Data1, &guid.Data2, &guid.Data3,

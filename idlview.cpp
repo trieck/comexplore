@@ -18,6 +18,10 @@ LRESULT IDLView::OnCreate(LPCREATESTRUCT /*pcs*/)
 {
     auto lRet = DefWindowProc();
 
+    if (!m_renderer.Create(100, _T("Cascadia Mono"))) {
+        return -1;
+    }
+
     SetScrollOffset(0, 0, FALSE);
     SetScrollSize({ 1, 1 });
     SetScrollLine({ 1, 1 });

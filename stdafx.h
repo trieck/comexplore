@@ -72,6 +72,12 @@ struct equal_to_string
 
 struct string_hash
 {
+#if defined(_WIN64)
+    static const size_t FNV_PRIME = 1099511628211ULL;
+#else // defined(_WIN64)
+    static const size_t FNV_PRIME = 16777619U;
+#endif // defined(_WIN64)
+
     size_t operator()(LPCTSTR p) const
     {
         ATLASSERT(p != nullptr);
@@ -80,7 +86,7 @@ struct string_hash
 
         while (*p != '\0') {
             result ^= *p++;
-            result *= 1099511628211ULL;
+            result *= FNV_PRIME;
         }
 
         return result;

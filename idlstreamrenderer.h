@@ -5,8 +5,7 @@
 class IDLStreamRenderer
 {
 public:
-    IDLStreamRenderer();
-
+    BOOL Create(int nPointSize, const wchar_t* lpszFaceName);
     void Parse(TextStream& stream);
     void Render(CDCHandle dc);
 
