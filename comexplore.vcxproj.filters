@@ -57,7 +57,7 @@
     <ClCompile Include="autotypeattr.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="textstream.cpp">
+    <ClCompile Include="idlstream.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -110,7 +110,7 @@
     <ClInclude Include="autobstrarray.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="textstream.h">
+    <ClInclude Include="idlstream.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

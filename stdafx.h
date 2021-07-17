@@ -32,6 +32,8 @@
 #include <atlstr.h>
 
 #include <vector>
+#include <unordered_map>
+#include <unordered_set>
 #include <string>
 
 #ifdef _UNICODE
@@ -56,6 +58,44 @@ using tstring = std::string;
 	}
 
 constexpr auto REG_BUFFER_SIZE = 1024;
+
+struct equal_to_string
+{
+    bool operator()(const LPCTSTR& lhs, const LPCTSTR& rhs) const
+    {
+        ATLASSERT(lhs != nullptr);
+        ATLASSERT(rhs != nullptr);
+
+        return _tcscmp(lhs, rhs) == 0;
+    }
+};
+
+struct string_hash
+{
+    size_t operator()(LPCTSTR p) const
+    {
+        ATLASSERT(p != nullptr);
+
+        size_t result = 0;
+
+        while (*p != '\0') {
+            result ^= *p++;
+            result *= 1099511628211ULL;
+        }
+
+        return result;
+    }
+};
+
+template <typename Value>
+class string_key_map
+{
+    string_key_map() = default;
+public:
+    using type = std::unordered_map<LPCTSTR, Value, string_hash, equal_to_string>;
+};
+
+using string_set = std::unordered_set<LPCTSTR, string_hash, equal_to_string>;
 
 extern CAppModule _Module;
 

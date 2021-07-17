@@ -284,7 +284,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="textstream.cpp" />
+    <ClCompile Include="idlstream.cpp" />
     <ClCompile Include="typeinfonode.cpp" />
     <ClCompile Include="typelibtree.cpp" />
     <ClCompile Include="typelibview.cpp" />
@@ -306,7 +306,7 @@
     <ClInclude Include="regview.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
-    <ClInclude Include="textstream.h" />
+    <ClInclude Include="idlstream.h" />
     <ClInclude Include="typeinfonode.h" />
     <ClInclude Include="typelibtree.h" />
     <ClInclude Include="typelibview.h" />

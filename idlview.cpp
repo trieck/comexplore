@@ -22,7 +22,6 @@ LRESULT IDLView::OnCreate(LPCREATESTRUCT /*pcs*/)
         return -1;
     }
 
-    SetZoomScale(1.0f);
     SetScrollOffset(0, 0, FALSE);
     SetScrollSize({ 1, 1 });
     SetScrollLine({ 1, 1 });
@@ -49,7 +48,6 @@ void IDLView::Update(LPTYPELIB pTypeLib, LPTYPEINFONODE pNode)
 
     CWaitCursor cursor;
 
-    SetZoomScale(1.0f);
     SetScrollOffset(0, 0, FALSE);
     SetScrollSize({ 1, 1 });
     SetScrollLine({ 1, 1 });
@@ -158,12 +156,11 @@ BOOL IDLView::WriteStream()
         return FALSE;
     }
 
-    m_stream.Prepare(*this);
+    m_stream.Parse();
 
     auto szChar = m_stream.GetCharSize();
     auto szDoc = m_stream.GetDocSize();
 
-    SetZoomScale(1.0f);
     SetScrollOffset(0, 0, FALSE);
     SetScrollSize(szDoc);
     SetScrollLine(szChar);

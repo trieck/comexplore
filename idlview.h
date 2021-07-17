@@ -1,14 +1,14 @@
 #pragma once
-#include "textstream.h"
+#include "idlstream.h"
 #include "typeinfonode.h"
 
-class IDLView : public CZoomScrollWindowImpl<IDLView>
+class IDLView : public CScrollWindowImpl<IDLView>
 {
 public:
 BEGIN_MSG_MAP(IDLView)
         MSG_WM_CREATE(OnCreate)
         MESSAGE_HANDLER(WM_SELCHANGED, OnSelChanged)
-        CHAIN_MSG_MAP(CZoomScrollWindowImpl<IDLView>)
+        CHAIN_MSG_MAP(CScrollWindowImpl<IDLView>)
     END_MSG_MAP()
 
     void DoPaint(CDCHandle dc);
@@ -41,5 +41,5 @@ private:
     BOOL WriteIndent(int level);
     BOOL WriteStream();
 
-    TextStream m_stream;
+    IDLStream m_stream;
 };
