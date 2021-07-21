@@ -4,27 +4,17 @@
 #include "autobstrarray.h"
 #include "autodesc.h"
 #include "autotypeattr.h"
+#include "idlstreamformatter.h"
 #include "typeinfonode.h"
 #include "util.h"
 
 static constexpr auto MAX_NAMES = 64;
 
-void IDLView::DoPaint(CDCHandle dc)
-{
-    m_renderer.Render(dc);
-}
-
 LRESULT IDLView::OnCreate(LPCREATESTRUCT /*pcs*/)
 {
     auto lRet = DefWindowProc();
 
-    if (!m_renderer.Create(100, _T("Cascadia Mono"))) {
-        return -1;
-    }
-
-    SetScrollOffset(0, 0, FALSE);
-    SetScrollSize({ 1, 1 });
-    SetScrollLine({ 1, 1 });
+    SetModify(FALSE);
 
     return lRet;
 }
@@ -48,10 +38,6 @@ void IDLView::Update(LPTYPELIB pTypeLib, LPTYPEINFONODE pNode)
 
     CWaitCursor cursor;
 
-    SetScrollOffset(0, 0, FALSE);
-    SetScrollSize({ 1, 1 });
-    SetScrollLine({ 1, 1 });
-
     m_stream.Reset();
 
     if (pNode != nullptr && pNode->pTypeInfo != nullptr) {
@@ -60,9 +46,7 @@ void IDLView::Update(LPTYPELIB pTypeLib, LPTYPEINFONODE pNode)
         Decompile(pTypeLib);
     }
 
-    ParseStream();
-
-    Invalidate();
+    FlushStream();
 }
 
 void IDLView::WriteAttributes(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, BOOL fNewLine, MEMBERID memID, int level)
@@ -150,17 +134,41 @@ void IDLView::WriteAttributes(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, BOOL fNewL
     }
 }
 
-BOOL IDLView::ParseStream()
+static DWORD CALLBACK StreamCallback(DWORD_PTR dwCookie, LPBYTE pbBuff, LONG cb, LONG* pcb)
 {
-    m_renderer.Parse(m_stream);
+    auto** ptext = reinterpret_cast<LPCSTR*>(dwCookie);
+    size_t nLength = strlen(*ptext);
+
+    auto sz = std::min<size_t>(nLength, cb);
+
+    memcpy(pbBuff, *ptext, sz);
+
+    *ptext += sz;
+    *pcb = static_cast<ULONG>(sz);
+
+    return 0;
+}
+
+/////////////////////////////////////////////////////////////////////////////
+BOOL IDLView::FlushStream()
+{
+    auto str = IDLStreamFormatter::Format(m_stream);
+    LPCSTR pstr(str);
+
+    EDITSTREAM stream{};
+    stream.dwCookie = reinterpret_cast<DWORD_PTR>(&pstr);
+    stream.pfnCallback = StreamCallback;
+
+    StreamIn(SF_RTF, stream);
+
+    if (stream.dwError != NOERROR) {
+        return FALSE;
+    }
+
+    CPoint origin;
+    SetScrollPos(&origin);
+
     m_stream.Reset();
-
-    auto szChar = m_renderer.GetCharSize();
-    auto szDoc = m_renderer.GetDocSize();
-
-    SetScrollOffset(0, 0, FALSE);
-    SetScrollSize(szDoc);
-    SetScrollLine(szChar);
 
     return TRUE;
 }

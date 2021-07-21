@@ -15,7 +15,10 @@ LRESULT TypeLibView::OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHa
         return -1;
     }
 
-    if (!m_idlView.Create(*this, rcDefault, nullptr, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN)) {
+    if (!m_idlView.Create(*this, rcDefault, nullptr,
+                          WS_CHILD | WS_VISIBLE | WS_VSCROLL | WS_HSCROLL |
+                          ES_AUTOHSCROLL | ES_AUTOVSCROLL | ES_MULTILINE 
+                          | ES_NOOLEDRAGDROP | ES_READONLY)) {
         return -1;
     }
 

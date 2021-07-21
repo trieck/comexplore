@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "idlstreamrenderer.h"
+#include "idlstreamformatter.h"
 
 static const string_set KEYWORDS({
     _T("_cdecl"),
@@ -117,14 +117,6 @@ static const string_set TYPES({
     _T("wchar_t*")
 });
 
-static const COLORREF COLOR_KEYWORD = RGB(0, 0, 200);
-static const COLORREF COLOR_PROPERTY = RGB(200, 0, 0);
-static const COLORREF COLOR_COMMENT = RGB(0, 128, 0);
-static const COLORREF COLOR_LITERAL = RGB(200, 0, 200);
-static const COLORREF COLOR_BKGND = GetSysColor(COLOR_WINDOW);
-static const COLORREF COLOR_TYPE = RGB(128, 0, 0);
-static const COLORREF COLOR_TEXT = RGB(0, 0, 0);
-
 struct Token
 {
     enum class Type
@@ -147,147 +139,106 @@ struct Token
 };
 
 static Token GetToken(LPCTSTR* ppin);
-static BOOL ParseGUID(LPCTSTR* ppin);
+static BOOL ParseGUID(LPCTSTR pin);
 
-BOOL IDLStreamRenderer::Create(int nPointSize, LPCTSTR lpszFaceName)
+enum COLORS
 {
-    if (m_font) {
-        m_font.DeleteObject();
-    }
+    COLOR_TEXT= 1,
+    COLOR_KEYWORD,
+    COLOR_PROPERTY,
+    COLOR_COMMENT,
+    COLOR_LITERAL,
+    COLOR_TYPE,
+};
 
-    if (!m_font.CreatePointFont(nPointSize, lpszFaceName)) {
-        return FALSE;
-    }
-
-    return TRUE;
-}
-
-void IDLStreamRenderer::Parse(TextStream& stream)
+CStringA IDLStreamFormatter::Format(TextStream& stream)
 {
+    CString output(_T("{\\rtf\\ansi\\deff0{\\fonttbl{\\f0 Cascadia Mono;\\f1 Courier New;}}"
+        "{\\colortbl;"
+        "\\red0\\green0\\blue0;" // COLOR_TEXT
+        "\\red0\\green0\\blue200;" // COLOR_KEYWORD
+        "\\red200\\green0\\blue0;" // COLOR_PROPERTY
+        "\\red0\\green128\\blue0;" // COLOR_COMMENT
+        "\\red200\\green0\\blue200;" // COLOR_LITERAL
+        "\\red128\\green0\\blue0;" // COLOR_TYPE
+        ";}\n"
+        "\\cf1\n"));
+
     auto strText = stream.ReadString();
+    auto textColor = COLOR_TEXT;
+    COLORREF lastColor = textColor;
 
     LPCTSTR pText = strText;
 
-    CClientDC dc(nullptr);
-    if (m_memDC) {
-        m_memDC.DeleteDC();
-    }
-    m_memDC.CreateCompatibleDC(dc);
-
-    m_memDC.SetMapMode(dc.GetMapMode());
-    auto hOldFont = m_memDC.SelectFont(m_font);
-    m_memDC.DrawText(strText, -1, &m_rc, DT_CALCRECT);
-
-    TEXTMETRIC tm;
-    m_memDC.GetTextMetrics(&tm);
-    m_memDC.GetCharWidth32('X', 'X', &m_cxChar);
-    m_cyChar = tm.tmHeight + tm.tmExternalLeading;
-
-    if (m_bitmap) {
-        m_bitmap.DeleteObject();
-    }
-
-    BITMAPINFOHEADER bmih{};
-    bmih.biSize = sizeof(BITMAPINFOHEADER);
-    bmih.biWidth = m_rc.Width();
-    bmih.biHeight = m_rc.Height();
-    bmih.biPlanes = 1;
-    bmih.biBitCount = 32;
-    bmih.biCompression = BI_RGB;
-
-    BITMAPINFO bmi{};
-    bmi.bmiHeader = bmih;
-    if (!m_bitmap.CreateDIBSection(dc, &bmi, DIB_RGB_COLORS, nullptr, nullptr, 0)) {
-        return;
-    }
-
-    auto hOldBitmap = m_memDC.SelectBitmap(m_bitmap);
-
-    m_memDC.FillSolidRect(m_rc, COLOR_BKGND);
-    m_memDC.SetBkColor(COLOR_BKGND);
-    m_memDC.SetBkMode(OPAQUE);
-    m_memDC.SetTextColor(COLOR_TEXT);
-
-    auto x = 0, y = 0;
     string_set::const_iterator it;
 
     auto bDone = FALSE;
     while (!bDone) {
+        textColor = COLOR_TEXT;
+
         auto token = GetToken(&pText);
-        LPCTSTR value = token.value;
 
         switch (token.type) {
         case Token::Type::EMPTY:
             ATLASSERT(*pText == '\0');
             bDone = TRUE;
             break;
-        case Token::Type::NEWLINE:
-            x = 0;
-            y += m_cyChar;
-            continue;
         case Token::Type::ID:
-            it = KEYWORDS.find(value);
+            it = KEYWORDS.find(token.value);
             if (it != KEYWORDS.end()) {
-                m_memDC.SetTextColor(COLOR_KEYWORD);
+                textColor = COLOR_KEYWORD;
                 break;
             }
-            it = PROP_KEYWORDS.find(value);
+            it = PROP_KEYWORDS.find(token.value);
             if (it != PROP_KEYWORDS.end()) {
-                m_memDC.SetTextColor(COLOR_PROPERTY);
+                textColor = COLOR_PROPERTY;
                 break;
             }
-            it = TYPES.find(value);
+            it = TYPES.find(token.value);
             if (it != TYPES.end()) {
-                m_memDC.SetTextColor(COLOR_TYPE);
+                textColor = COLOR_TYPE;
                 break;
             }
             break;
         case Token::Type::COMMENT:
-            m_memDC.SetTextColor(COLOR_COMMENT);
+            textColor = COLOR_COMMENT;
             break;
         case Token::Type::LITERAL:
-            m_memDC.SetTextColor(COLOR_LITERAL);
+            textColor = COLOR_LITERAL;
             break;
         default:
             break;
         }
 
-        CSize sz;
-        m_memDC.GetTextExtent(value, -1, &sz);
-        m_memDC.TextOut(x, y, value);
-        x += sz.cx;
+        if (textColor != lastColor) {
+            CString strColor;
+            strColor.Format(_T("\\cf%d\n"), textColor);
+            output += strColor;
+        }
 
-        m_memDC.SetTextColor(COLOR_TEXT);
+        CString value(token.value);
+        if (value[0] == '\n') {
+            value = _T("\\line\n");
+        } else {
+            value.Replace(_T("\\"), _T("\\\\"));
+            value.Replace(_T("{"), _T("\\{"));
+            value.Replace(_T("}"), _T("\\}"));
+        }
+
+        output += value;
+
+        if (textColor != lastColor) {
+            output += _T("\\cf1\n");
+        }
+
+        lastColor = textColor;
     }
 
-    m_memDC.SelectFont(hOldFont);
-    m_memDC.SelectBitmap(hOldBitmap);
-}
+    output += '}';
 
-void IDLStreamRenderer::Render(CDCHandle dc)
-{
-    if (m_memDC && m_bitmap) {
-        auto hOldBitmap = m_memDC.SelectBitmap(m_bitmap);
+    CT2CA utf8Str(output, CP_UTF8);
 
-        CRect rc;
-        dc.GetClipBox(&rc);
-
-        dc.BitBlt(rc.left, rc.top,
-                  rc.Width(), rc.Height(), m_memDC,
-                  rc.left, rc.top, SRCCOPY);
-
-        m_memDC.SelectBitmap(hOldBitmap);
-    }
-}
-
-CSize IDLStreamRenderer::GetCharSize() const
-{
-    return { m_cxChar, m_cyChar };
-}
-
-CSize IDLStreamRenderer::GetDocSize() const
-{
-    return { m_rc.Width(), m_rc.Height() };
+    return CStringA(utf8Str);
 }
 
 // Helper functions
@@ -295,9 +246,7 @@ Token GetToken(LPCTSTR* ppin)
 {
     ATLASSERT(ppin);
 
-    Token token;
-
-    for (;;) {
+    for (Token token;;) {
         switch (**ppin) {
         case '\0':
             token.type = Token::Type::EMPTY;
@@ -346,7 +295,7 @@ Token GetToken(LPCTSTR* ppin)
             return token;
         default:
             if (isdigit(**ppin) || isxdigit(**ppin)) {
-                if (ParseGUID(ppin)) {
+                if (ParseGUID(*ppin)) {
                     token.value = CString(*ppin, 36);
                     *ppin += 36;
                     token.type = Token::Type::LITERAL;
@@ -380,7 +329,7 @@ Token GetToken(LPCTSTR* ppin)
                 while (**ppin == '*') {
                     token.value += *(*ppin)++;
                 }
-                
+
                 token.type = Token::Type::ID;
                 return token;
             }
@@ -397,18 +346,54 @@ Token GetToken(LPCTSTR* ppin)
     }
 }
 
-BOOL ParseGUID(LPCTSTR* ppin)
+BOOL ParseGUID(LPCTSTR pin)
 {
-    ATLASSERT(ppin);
+    ATLASSERT(pin);
 
-    GUID guid;
-    auto result = _stscanf(*ppin, _T("%08lX-%04hX-%04hX-%02hhX%02hhX-%02hhX%02hhX%02hhX%02hhX%02hhX%02hhX"),
-                           &guid.Data1, &guid.Data2, &guid.Data3,
-                           &guid.Data4[0], &guid.Data4[1], &guid.Data4[2],
-                           &guid.Data4[3], &guid.Data4[4], &guid.Data4[5],
-                           &guid.Data4[6], &guid.Data4[7]);
-    if (result != 11) {
+    for (auto i = 0; i < 8; ++i) {
+        if (!isxdigit(*pin++)) {
+            return FALSE;
+        }
+    }
+
+    if (*pin++ != '-') {
         return FALSE;
+    }
+
+    for (auto i = 0; i < 4; ++i) {
+        if (!isxdigit(*pin++)) {
+            return FALSE;
+        }
+    }
+
+    if (*pin++ != '-') {
+        return FALSE;
+    }
+
+    for (auto i = 0; i < 4; ++i) {
+        if (!isxdigit(*pin++)) {
+            return FALSE;
+        }
+    }
+
+    if (*pin++ != '-') {
+        return FALSE;
+    }
+
+    for (auto i = 0; i < 4; ++i) {
+        if (!isxdigit(*pin++)) {
+            return FALSE;
+        }
+    }
+
+    if (*pin++ != '-') {
+        return FALSE;
+    }
+
+    for (auto i = 0; i < 12; ++i) {
+        if (!isxdigit(*pin++)) {
+            return FALSE;
+        }
     }
 
     return TRUE;

@@ -60,7 +60,7 @@
     <ClCompile Include="textstream.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="idlstreamrenderer.cpp">
+    <ClCompile Include="idlstreamformatter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -116,7 +116,7 @@
     <ClInclude Include="textstream.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="idlstreamrenderer.h">
+    <ClInclude Include="idlstreamformatter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

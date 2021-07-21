@@ -8,11 +8,17 @@ int Run(LPTSTR /*lpstrCmdLine*/  = nullptr, int nCmdShow = SW_SHOWDEFAULT)
     CMessageLoop theLoop;
     _Module.AddMessageLoop(&theLoop);
 
+    auto hInstRich = LoadLibrary(CRichEditCtrl::GetLibraryName());
+    if (hInstRich == nullptr) {
+        ATLTRACE(_T("Unable to load rich edit library!\n"));
+        return -1;
+    }
+
     CMainFrame wndMain;
 
     if (!wndMain.DefCreate()) {
         ATLTRACE(_T("Main window creation failed!\n"));
-        return 0;
+        return -1;
     }
 
     wndMain.ShowWindow(nCmdShow);
@@ -20,6 +26,8 @@ int Run(LPTSTR /*lpstrCmdLine*/  = nullptr, int nCmdShow = SW_SHOWDEFAULT)
     auto nRet = theLoop.Run();
 
     _Module.RemoveMessageLoop();
+
+    FreeLibrary(hInstRich);
 
     return nRet;
 }

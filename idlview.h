@@ -1,18 +1,16 @@
 #pragma once
 #include "textstream.h"
-#include "idlstreamrenderer.h"
 #include "typeinfonode.h"
 
-class IDLView : public CScrollWindowImpl<IDLView>
+class IDLView : public CWindowImpl<IDLView, CRichEditCtrl>
 {
 public:
 BEGIN_MSG_MAP(IDLView)
         MSG_WM_CREATE(OnCreate)
         MESSAGE_HANDLER(WM_SELCHANGED, OnSelChanged)
-        CHAIN_MSG_MAP(CScrollWindowImpl<IDLView>)
     END_MSG_MAP()
+    DECLARE_WND_SUPERCLASS(NULL, CRichEditCtrl::GetWndClassName())
 
-    void DoPaint(CDCHandle dc);
     LRESULT OnCreate(LPCREATESTRUCT pcs);
     LRESULT OnSelChanged(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& bHandled);
 
@@ -40,8 +38,7 @@ private:
     BOOL WriteLevel(int level, LPCTSTR format, ...);
     BOOL WriteAttr(BOOL& hasAttributes, BOOL fNewLine, int level, LPCTSTR format, ...);
     BOOL WriteIndent(int level);
-    BOOL ParseStream();
+    BOOL FlushStream();
 
     CComObjectStack<TextStream> m_stream;
-    IDLStreamRenderer m_renderer;
 };
