@@ -356,7 +356,7 @@ inline void RegistryView::BuildCatID(LPOBJECTDATA pdata)
         return;
     }
 
-    auto appidRoot = InsertItem(_T("Component Categoies"), TVI_ROOT, TVI_LAST);
+    auto appidRoot = InsertItem(_T("Component Categories"), TVI_ROOT, TVI_LAST);
     auto appid = InsertValues(key, appidRoot.m_hTreeItem, strCatID);
 
     InsertSubkeys(key, appid.m_hTreeItem);
