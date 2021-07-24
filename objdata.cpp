@@ -31,6 +31,7 @@ ObjectData::ObjectData(ObjectType t, LPCTSTR pGUID, WORD maj, WORD min)
     case ObjectType::APPID:
     case ObjectType::CLSID:
     case ObjectType::TYPELIB:
+    case ObjectType::CATID:
         CLSIDFromString(strGUID, &guid); // may work generally
         break;
     default:

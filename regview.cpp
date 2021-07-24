@@ -23,7 +23,7 @@ LRESULT RegistryView::OnCreate(LPCREATESTRUCT pcs)
                   | TVS_HASBUTTONS | TVS_HASLINES | TVS_FULLROWSELECT | TVS_INFOTIP
                   | TVS_LINESATROOT | TVS_SHOWSELALWAYS);
 
-    BuildView(reinterpret_cast<LPOBJECTDATA>(pcs->lpCreateParams));
+    BuildView(static_cast<LPOBJECTDATA>(pcs->lpCreateParams));
 
     SetMsgHandled(FALSE);
 
@@ -45,6 +45,9 @@ void RegistryView::BuildView(LPOBJECTDATA pdata)
         break;
     case ObjectType::TYPELIB:
         BuildTypeLib(pdata);
+        break;
+    case ObjectType::CATID:
+        BuildCatID(pdata);
         break;
     default:
         break;
@@ -163,8 +166,6 @@ void RegistryView::BuildCLSID(LPOBJECTDATA pdata)
         return;
     }
 
-    typelib[length] = _T('\0');
-
     BuildTypeLib(typelib);
 
     strPath.Format(_T("SOFTWARE\\Classes\\CLSID\\%s\\ProgID"), static_cast<LPCTSTR>(strGUID));
@@ -180,8 +181,6 @@ void RegistryView::BuildCLSID(LPOBJECTDATA pdata)
     if (lResult != ERROR_SUCCESS) {
         return;
     }
-
-    progID[length] = _T('\0');
 
     BuildProgID(progID);
 }
@@ -323,8 +322,6 @@ void RegistryView::BuildIID(LPOBJECTDATA pdata)
         return;
     }
 
-    clsid[length] = _T('\0');
-
     BuildCLSID(clsid);
 
     strPath.Format(_T("SOFTWARE\\Classes\\Interface\\%s\\TypeLib"), static_cast<LPCTSTR>(strIID));
@@ -340,7 +337,30 @@ void RegistryView::BuildIID(LPOBJECTDATA pdata)
         return;
     }
 
-    typelib[length] = _T('\0');
-
     BuildTypeLib(typelib);
+}
+
+inline void RegistryView::BuildCatID(LPOBJECTDATA pdata)
+{
+    ATLASSERT(pdata && pdata->type == ObjectType::CATID && pdata->guid != GUID_NULL);
+
+    CString strCatID;
+    StringFromGUID2(pdata->guid, strCatID.GetBuffer(40), 40);
+
+    CString strPath;
+    strPath.Format(_T("Component Categories\\%s"), static_cast<LPCTSTR>(strCatID));
+
+    CRegKey key;
+    auto lResult = key.Open(HKEY_CLASSES_ROOT, strPath, KEY_ENUMERATE_SUB_KEYS | KEY_QUERY_VALUE);
+    if (lResult != ERROR_SUCCESS) {
+        return;
+    }
+
+    auto appidRoot = InsertItem(_T("Component Categoies"), TVI_ROOT, TVI_LAST);
+    auto appid = InsertValues(key, appidRoot.m_hTreeItem, strCatID);
+
+    InsertSubkeys(key, appid.m_hTreeItem);
+
+    appidRoot.Expand();
+    appid.Expand();
 }

@@ -132,6 +132,8 @@ IDI_CONSTANT            ICON                    "res\\constant.ico"
 
 IDI_PROPERTY            ICON                    "res\\property.ico"
 
+IDI_CATID               ICON                    "res\\catid.ico"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //

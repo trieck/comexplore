@@ -5,6 +5,20 @@
 
 #include <boost/algorithm/string.hpp>
 
+static constexpr GUID CATID_CONTROLS_GUID =
+    { 0x40FC6ED4, 0x2438, 0x11CF, { 0xa3, 0xdb, 0x08, 0x00, 0x36, 0xF1, 0x25, 0x02 } };
+
+static constexpr GUID CATID_DOCOBJECTS_GUID =
+    { 0x40FC6ED8, 0x2438, 0x11CF, { 0xa3, 0xdb, 0x08, 0x00, 0x36, 0xF1, 0x25, 0x02 } };
+
+static constexpr GUID CATID_EMBEDDABLE_GUID =
+    { 0x40FC6ED3, 0x2438, 0x11CF, { 0xa3, 0xdb, 0x08, 0x00, 0x36, 0xF1, 0x25, 0x02 } };
+
+static constexpr GUID CATID_AUTOMATION_GUID =
+    { 0x40FC6ED5, 0x2438, 0x11CF, { 0xa3, 0xdb, 0x08, 0x00, 0x36, 0xF1, 0x25, 0x02 } };
+
+static constexpr COLORREF RGBCYAN = RGB(0, 128, 128);
+
 ComTreeView::ComTreeView(): m_bMsgHandled(FALSE)
 {
 }
@@ -21,6 +35,7 @@ LRESULT ComTreeView::OnCreate(LPCREATESTRUCT)
         IDI_APPID,
         IDI_TYPELIB_GROUP,
         IDI_TYPELIB,
+        IDI_CATID
     };
 
     m_ImageList = ImageList_Create(16, 16, ILC_MASK | ILC_COLOR32, sizeof(icons) / sizeof(int), 0);
@@ -68,6 +83,10 @@ LRESULT ComTreeView::OnItemExpanding(LPNMHDR pnmh)
         ExpandApps(item);
     } else if (data->type == ObjectType::TYPELIB && data->guid == GUID_NULL) {
         ExpandTypeLibs(item);
+    } else if (data->type == ObjectType::CATID && data->guid == GUID_NULL) {
+        ExpandCategories(item);
+    } else if (data->type == ObjectType::CATID && data->guid != GUID_NULL) {
+        ExpandCategory(item);
     }
 
     return 0;
@@ -177,6 +196,52 @@ void ComTreeView::ExpandTypeLibs(const CTreeItem& item)
     }
 
     ConstructTypeLibs(item);
+
+    SortChildren(item.m_hTreeItem);
+}
+
+void ComTreeView::ExpandCategories(const CTreeItem& item)
+{
+    auto result = GetItemState(item.m_hTreeItem, TVIS_EXPANDED);
+    if (result) {
+        return; // already expanded
+    }
+
+    auto child = item.GetChild();
+    if (!child.IsNull()) {
+        return; // already have children
+    }
+
+    ConstructCategories(item);
+
+    SortChildren(item.m_hTreeItem);
+}
+
+void ComTreeView::ExpandCategory(const CTreeItem& item)
+{
+    auto result = GetItemState(item.m_hTreeItem, TVIS_EXPANDED);
+    if (result) {
+        return; // already expanded
+    }
+
+    auto child = item.GetChild();
+    if (!child.IsNull()) {
+        return; // already have children
+    }
+
+    ConstructCategory(item);
+
+    child = item.GetChild();
+    if (child.IsNull()) {
+        // no children
+        TVITEM tvitem = {};
+        tvitem.hItem = item.m_hTreeItem;
+        tvitem.mask = TVIF_CHILDREN;
+        GetItem(&tvitem);
+        tvitem.cChildren = 0;
+        SetItem(&tvitem);
+        return;
+    }
 
     SortChildren(item.m_hTreeItem);
 }
@@ -295,7 +360,6 @@ void ComTreeView::ConstructApps(const CTreeItem& item)
             length = REG_BUFFER_SIZE;
             _tcscpy(name, appID);
             subkey.QueryStringValue(_T("AppID"), appID, &length);
-            appID[length] = _T('\0');
         }
 
         if (appID[0] == _T('\0')) {
@@ -305,7 +369,6 @@ void ComTreeView::ConstructApps(const CTreeItem& item)
         if (name[0] == _T('\0')) {
             length = REG_BUFFER_SIZE;
             subkey.QueryStringValue(nullptr, name, &length);
-            name[length] = _T('\0');
         }
 
         CString strName(name);
@@ -334,6 +397,65 @@ void ComTreeView::ConstructApps(const CTreeItem& item)
     SetRedraw(TRUE);
 }
 
+int ComTreeView::LoadToolboxImage(const CRegKey& key)
+{
+    auto iImage = 1;
+
+    CRegKey subkey;
+    auto lResult = subkey.Open(key.m_hKey, _T("ToolboxBitmap32"), KEY_READ);
+    if (lResult != ERROR_SUCCESS) {
+        lResult = subkey.Open(key.m_hKey, _T("ToolboxBitmap"), KEY_READ);
+        if (lResult != ERROR_SUCCESS) {
+            return iImage;
+        }
+    }
+
+    TCHAR szBitmap[REG_BUFFER_SIZE];
+    ULONG length = REG_BUFFER_SIZE;
+
+    lResult = subkey.QueryStringValue(nullptr, szBitmap, &length);
+    if (lResult != ERROR_SUCCESS) {
+        return iImage;
+    }
+
+    std::vector<tstring> out;
+    split(out, szBitmap, boost::is_any_of(_T(",")));
+
+    if (out.size() < 2) {
+        return iImage;
+    }
+
+    auto fileName = out[0];
+    auto id = _ttoi(out[1].c_str());
+
+    TCHAR szFileName[REG_BUFFER_SIZE];
+    ExpandEnvironmentStrings(fileName.c_str(), szFileName,
+                             REG_BUFFER_SIZE);
+
+    auto hinstBitmap = LoadLibraryEx(szFileName,
+                                     nullptr,
+                                     LOAD_LIBRARY_AS_DATAFILE);
+    if (!hinstBitmap) {
+        return 1;
+    }
+
+    auto hbmGlyph = LoadBitmap(hinstBitmap, MAKEINTRESOURCE(id));
+    if (hbmGlyph) {
+        iImage = m_ImageList.Add(hbmGlyph, RGBCYAN);
+        DeleteObject(hbmGlyph);
+    } else {
+        auto hIcon = LoadIcon(hinstBitmap, MAKEINTRESOURCE(id));
+        if (hIcon) {
+            iImage = m_ImageList.AddIcon(hIcon);
+            DestroyIcon(hIcon);
+        }
+    }
+
+    FreeLibrary(hinstBitmap);
+
+    return iImage;
+}
+
 void ComTreeView::ConstructClasses(const CTreeItem& item)
 {
     CWaitCursor cursor;
@@ -345,49 +467,52 @@ void ComTreeView::ConstructClasses(const CTreeItem& item)
         return;
 
     DWORD index = 0, length = REG_BUFFER_SIZE;
-    TCHAR buff[REG_BUFFER_SIZE];
     TCHAR val[REG_BUFFER_SIZE];
 
-    while ((lResult = key.EnumKey(index, buff, &length)) != ERROR_NO_MORE_ITEMS) {
+    for (;;) {
+        TCHAR szCLSID[REG_BUFFER_SIZE];
+        length = REG_BUFFER_SIZE;
+
+        lResult = key.EnumKey(index++, szCLSID, &length);
         if (lResult != ERROR_SUCCESS) {
             break;
         }
 
-        lResult = subkey.Open(key.m_hKey, buff, KEY_READ);
+        if (_tcscmp(szCLSID, _T("CLSID")) == 0) {
+            continue;
+        }
+
+        lResult = subkey.Open(key.m_hKey, szCLSID, KEY_READ);
         if (lResult != ERROR_SUCCESS) {
             continue;
         }
 
         length = REG_BUFFER_SIZE;
         subkey.QueryStringValue(nullptr, val, &length);
-        val[length] = _T('\0');
 
         CString value(val);
         value.Trim();
 
-        if (_tcscmp(buff, _T("CLSID")) != 0) {
-            if (value.GetLength() == 0) {
-                value = buff;
-            }
-
-            TV_INSERTSTRUCT tvis;
-            tvis.hParent = item.m_hTreeItem;
-            tvis.hInsertAfter = TVI_LAST;
-            tvis.itemex.mask = TVIF_CHILDREN | TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_TEXT | TVIF_PARAM;
-            tvis.itemex.cChildren = 1;
-            tvis.itemex.pszText = const_cast<LPTSTR>(static_cast<LPCTSTR>(value));
-            tvis.itemex.iImage = 1;
-            tvis.itemex.iSelectedImage = 1;
-
-            auto pdata = std::make_unique<ObjectData>(ObjectType::CLSID, buff);
-            if (pdata != nullptr && !IsEqualGUID(pdata->guid, GUID_NULL)) {
-                tvis.itemex.lParam = reinterpret_cast<LPARAM>(pdata.release());
-                InsertItem(&tvis);
-            }
+        if (value.GetLength() == 0) {
+            value = szCLSID;
         }
 
-        length = REG_BUFFER_SIZE;
-        index++;
+        auto iImage = LoadToolboxImage(subkey);
+
+        TV_INSERTSTRUCT tvis;
+        tvis.hParent = item.m_hTreeItem;
+        tvis.hInsertAfter = TVI_LAST;
+        tvis.itemex.mask = TVIF_CHILDREN | TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_TEXT | TVIF_PARAM;
+        tvis.itemex.cChildren = 1;
+        tvis.itemex.pszText = const_cast<LPTSTR>(static_cast<LPCTSTR>(value));
+        tvis.itemex.iImage = iImage;
+        tvis.itemex.iSelectedImage = iImage;
+
+        auto pdata = std::make_unique<ObjectData>(ObjectType::CLSID, szCLSID);
+        if (pdata != nullptr && !IsEqualGUID(pdata->guid, GUID_NULL)) {
+            tvis.itemex.lParam = reinterpret_cast<LPARAM>(pdata.release());
+            InsertItem(&tvis);
+        }
     }
 
     SetRedraw(TRUE);
@@ -464,8 +589,6 @@ void ComTreeView::ConstructAllInterfaces(const CTreeItem& item)
             continue;
         }
 
-        val[length] = _T('\0');
-
         CString value(val);
         value.Trim();
 
@@ -530,8 +653,6 @@ void ComTreeView::ConstructInterfaces(CComPtr<IUnknown>& pUnk, const CTreeItem& 
             continue;
         }
 
-        val[length] = _T('\0');
-
         CString value(val);
         value.Trim();
 
@@ -561,6 +682,146 @@ void ComTreeView::ConstructInterfaces(CComPtr<IUnknown>& pUnk, const CTreeItem& 
 
         InsertItem(&tvis);
     }
+}
+
+void ComTreeView::ConstructCategories(const CTreeItem& item)
+{
+    CRegKey key, subkey;
+    auto lResult = key.Open(HKEY_CLASSES_ROOT, _T("Component Categories"), KEY_ENUMERATE_SUB_KEYS);
+    if (lResult != ERROR_SUCCESS) {
+        return;
+    }
+
+    DWORD index = 0;
+
+    for (;;) {
+        TCHAR szGUID[REG_BUFFER_SIZE];
+        TCHAR val[REG_BUFFER_SIZE];
+        DWORD length = REG_BUFFER_SIZE;
+
+        lResult = key.EnumKey(index++, szGUID, &length);
+        if (lResult != ERROR_SUCCESS) {
+            break;
+        }
+
+        lResult = subkey.Open(key.m_hKey, szGUID, KEY_READ);
+        if (lResult != ERROR_SUCCESS) {
+            continue;
+        }
+
+        length = REG_BUFFER_SIZE;
+        lResult = subkey.QueryStringValue(_T("409"), val, &length);
+        if (lResult != ERROR_SUCCESS) {
+            continue;
+        }
+
+        CString value(val);
+        value.Trim();
+
+        TV_INSERTSTRUCT tvis{};
+        tvis.hParent = item.m_hTreeItem;
+        tvis.hInsertAfter = TVI_LAST;
+        tvis.itemex.mask = TVIF_CHILDREN | TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_TEXT | TVIF_PARAM;
+        tvis.itemex.cChildren = 1;
+        tvis.itemex.pszText = const_cast<LPTSTR>(static_cast<LPCTSTR>(value));
+        tvis.itemex.iImage = 7;
+        tvis.itemex.iSelectedImage = 7;
+
+        auto pdata = std::make_unique<ObjectData>(ObjectType::CATID, szGUID);
+        if (pdata != nullptr && !IsEqualGUID(pdata->guid, GUID_NULL)) {
+            tvis.itemex.lParam = reinterpret_cast<LPARAM>(pdata.release());
+            InsertItem(&tvis);
+        }
+    }
+}
+
+void ComTreeView::ConstructCategory(const CTreeItem& item)
+{
+    auto data = reinterpret_cast<LPOBJECTDATA>(item.GetData());
+    ATLASSERT(data != nullptr && data->type == ObjectType::CATID && data->guid != GUID_NULL);
+
+    CString strGUID;
+    StringFromGUID2(data->guid, strGUID.GetBuffer(40), 40);
+
+    CWaitCursor cursor;
+    SetRedraw(FALSE);
+
+    CRegKey key, subkey;
+    auto lResult = key.Open(HKEY_LOCAL_MACHINE, _T("SOFTWARE\\Classes\\CLSID"), KEY_ENUMERATE_SUB_KEYS);
+    if (lResult != ERROR_SUCCESS)
+        return;
+
+    DWORD index = 0, length = REG_BUFFER_SIZE;
+    TCHAR val[REG_BUFFER_SIZE];
+
+    for (;;) {
+        TCHAR szCLSID[REG_BUFFER_SIZE];
+        length = REG_BUFFER_SIZE;
+
+        lResult = key.EnumKey(index++, szCLSID, &length);
+        if (lResult != ERROR_SUCCESS) {
+            break;
+        }
+
+        lResult = subkey.Open(key.m_hKey, szCLSID, KEY_READ);
+        if (lResult != ERROR_SUCCESS) {
+            continue;
+        }
+
+        length = REG_BUFFER_SIZE;
+        subkey.QueryStringValue(nullptr, val, &length);
+
+        CString value(val);
+        value.Trim();
+
+        CString strPath;
+        strPath.Format(_T("%s\\Implemented Categories\\%s"), szCLSID, strGUID);
+
+        CRegKey catKey;
+        lResult = catKey.Open(key.m_hKey, strPath, KEY_READ);
+        auto bHasCategory = lResult == ERROR_SUCCESS;
+        if (!bHasCategory) {
+            if (data->guid == CATID_CONTROLS_GUID) {
+                // we allow for "Control" key for controls
+                strPath.Format(_T("%s\\Control"), szCLSID);
+            } else if (data->guid == CATID_DOCOBJECTS_GUID) {
+                // we allow for "DocObjects" key for "Document Objects"
+                strPath.Format(_T("%s\\DocObject"), szCLSID);
+            } else if (data->guid == CATID_EMBEDDABLE_GUID) {
+                // we allow for "Insertable" key for "Embeddable Objects"
+                strPath.Format(_T("%s\\Insertable"), szCLSID);
+            } else if (data->guid == CATID_AUTOMATION_GUID) {
+                // we allow for "Programmable" key for "Automation Objects"
+                strPath.Format(_T("%s\\Programmable"), szCLSID);
+            }
+
+            lResult = catKey.Open(key.m_hKey, strPath, KEY_READ);
+            bHasCategory = lResult == ERROR_SUCCESS;
+        }
+
+        if (!bHasCategory) {
+            continue;
+        }
+
+        auto iImage = LoadToolboxImage(subkey);
+
+        TV_INSERTSTRUCT tvis;
+        tvis.hParent = item.m_hTreeItem;
+        tvis.hInsertAfter = TVI_LAST;
+        tvis.itemex.mask = TVIF_CHILDREN | TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_TEXT | TVIF_PARAM;
+        tvis.itemex.cChildren = 1;
+        tvis.itemex.pszText = const_cast<LPTSTR>(static_cast<LPCTSTR>(value));
+        tvis.itemex.iImage = iImage;
+        tvis.itemex.iSelectedImage = iImage;
+
+        auto pdata = std::make_unique<ObjectData>(ObjectType::CLSID, szCLSID);
+        if (pdata != nullptr && !IsEqualGUID(pdata->guid, GUID_NULL)) {
+            tvis.itemex.lParam = reinterpret_cast<LPARAM>(pdata.release());
+            InsertItem(&tvis);
+        }
+    }
+
+    SetRedraw(TRUE);
 }
 
 void ComTreeView::ConstructTree()
@@ -598,6 +859,13 @@ void ComTreeView::ConstructTree()
     tvis.itemex.iSelectedImage = 5;
     tvis.itemex.iExpandedImage = 5;
     tvis.itemex.lParam = reinterpret_cast<LPARAM>(new ObjectData(ObjectType::TYPELIB, GUID_NULL));
+    InsertItem(&tvis);
+
+    tvis.itemex.pszText = _T("Categories");
+    tvis.itemex.iImage = 7;
+    tvis.itemex.iSelectedImage = 7;
+    tvis.itemex.iExpandedImage = 7;
+    tvis.itemex.lParam = reinterpret_cast<LPARAM>(new ObjectData(ObjectType::CATID, GUID_NULL));
     InsertItem(&tvis);
 
     SortChildren(TVI_ROOT);

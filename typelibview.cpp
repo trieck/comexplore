@@ -47,3 +47,4 @@ LRESULT TypeLibView::OnTVSelChanged(LPNMHDR pnmhdr)
 
     return 0;
 }
+

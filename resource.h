@@ -22,13 +22,13 @@
 #define IDI_FUNCTION                    220
 #define IDI_CONSTANT                    221
 #define IDI_PROPERTY                    222
-
+#define IDI_CATID                       223
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        223
+#define _APS_NEXT_RESOURCE_VALUE        224
 #define _APS_NEXT_COMMAND_VALUE         32773
 #define _APS_NEXT_CONTROL_VALUE         1000
 #define _APS_NEXT_SYMED_VALUE           101

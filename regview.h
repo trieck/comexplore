@@ -25,6 +25,8 @@ private:
     void BuildProgID(LPCTSTR pProgID);
     void BuildAppID(LPOBJECTDATA pdata);
     void BuildIID(LPOBJECTDATA pdata);
+    void BuildCatID(LPOBJECTDATA pdata);
 
     CImageList m_ImageList;
 };
+

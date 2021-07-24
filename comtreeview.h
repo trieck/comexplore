@@ -25,12 +25,17 @@ private:
     void ExpandAllInterfaces(const CTreeItem& item);
     void ExpandApps(const CTreeItem& item);
     void ExpandTypeLibs(const CTreeItem& item);
+    void ExpandCategories(const CTreeItem& item);
+    void ExpandCategory(const CTreeItem& item);
     void ConstructTypeLibs(const CTreeItem& item);
     void ConstructApps(const CTreeItem& item);
+    int LoadToolboxImage(const CRegKey& key);
     void ConstructClasses(const CTreeItem& item);
     void ConstructInterfaces(const CTreeItem& item);
     void ConstructAllInterfaces(const CTreeItem& item);
     void ConstructInterfaces(CComPtr<IUnknown>& pUnk, const CTreeItem& item);
+    void ConstructCategories(const CTreeItem& item);
+    void ConstructCategory(const CTreeItem& item);
     void ConstructTree();
 
     CImageList m_ImageList;

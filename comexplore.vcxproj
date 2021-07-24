@@ -317,6 +317,7 @@
   <ItemGroup>
     <Image Include="res\alias.ico" />
     <Image Include="res\appid.ico" />
+    <Image Include="res\catid.ico" />
     <Image Include="res\coclass.ico" />
     <Image Include="res\comexplore.ico" />
     <Image Include="res\dispatch.ico" />

@@ -6,7 +6,8 @@ enum class ObjectType
     APPID,
     CLSID,
     IID,
-    TYPELIB
+    TYPELIB,
+    CATID
 };
 
 /////////////////////////////////////////////////////////////////////////////

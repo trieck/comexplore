@@ -63,7 +63,16 @@ BOOL TypeLibTree::BuildView(LPOBJECTDATA pdata)
 
     auto hr = LoadRegTypeLib(pdata->guid, pdata->wMaj, pdata->wMin, lcid, &m_pTypeLib);
     if (FAILED(hr)) {
-        return FALSE;
+        // attempt to load manually        
+        CComBSTR bstrPath;
+        hr = QueryPathOfRegTypeLib(pdata->guid, pdata->wMaj, pdata->wMin,
+                                   GetUserDefaultLCID(), &bstrPath);
+        if (FAILED(hr)) {
+            // no hope
+            return FALSE;
+        }
+
+        LoadTypeLib(bstrPath, &m_pTypeLib);
     }
 
     if (m_pTypeLib != nullptr) {
