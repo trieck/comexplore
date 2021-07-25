@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<Application xmlns="http://schemas.microsoft.com/windows/2009/Ribbon">
+  <Application.Commands>
+    <Command Name="VIEW_STATUS_BAR" Symbol="ID_VIEW_STATUS_BAR" Id="0xE801"/>
+    <Command Name="APP_ABOUT" Symbol="ID_APP_ABOUT" Id="0xE140"/>
+    <Command Name="APP_EXIT" Symbol="ID_APP_EXIT" Id="0xE141"/>
+
+    <!-- Tabs -->
+    <Command Name="TabHome" Symbol="ID_TAB_HOME" LabelTitle="Home"/>
+
+    <!-- Groups -->
+    <Command Name="GroupView" Symbol="ID_GROUP_VIEW" LabelTitle="View"/>
+
+    <!-- App Menu, Quick Access Toolbar and Context Menu  -->
+    <Command Name="AppMenu" Symbol="ID_RIBBON_APP_MENU" />
+    <Command Name="QAT" Symbol="ID_RIBBON_QAT"/>
+  </Application.Commands>
+
+  <Application.Views>
+    <Ribbon>
+      <!-- Application Menu -->
+      <Ribbon.ApplicationMenu>
+        <ApplicationMenu CommandName="AppMenu">
+          <MenuGroup Class="StandardItems">
+          </MenuGroup>
+          <MenuGroup>
+            <Button CommandName="APP_ABOUT" ApplicationModes='0,1'/>
+          </MenuGroup>
+
+          <MenuGroup>
+            <Button CommandName="APP_EXIT" ApplicationModes='0,1'/>
+          </MenuGroup>
+        </ApplicationMenu>
+      </Ribbon.ApplicationMenu>
+
+      <!-- QAT (Quick Access Toolbar) -->
+      <Ribbon.QuickAccessToolbar>
+        <QuickAccessToolbar CommandName="QAT">
+          <QuickAccessToolbar.ApplicationDefaults>
+            <Button CommandName="APP_EXIT"/>
+          </QuickAccessToolbar.ApplicationDefaults>
+        </QuickAccessToolbar>
+      </Ribbon.QuickAccessToolbar>
+
+      <Ribbon.Tabs>
+        <Tab CommandName="TabHome">
+          <Tab.ScalingPolicy>
+            <ScalingPolicy>
+              <Scale Group="GroupView" Size="Small"/>
+            </ScalingPolicy>
+          </Tab.ScalingPolicy>
+
+          <Group CommandName="GroupView">
+            <SizeDefinition>
+              <ControlNameMap>
+                <ControlNameDefinition Name="VIEW_STATUS_BAR"/>
+
+              </ControlNameMap>
+              <GroupSizeDefinition Size="Large">
+                <ControlSizeDefinition ControlName="VIEW_STATUS_BAR"
+                                       ImageSize="Small"
+                                       IsLabelVisible="true"/>
+
+              </GroupSizeDefinition>
+              <GroupSizeDefinition Size="Medium">
+                <ControlSizeDefinition ControlName="VIEW_STATUS_BAR"
+                                       ImageSize="Small"
+                                       IsLabelVisible="true"/>
+              </GroupSizeDefinition>
+              <GroupSizeDefinition Size="Small">
+                <ControlSizeDefinition ControlName="VIEW_STATUS_BAR"
+                                       ImageSize="Small"
+                                       IsLabelVisible="false"/>
+
+              </GroupSizeDefinition>
+            </SizeDefinition>
+            <CheckBox CommandName="VIEW_STATUS_BAR"/>
+          </Group>
+        </Tab>
+      </Ribbon.Tabs>
+    </Ribbon>
+  </Application.Views>
+</Application>

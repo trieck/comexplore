@@ -57,8 +57,10 @@ LRESULT ComDetailView::OnSelChanged(UINT, WPARAM, LPARAM lParam, BOOL& /*bHandle
         }
 
         const auto nPageCount = GetPageCount();
-        if (nPageCount > 0) {
+        if (nPageCount == 1) {
             SetActivePage(0);
+        } else if (nPageCount == 2) {
+            SetActivePage(1);
         }
     }
 

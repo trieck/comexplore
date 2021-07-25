@@ -13,6 +13,9 @@
       <UniqueIdentifier>{4a715b63-6a14-414f-add6-45a8183bec9b}</UniqueIdentifier>
       <Extensions>ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe</Extensions>
     </Filter>
+    <Filter Include="Generated Files">
+      <UniqueIdentifier>{c252afae-997e-496c-8150-a55412ccaa46}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="comexplore.cpp">
@@ -61,6 +64,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="idlstreamformatter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="comexplorer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -118,6 +124,12 @@
     </ClInclude>
     <ClInclude Include="idlstreamformatter.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="comexplorer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ribbon.h">
+      <Filter>Generated Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -184,6 +196,15 @@
     <Image Include="res\catid.ico">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="res\help.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\exit.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\about.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="comexplore.rc">
@@ -192,5 +213,16 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="ribbon.bin">
+      <Filter>Generated Files</Filter>
+    </None>
+    <None Include="ribbon.rc2">
+      <Filter>Generated Files</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="ribbon.xml">
+      <Filter>Resource Files</Filter>
+    </CustomBuild>
   </ItemGroup>
 </Project>

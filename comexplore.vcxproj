@@ -71,11 +71,13 @@
     <LinkIncremental>true</LinkIncremental>
     <GenerateManifest>true</GenerateManifest>
     <IncludePath>$(IncludePath)</IncludePath>
+    <EmbedManifest>false</EmbedManifest>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <GenerateManifest>true</GenerateManifest>
     <IncludePath>$(IncludePath)</IncludePath>
+    <EmbedManifest>false</EmbedManifest>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
@@ -83,11 +85,13 @@
     <LinkIncremental>false</LinkIncremental>
     <GenerateManifest>true</GenerateManifest>
     <IncludePath>$(IncludePath)</IncludePath>
+    <EmbedManifest>false</EmbedManifest>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <GenerateManifest>true</GenerateManifest>
     <IncludePath>$(IncludePath)</IncludePath>
+    <EmbedManifest>false</EmbedManifest>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Midl>
@@ -128,11 +132,16 @@
       <DataExecutionPrevention />
       <TargetMachine>MachineX86</TargetMachine>
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <DelayLoadDLLs>
+      </DelayLoadDLLs>
     </Link>
     <Bscmake>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <OutputFile>.\Debug/comexplore.bsc</OutputFile>
     </Bscmake>
+    <Manifest>
+      <AdditionalManifestFiles>%(AdditionalManifestFiles)</AdditionalManifestFiles>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Midl>
@@ -171,11 +180,16 @@
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention />
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <DelayLoadDLLs>
+      </DelayLoadDLLs>
     </Link>
     <Bscmake>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <OutputFile>.\Debug/comexplore.bsc</OutputFile>
     </Bscmake>
+    <Manifest>
+      <AdditionalManifestFiles>%(AdditionalManifestFiles)</AdditionalManifestFiles>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Midl>
@@ -220,6 +234,10 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <OutputFile>.\Release/comexplore.bsc</OutputFile>
     </Bscmake>
+    <Manifest>
+      <AdditionalManifestFiles>
+      </AdditionalManifestFiles>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Midl>
@@ -262,9 +280,14 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <OutputFile>.\Release/comexplore.bsc</OutputFile>
     </Bscmake>
+    <Manifest>
+      <AdditionalManifestFiles>
+      </AdditionalManifestFiles>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="aboutdlg.cpp" />
+    <ClCompile Include="comexplorer.cpp" />
     <ClCompile Include="autotypeattr.cpp" />
     <ClCompile Include="comdetailview.cpp" />
     <ClCompile Include="comexplore.cpp">
@@ -296,6 +319,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="aboutdlg.h" />
+    <ClInclude Include="comexplorer.h" />
     <ClInclude Include="autobstrarray.h" />
     <ClInclude Include="autodesc.h" />
     <ClInclude Include="autotypeattr.h" />
@@ -307,6 +331,7 @@
     <ClInclude Include="objdata.h" />
     <ClInclude Include="regview.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="ribbon.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="textstream.h" />
     <ClInclude Include="typeinfonode.h" />
@@ -315,6 +340,7 @@
     <ClInclude Include="util.h" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="res\about.bmp" />
     <Image Include="res\alias.ico" />
     <Image Include="res\appid.ico" />
     <Image Include="res\catid.ico" />
@@ -322,7 +348,9 @@
     <Image Include="res\comexplore.ico" />
     <Image Include="res\dispatch.ico" />
     <Image Include="res\enum.ico" />
+    <Image Include="res\exit.bmp" />
     <Image Include="res\function.ico" />
+    <Image Include="res\help.bmp" />
     <Image Include="res\interface.ico" />
     <Image Include="res\interface_grp.ico" />
     <Image Include="res\module.ico" />
@@ -339,6 +367,26 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="ribbon.bin" />
+    <None Include="ribbon.rc2" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="ribbon.xml">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">uicc "%(Identity)" "%(Filename).bin" /header:"%(Filename).h" /res:"%(Filename).rc2"</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Compiling Ribbon Markup...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename).bin;%(Filename).h;%(Filename).rc2;%(Outputs)</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">uicc "%(Identity)" "%(Filename).bin" /header:"%(Filename).h" /res:"%(Filename).rc2"</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling Ribbon Markup...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).bin;%(Filename).h;%(Filename).rc2;%(Outputs)</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">uicc "%(Identity)" "%(Filename).bin" /header:"%(Filename).h" /res:"%(Filename).rc2"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">uicc "%(Identity)" "%(Filename).bin" /header:"%(Filename).h" /res:"%(Filename).rc2"</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Compiling Ribbon Markup...</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling Ribbon Markup...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).bin;%(Filename).h;%(Filename).rc2;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).bin;%(Filename).h;%(Filename).rc2;%(Outputs)</Outputs>
+    </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

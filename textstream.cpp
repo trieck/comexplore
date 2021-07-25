@@ -86,6 +86,10 @@ HRESULT TextStream::Write(LPCTSTR format, ...)
     return result;
 }
 
+TextStream::~TextStream()
+{
+}
+
 HRESULT TextStream::FinalConstruct()
 {
     m_pImpl = SHCreateMemStream(nullptr, 0);

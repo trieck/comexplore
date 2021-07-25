@@ -7,7 +7,7 @@ BOOL CMainFrame::PreTranslateMessage(MSG* pMsg)
         return TRUE;
     }
 
-    return CFrameWindowImpl<CMainFrame>::PreTranslateMessage(pMsg);
+    return CRibbonFrameWindowImpl<CMainFrame>::PreTranslateMessage(pMsg);
 }
 
 BOOL CMainFrame::OnIdle()
@@ -18,10 +18,14 @@ BOOL CMainFrame::OnIdle()
 
 BOOL CMainFrame::DefCreate()
 {
-    enum { CX_WIDTH = 1024, CY_HEIGHT = 600 };
+    RECT rect = { 0, 0, 1024, 600 };
+    auto hWnd = CreateEx(nullptr, rect);
+    if (hWnd == nullptr) {
+        ATLTRACE(_T("Unable to create main frame.\n"));
+        return FALSE;
+    }
 
-    RECT rect = { 0, 0, CX_WIDTH, CY_HEIGHT };
-    return CreateEx(nullptr, rect) != nullptr;
+    return TRUE;
 }
 
 LRESULT CMainFrame::OnTVSelChanged(LPNMHDR pnmhdr)
@@ -41,12 +45,17 @@ LRESULT CMainFrame::OnCreate(LPCREATESTRUCT pcs)
     m_cmdBar.LoadImages(IDR_MAINFRAME);
     SetMenu(nullptr); // remove old menu
 
-    auto hWndToolBar = CreateSimpleToolBarCtrl(m_hWnd, IDR_MAINFRAME, FALSE, ATL_SIMPLE_TOOLBAR_PANE_STYLE);
+    bool bRibbonUI = RunTimeHelper::IsRibbonUIAvailable();
+    if (bRibbonUI) {
+        // UI Setup and adjustments
+        UIAddMenu(m_cmdBar.GetMenu(), true);
+
+        UIRemoveUpdateElement(ID_FILE_MRU_FIRST);
+        UIPersistElement(ID_GROUP_VIEW);
+    }
 
     CreateSimpleReBar(ATL_SIMPLE_REBAR_NOBORDER_STYLE);
     AddSimpleReBarBand(hWndCmdBar);
-    AddSimpleReBarBand(hWndToolBar, nullptr, TRUE);
-
     CreateSimpleStatusBar();
 
     m_hWndClient = m_splitter.Create(m_hWnd, rcDefault, nullptr,
@@ -81,9 +90,8 @@ LRESULT CMainFrame::OnCreate(LPCREATESTRUCT pcs)
     m_splitter.SetSplitterPane(1, m_detailView);
     m_splitter.SetSplitterPosPct(30);
 
-    UIAddToolBar(hWndToolBar);
-    UISetCheck(ID_VIEW_TOOLBAR, 1);
     UISetCheck(ID_VIEW_STATUS_BAR, 1);
+    ShowRibbonUI(TRUE);
 
     UpdateLayout();
     CenterWindow();
@@ -105,18 +113,6 @@ LRESULT CMainFrame::OnFileExit(WORD, WORD, HWND, BOOL&)
 
 LRESULT CMainFrame::OnFileNew(WORD, WORD, HWND, BOOL&)
 {
-    return 0;
-}
-
-LRESULT CMainFrame::OnViewToolBar(WORD, WORD, HWND, BOOL&)
-{
-    static auto bVisible = TRUE; // initially visible
-    bVisible = !bVisible;
-    CReBarCtrl rebar = m_hWndToolBar;
-    auto nBandIndex = rebar.IdToIndex(ATL_IDW_BAND_FIRST + 1); // toolbar is 2nd added band
-    rebar.ShowBand(nBandIndex, bVisible);
-    UISetCheck(ID_VIEW_TOOLBAR, bVisible);
-    UpdateLayout();
     return 0;
 }
 

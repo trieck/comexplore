@@ -7,8 +7,9 @@ class ATL_NO_VTABLE TextStream :
 {
 public:
 BEGIN_COM_MAP(TextStream)
-            COM_INTERFACE_ENTRY(IStream)
+        COM_INTERFACE_ENTRY(IStream)
     END_COM_MAP()
+    virtual ~TextStream();
 
     HRESULT FinalConstruct();
     void FinalRelease();

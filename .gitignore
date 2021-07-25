@@ -5,3 +5,7 @@ x64/
 packages/
 *.user
 *.log
+/ribbon.bin
+/ribbon.h
+/ribbon.rc2
+/*.aps

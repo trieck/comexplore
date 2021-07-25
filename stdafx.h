@@ -30,6 +30,7 @@
 #include <atltypes.h>
 #include <atlscrl.h>
 #include <atlstr.h>
+#include <atlribbon.h>
 
 #include <vector>
 #include <unordered_map>
