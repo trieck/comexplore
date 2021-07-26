@@ -2,6 +2,7 @@
 // Microsoft Visual C++ generated include file.
 // Used by comexplore.rc
 //
+
 #define IDD_ABOUTBOX                    100
 #define IDR_MAINFRAME                   128
 #define IDI_NODE                        203
@@ -23,6 +24,7 @@
 #define IDI_CONSTANT                    221
 #define IDI_PROPERTY                    222
 #define IDI_CATID                       223
+
 
 // Next default values for new objects
 // 

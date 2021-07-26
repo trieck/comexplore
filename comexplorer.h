@@ -4,7 +4,6 @@ class COMExplorer
 {
 public:
     virtual ~COMExplorer();
-    void FinalRelease();
 
     BOOL Init();
     int Run(HINSTANCE hInstance, LPTSTR lpCmdLine, int nCmdShow);

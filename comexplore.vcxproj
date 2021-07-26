@@ -355,6 +355,7 @@
     <Image Include="res\interface_grp.ico" />
     <Image Include="res\module.ico" />
     <Image Include="res\node.ico" />
+    <Image Include="res\open.bmp" />
     <Image Include="res\property.ico" />
     <Image Include="res\record.ico" />
     <Image Include="res\reg.ico" />

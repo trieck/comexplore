@@ -47,21 +47,14 @@ END
 
 /////////////////////////////////////////////////////////////////////////////
 //
-// Toolbar
-//
-
-IDR_MAINFRAME TOOLBAR 16, 15
-BEGIN
-    BUTTON      ID_APP_ABOUT
-END
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
 // Bitmap
 //
 
-IDR_MAINFRAME           BITMAP                  "res\\Toolbar.bmp"
+ID_APP_ABOUT            BITMAP                  "res\\about.bmp"
+
+ID_APP_EXIT             BITMAP                  "res\\exit.bmp"
+
+ID_FILE_OPEN            BITMAP                  "res\\open.bmp"
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -77,7 +70,6 @@ BEGIN
     END
     POPUP "&View"
     BEGIN
-        MENUITEM "&Toolbar",                    ID_VIEW_TOOLBAR
         MENUITEM "&Status Bar",                 ID_VIEW_STATUS_BAR
     END
     POPUP "&Help"
@@ -134,8 +126,6 @@ IDI_PROPERTY            ICON                    "res\\property.ico"
 
 IDI_CATID               ICON                    "res\\catid.ico"
 
-ID_APP_ABOUT            BITMAP                  "res\\about.bmp"
-ID_APP_EXIT             BITMAP                  "res\\exit.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -179,11 +169,8 @@ END
 
 IDR_MAINFRAME ACCELERATORS
 BEGIN
-    "N",            ID_FILE_NEW,            VIRTKEY, CONTROL, NOINVERT
     "O",            ID_FILE_OPEN,           VIRTKEY, CONTROL, NOINVERT
     "S",            ID_FILE_SAVE,           VIRTKEY, CONTROL, NOINVERT
-    VK_F6,          ID_NEXT_PANE,           VIRTKEY, NOINVERT
-    VK_F6,          ID_PREV_PANE,           VIRTKEY, SHIFT, NOINVERT
 END
 
 
@@ -213,7 +200,7 @@ BEGIN
             VALUE "FileDescription", "COM Explorer"
             VALUE "FileVersion", "1, 0, 0, 1"
             VALUE "InternalName", "comexplore"
-            VALUE "LegalCopyright", "Copyright 2003-2021 Rieck Enterprises"
+            VALUE "LegalCopyright", "Copyright© 2003-2021 Rieck Enterprises"
             VALUE "OriginalFilename", "comexplore.exe"
             VALUE "ProductName", "comexplore Module"
             VALUE "ProductVersion", "1, 0, 0, 1"
@@ -249,48 +236,18 @@ END
 
 STRINGTABLE
 BEGIN
+    ID_FILE_OPEN            "Bind to File\nBind"
+END
+
+STRINGTABLE
+BEGIN
     ID_APP_ABOUT            "Display program information, version number and copyright\nAbout"
     ID_APP_EXIT             "Quit the application; prompts to save documents\nExit"
 END
 
 STRINGTABLE
 BEGIN
-    ID_NEXT_PANE            "Switch to the next window pane\nNext Pane"
-    ID_PREV_PANE            "Switch back to the previous window pane\nPrevious Pane"
-END
-
-STRINGTABLE
-BEGIN
-    ID_WINDOW_NEW           "Open another window for the active document\nNew Window"
-    ID_WINDOW_ARRANGE       "Arrange icons at the bottom of the window\nArrange Icons"
-    ID_WINDOW_CASCADE       "Arrange windows so they overlap\nCascade Windows"
-    ID_WINDOW_TILE_HORZ     "Arrange windows as non-overlapping tiles\nTile Windows"
-    ID_WINDOW_TILE_VERT     "Arrange windows as non-overlapping tiles\nTile Windows"
-    ID_WINDOW_SPLIT         "Split the active window into panes\nSplit"
-END
-
-STRINGTABLE
-BEGIN
-    ID_VIEW_TOOLBAR         "Show or hide the toolbar\nToggle ToolBar"
     ID_VIEW_STATUS_BAR      "Show or hide the status bar\nToggle StatusBar"
-END
-
-STRINGTABLE
-BEGIN
-    ATL_IDS_SCSIZE          "Change the window size"
-    ATL_IDS_SCMOVE          "Change the window position"
-    ATL_IDS_SCMINIMIZE      "Reduce the window to an icon"
-    ATL_IDS_SCMAXIMIZE      "Enlarge the window to full size"
-    ATL_IDS_SCNEXTWINDOW    "Switch to the next document window"
-    ATL_IDS_SCPREVWINDOW    "Switch to the previous document window"
-    ATL_IDS_SCCLOSE         "Close the active window and prompts to save the documents"
-END
-
-STRINGTABLE
-BEGIN
-    ATL_IDS_SCRESTORE       "Restore the window to normal size"
-    ATL_IDS_SCTASKLIST      "Activate Task List"
-    ATL_IDS_MDICHILD        "Activate this window"
 END
 
 STRINGTABLE
@@ -313,8 +270,9 @@ END
 //
 // Generated from the TEXTINCLUDE 3 resource.
 //
-
 #include "ribbon.rc2"
+
+
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED
 

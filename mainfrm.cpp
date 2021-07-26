@@ -47,11 +47,9 @@ LRESULT CMainFrame::OnCreate(LPCREATESTRUCT pcs)
 
     bool bRibbonUI = RunTimeHelper::IsRibbonUIAvailable();
     if (bRibbonUI) {
-        // UI Setup and adjustments
         UIAddMenu(m_cmdBar.GetMenu(), true);
 
         UIRemoveUpdateElement(ID_FILE_MRU_FIRST);
-        UIPersistElement(ID_GROUP_VIEW);
     }
 
     CreateSimpleReBar(ATL_SIMPLE_REBAR_NOBORDER_STYLE);
@@ -111,8 +109,27 @@ LRESULT CMainFrame::OnFileExit(WORD, WORD, HWND, BOOL&)
     return 0;
 }
 
-LRESULT CMainFrame::OnFileNew(WORD, WORD, HWND, BOOL&)
+LRESULT CMainFrame::OnFileOpen(WORD, WORD, HWND, BOOL&)
 {
+    CFileDialog dlg(TRUE, nullptr, _T(""), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, _T("All Files (*.*)\0*.*\0"));
+    if (dlg.DoModal() == IDOK) {
+        CComPtr<IBindCtx> pBC;
+        auto hr = CreateBindCtx(0, &pBC);
+        if (FAILED(hr)) {
+            return 0;
+        }
+
+        CComPtr<IMoniker> pMoniker;
+        hr = CreateFileMoniker(dlg.m_szFileName, &pMoniker);
+        if (FAILED(hr)) {
+            return 0;
+
+        }
+
+        CComPtr<IUnknown> pUnk;
+        hr = pMoniker->BindToObject(pBC, nullptr, __uuidof(pUnk), IID_PPV_ARGS_Helper(&pUnk));
+    }
+
     return 0;
 }
 

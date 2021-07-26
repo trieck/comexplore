@@ -7,10 +7,18 @@ COMExplorer::~COMExplorer()
     if (m_hInstRich) {
         FreeLibrary(m_hInstRich);
     }
+
+    CoUninitialize();
 }
 
 BOOL COMExplorer::Init()
 {
+    auto hr = CoInitialize(nullptr);
+    if (FAILED(hr)) {
+        ATLTRACE(_T("Cannot initialize COM libraries.\n"));
+        return FALSE;
+    }
+
     INITCOMMONCONTROLSEX iex = {
         sizeof(INITCOMMONCONTROLSEX),
         ICC_WIN95_CLASSES | ICC_COOL_CLASSES | ICC_STANDARD_CLASSES | ICC_TAB_CLASSES | ICC_USEREX_CLASSES |

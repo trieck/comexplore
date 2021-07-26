@@ -205,6 +205,9 @@
     <Image Include="res\about.bmp">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="res\open.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="comexplore.rc">

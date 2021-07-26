@@ -2,6 +2,11 @@
 
 <Application xmlns="http://schemas.microsoft.com/windows/2009/Ribbon">
   <Application.Commands>
+    <Command Name="FILE_OPEN" Symbol="ID_FILE_OPEN" Id="0xE101" Keytip="O">
+      <Command.LabelTitle>Bind to File...</Command.LabelTitle>
+      <Command.TooltipTitle>Bind to File(Ctrl+O)</Command.TooltipTitle>
+      <Command.TooltipDescription>Bind to a File</Command.TooltipDescription>
+    </Command>
     <Command Name="VIEW_STATUS_BAR" Symbol="ID_VIEW_STATUS_BAR" Id="0xE801"/>
     <Command Name="APP_ABOUT" Symbol="ID_APP_ABOUT" Id="0xE140"/>
     <Command Name="APP_EXIT" Symbol="ID_APP_EXIT" Id="0xE141"/>
@@ -10,10 +15,12 @@
     <Command Name="TabHome" Symbol="ID_TAB_HOME" LabelTitle="Home"/>
 
     <!-- Groups -->
+    <Command Name="GroupFile" Symbol="ID_GROUP_FILE" LabelTitle="File"/>
     <Command Name="GroupView" Symbol="ID_GROUP_VIEW" LabelTitle="View"/>
+    <Command Name="GroupHelp" Symbol="ID_GROUP_HELP" LabelTitle="Help"/>
 
     <!-- App Menu, Quick Access Toolbar and Context Menu  -->
-    <Command Name="AppMenu" Symbol="ID_RIBBON_APP_MENU" />
+    <Command Name="AppMenu" Symbol="ID_RIBBON_APP_MENU"/>
     <Command Name="QAT" Symbol="ID_RIBBON_QAT"/>
   </Application.Commands>
 
@@ -25,11 +32,13 @@
           <MenuGroup Class="StandardItems">
           </MenuGroup>
           <MenuGroup>
-            <Button CommandName="APP_ABOUT" ApplicationModes='0,1'/>
+            <Button CommandName="FILE_OPEN"/>
           </MenuGroup>
-
           <MenuGroup>
-            <Button CommandName="APP_EXIT" ApplicationModes='0,1'/>
+            <Button CommandName="APP_ABOUT"/>
+          </MenuGroup>
+          <MenuGroup>
+            <Button CommandName="APP_EXIT"/>
           </MenuGroup>
         </ApplicationMenu>
       </Ribbon.ApplicationMenu>
@@ -47,15 +56,45 @@
         <Tab CommandName="TabHome">
           <Tab.ScalingPolicy>
             <ScalingPolicy>
+              <ScalingPolicy.IdealSizes>
+                <Scale Group="GroupFile" Size="Large"/>
+                <Scale Group="GroupView" Size="Large"/>
+                <Scale Group="GroupHelp" Size="Large"/>
+              </ScalingPolicy.IdealSizes>
+              <Scale Group="GroupFile" Size="Small"/>
               <Scale Group="GroupView" Size="Small"/>
+              <Scale Group="GroupHelp" Size="Small"/>
             </ScalingPolicy>
           </Tab.ScalingPolicy>
+
+          <Group CommandName="GroupFile">
+            <SizeDefinition>
+              <ControlNameMap>
+                <ControlNameDefinition Name="FILE_OPEN"/>
+              </ControlNameMap>
+              <GroupSizeDefinition Size="Large">
+                <ControlSizeDefinition ControlName="FILE_OPEN"
+                                       ImageSize="Large"
+                                       IsLabelVisible="true"/>
+              </GroupSizeDefinition>
+              <GroupSizeDefinition Size="Medium">
+                <ControlSizeDefinition ControlName="FILE_OPEN"
+                                       ImageSize="Large"
+                                       IsLabelVisible="true"/>
+              </GroupSizeDefinition>
+              <GroupSizeDefinition Size="Small">
+                <ControlSizeDefinition ControlName="FILE_OPEN"
+                                       ImageSize="Small"
+                                       IsLabelVisible="true"/>
+              </GroupSizeDefinition>
+            </SizeDefinition>
+            <Button CommandName="FILE_OPEN"/>
+          </Group>
 
           <Group CommandName="GroupView">
             <SizeDefinition>
               <ControlNameMap>
                 <ControlNameDefinition Name="VIEW_STATUS_BAR"/>
-
               </ControlNameMap>
               <GroupSizeDefinition Size="Large">
                 <ControlSizeDefinition ControlName="VIEW_STATUS_BAR"
@@ -75,7 +114,31 @@
 
               </GroupSizeDefinition>
             </SizeDefinition>
-            <CheckBox CommandName="VIEW_STATUS_BAR"/>
+            <CheckBox CommandName="VIEW_STATUS_BAR" />
+          </Group>
+
+          <Group CommandName="GroupHelp">
+            <SizeDefinition>
+              <ControlNameMap>
+                <ControlNameDefinition Name="APP_ABOUT"/>
+              </ControlNameMap>
+              <GroupSizeDefinition Size="Large">
+                <ControlSizeDefinition ControlName="APP_ABOUT"
+                                       ImageSize="Large"
+                                       IsLabelVisible="true"/>
+              </GroupSizeDefinition>
+              <GroupSizeDefinition Size="Medium">
+                <ControlSizeDefinition ControlName="APP_ABOUT"
+                                       ImageSize="Large"
+                                       IsLabelVisible="true"/>
+              </GroupSizeDefinition>
+              <GroupSizeDefinition Size="Small">
+                <ControlSizeDefinition ControlName="APP_ABOUT"
+                                       ImageSize="Small"
+                                       IsLabelVisible="true"/>
+              </GroupSizeDefinition>
+            </SizeDefinition>
+            <Button CommandName="APP_ABOUT"/>
           </Group>
         </Tab>
       </Ribbon.Tabs>
