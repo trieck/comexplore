@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "mainfrm.h"
 
+#include "comerror.h"
+
 BOOL CMainFrame::PreTranslateMessage(MSG* pMsg)
 {
     if (m_detailView.PreTranslateMessage(pMsg) != FALSE) {
@@ -13,6 +15,9 @@ BOOL CMainFrame::PreTranslateMessage(MSG* pMsg)
 BOOL CMainFrame::OnIdle()
 {
     UIUpdateToolBar();
+
+    UIEnable(ID_RELEASE_OBJECT, IsSelectedInstance());
+
     return FALSE;
 }
 
@@ -112,23 +117,33 @@ LRESULT CMainFrame::OnFileExit(WORD, WORD, HWND, BOOL&)
 LRESULT CMainFrame::OnFileOpen(WORD, WORD, HWND, BOOL&)
 {
     CFileDialog dlg(TRUE, nullptr, _T(""), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, _T("All Files (*.*)\0*.*\0"));
-    if (dlg.DoModal() == IDOK) {
-        CComPtr<IBindCtx> pBC;
-        auto hr = CreateBindCtx(0, &pBC);
-        if (FAILED(hr)) {
-            return 0;
-        }
-
-        CComPtr<IMoniker> pMoniker;
-        hr = CreateFileMoniker(dlg.m_szFileName, &pMoniker);
-        if (FAILED(hr)) {
-            return 0;
-
-        }
-
-        CComPtr<IUnknown> pUnk;
-        hr = pMoniker->BindToObject(pBC, nullptr, __uuidof(pUnk), IID_PPV_ARGS_Helper(&pUnk));
+    if (dlg.DoModal() != IDOK) {
+        return 0;
     }
+
+    CComPtr<IBindCtx> pBC;
+    auto hr = CreateBindCtx(0, &pBC);
+    if (FAILED(hr)) {
+        return 0;
+    }
+
+    CLSID clsid = GUID_NULL;
+    GetClassFile(dlg.m_szFileName, &clsid);
+
+    CComPtr<IMoniker> pMoniker;
+    hr = CreateFileMoniker(dlg.m_szFileName, &pMoniker);
+    if (FAILED(hr)) {
+        return 0;
+    }
+
+    CComPtr<IUnknown> pUnk;
+    hr = pMoniker->BindToObject(pBC, nullptr, __uuidof(pUnk), IID_PPV_ARGS_Helper(&pUnk));
+    if (FAILED(hr)) {
+        CoMessageBox(*this, hr, pMoniker, IDR_MAINFRAME);
+        return 0;
+    }
+
+    AddFileMoniker(dlg.m_szFileName, pUnk, clsid);
 
     return 0;
 }
@@ -147,4 +162,24 @@ LRESULT CMainFrame::OnAppAbout(WORD, WORD, HWND, BOOL&)
     CAboutDlg dlg;
     dlg.DoModal();
     return 0;
+}
+
+LRESULT CMainFrame::OnReleaseObject(WORD, WORD, HWND, BOOL&)
+{
+    m_treeView.ReleaseSelectedObject();
+    return 0;
+}
+
+BOOL CMainFrame::IsSelectedInstance() const
+{
+    return m_treeView.IsSelectedInstance();
+}
+
+void CMainFrame::AddFileMoniker(LPCTSTR pFilename, LPUNKNOWN pUnk, REFCLSID clsid)
+{
+    ATLASSERT(pFilename);
+    ATLASSERT(pUnk);
+    ATLASSERT(m_treeView);
+
+    m_treeView.AddFileMoniker(pFilename, pUnk, clsid);
 }

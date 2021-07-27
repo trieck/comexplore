@@ -287,6 +287,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="aboutdlg.cpp" />
+    <ClCompile Include="comerror.cpp" />
     <ClCompile Include="comexplorer.cpp" />
     <ClCompile Include="autotypeattr.cpp" />
     <ClCompile Include="comdetailview.cpp" />
@@ -319,6 +320,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="aboutdlg.h" />
+    <ClInclude Include="comerror.h" />
     <ClInclude Include="comexplorer.h" />
     <ClInclude Include="autobstrarray.h" />
     <ClInclude Include="autodesc.h" />
@@ -343,6 +345,7 @@
     <Image Include="res\about.bmp" />
     <Image Include="res\alias.ico" />
     <Image Include="res\appid.ico" />
+    <Image Include="res\automation.bmp" />
     <Image Include="res\catid.ico" />
     <Image Include="res\coclass.ico" />
     <Image Include="res\comexplore.ico" />
@@ -350,7 +353,6 @@
     <Image Include="res\enum.ico" />
     <Image Include="res\exit.bmp" />
     <Image Include="res\function.ico" />
-    <Image Include="res\help.bmp" />
     <Image Include="res\interface.ico" />
     <Image Include="res\interface_grp.ico" />
     <Image Include="res\module.ico" />
@@ -360,7 +362,7 @@
     <Image Include="res\record.ico" />
     <Image Include="res\reg.ico" />
     <Image Include="res\regnode.ico" />
-    <Image Include="res\toolbar.bmp" />
+    <Image Include="res\release.bmp" />
     <Image Include="res\typelib.ico" />
     <Image Include="res\typelib_grp.ico" />
     <Image Include="res\union.ico" />

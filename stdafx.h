@@ -31,6 +31,7 @@
 #include <atlscrl.h>
 #include <atlstr.h>
 #include <atlribbon.h>
+#include <comdef.h>
 
 #include <vector>
 #include <unordered_map>

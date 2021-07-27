@@ -18,6 +18,9 @@ BEGIN_MSG_MAP_EX(ComTreeView)
     void OnDestroy();
     LRESULT OnItemExpanding(LPNMHDR pnmh);
     LRESULT OnDelete(LPNMHDR pnmh);
+    void AddFileMoniker(LPCTSTR pFilename, LPUNKNOWN pUnknown, REFCLSID clsid);
+    BOOL IsSelectedInstance() const;
+    void ReleaseSelectedObject();
 
 private:
     void ExpandClasses(const CTreeItem& item);
@@ -39,6 +42,7 @@ private:
     void ConstructTree();
 
     CImageList m_ImageList;
+    CTreeItem m_objectInstances;
 };
 
 /////////////////////////////////////////////////////////////////////////////

@@ -16,6 +16,12 @@
     <Filter Include="Generated Files">
       <UniqueIdentifier>{c252afae-997e-496c-8150-a55412ccaa46}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Bitmap Files">
+      <UniqueIdentifier>{6b8061fd-f4c7-434c-a7ce-fccb5ed179fc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Icon Files">
+      <UniqueIdentifier>{cd909960-ef5e-479f-a447-34d4a0a9c4ac}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="comexplore.cpp">
@@ -67,6 +73,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="comexplorer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="comerror.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -131,82 +140,85 @@
     <ClInclude Include="ribbon.h">
       <Filter>Generated Files</Filter>
     </ClInclude>
+    <ClInclude Include="comerror.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="res\comexplore.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\toolbar.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\node.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\coclass.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\interface.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\regnode.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\reg.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\interface_grp.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\appid.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\typelib_grp.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\typelib.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\dispatch.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\record.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\enum.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\union.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\module.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\alias.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\function.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\constant.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\property.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\catid.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\help.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\exit.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
     <Image Include="res\about.bmp">
-      <Filter>Resource Files</Filter>
+      <Filter>Bitmap Files</Filter>
+    </Image>
+    <Image Include="res\automation.bmp">
+      <Filter>Bitmap Files</Filter>
     </Image>
     <Image Include="res\open.bmp">
-      <Filter>Resource Files</Filter>
+      <Filter>Bitmap Files</Filter>
+    </Image>
+    <Image Include="res\release.bmp">
+      <Filter>Bitmap Files</Filter>
+    </Image>
+    <Image Include="res\alias.ico">
+      <Filter>Icon Files</Filter>
+    </Image>
+    <Image Include="res\appid.ico">
+      <Filter>Icon Files</Filter>
+    </Image>
+    <Image Include="res\catid.ico">
+      <Filter>Icon Files</Filter>
+    </Image>
+    <Image Include="res\coclass.ico">
+      <Filter>Icon Files</Filter>
+    </Image>
+    <Image Include="res\comexplore.ico">
+      <Filter>Icon Files</Filter>
+    </Image>
+    <Image Include="res\constant.ico">
+      <Filter>Icon Files</Filter>
+    </Image>
+    <Image Include="res\dispatch.ico">
+      <Filter>Icon Files</Filter>
+    </Image>
+    <Image Include="res\enum.ico">
+      <Filter>Icon Files</Filter>
+    </Image>
+    <Image Include="res\function.ico">
+      <Filter>Icon Files</Filter>
+    </Image>
+    <Image Include="res\interface.ico">
+      <Filter>Icon Files</Filter>
+    </Image>
+    <Image Include="res\interface_grp.ico">
+      <Filter>Icon Files</Filter>
+    </Image>
+    <Image Include="res\module.ico">
+      <Filter>Icon Files</Filter>
+    </Image>
+    <Image Include="res\node.ico">
+      <Filter>Icon Files</Filter>
+    </Image>
+    <Image Include="res\property.ico">
+      <Filter>Icon Files</Filter>
+    </Image>
+    <Image Include="res\record.ico">
+      <Filter>Icon Files</Filter>
+    </Image>
+    <Image Include="res\reg.ico">
+      <Filter>Icon Files</Filter>
+    </Image>
+    <Image Include="res\regnode.ico">
+      <Filter>Icon Files</Filter>
+    </Image>
+    <Image Include="res\typelib.ico">
+      <Filter>Icon Files</Filter>
+    </Image>
+    <Image Include="res\typelib_grp.ico">
+      <Filter>Icon Files</Filter>
+    </Image>
+    <Image Include="res\union.ico">
+      <Filter>Icon Files</Filter>
+    </Image>
+    <Image Include="res\exit.bmp">
+      <Filter>Bitmap Files</Filter>
     </Image>
   </ItemGroup>
   <ItemGroup>

@@ -14,6 +14,19 @@ ObjectData::ObjectData(ObjectType t, const GUID& uuid, WORD maj, WORD min)
 }
 
 /////////////////////////////////////////////////////////////////////////////
+ObjectData::ObjectData(ObjectType t, LPUNKNOWN pUnknown, const GUID& uuid,
+                       WORD maj, WORD min)
+    : type(t), pUnknown(pUnknown), guid(uuid), wMaj(maj), wMin(min)
+{
+}
+
+/////////////////////////////////////////////////////////////////////////////
+ObjectData::~ObjectData()
+{
+    pUnknown.Release();
+}
+
+/////////////////////////////////////////////////////////////////////////////
 ObjectData::ObjectData(ObjectType t, LPCTSTR pGUID, WORD maj, WORD min)
     : type(t), guid(GUID_NULL), wMaj(maj), wMin(min)
 {

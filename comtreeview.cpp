@@ -103,6 +103,104 @@ LRESULT ComTreeView::OnDelete(LPNMHDR pnmh)
     return 0;
 }
 
+void ComTreeView::AddFileMoniker(LPCTSTR pFilename, LPUNKNOWN pUnknown, REFCLSID clsid)
+{
+    ATLASSERT(pFilename);
+    ATLASSERT(pUnknown);
+
+    CString strName(pFilename);
+    if (clsid != GUID_NULL) {
+        CString strGUID;
+        StringFromGUID2(clsid, strGUID.GetBuffer(40), 40);
+
+        CString strPath;
+        strPath.Format(_T("SOFTWARE\\Classes\\CLSID\\%s"), strGUID);
+
+        CRegKey key;
+        auto lResult = key.Open(HKEY_LOCAL_MACHINE, strPath, KEY_READ);
+        if (lResult == ERROR_SUCCESS) {
+            TCHAR val[REG_BUFFER_SIZE];
+            ULONG length = REG_BUFFER_SIZE;
+            lResult = key.QueryStringValue(nullptr, val, &length);
+            if (lResult == ERROR_SUCCESS) {
+                strName.Format(_T("%s (%s)"), pFilename, val);
+            }
+        }
+    }
+
+    if (m_objectInstances.IsNull()) {
+        TV_INSERTSTRUCT tvis{};
+        tvis.hParent = TVI_ROOT;
+        tvis.hInsertAfter = TVI_FIRST;
+        tvis.itemex.mask = TVIF_CHILDREN | TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_EXPANDEDIMAGE | TVIF_TEXT |
+            TVIF_PARAM;
+        tvis.itemex.cChildren = 1;
+        tvis.itemex.pszText = _T("Object Instances");
+        tvis.itemex.iImage = 0;
+        tvis.itemex.iSelectedImage = 0;
+        tvis.itemex.iExpandedImage = 0;
+        tvis.itemex.lParam = reinterpret_cast<LPARAM>(new ObjectData(ObjectType::CLSID, GUID_NULL));
+
+        m_objectInstances = InsertItem(&tvis);
+    }
+
+    TV_INSERTSTRUCT tvis;
+    tvis.hParent = m_objectInstances;
+    tvis.hInsertAfter = TVI_FIRST;
+    tvis.itemex.mask = TVIF_STATE | TVIF_CHILDREN | TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_TEXT | TVIF_PARAM;
+    tvis.itemex.state = TVIS_BOLD;
+    tvis.itemex.stateMask = TVIS_BOLD;
+    tvis.itemex.cChildren = 1;
+    tvis.itemex.pszText = const_cast<LPTSTR>(static_cast<LPCTSTR>(strName));
+    tvis.itemex.iImage = 1;
+    tvis.itemex.iSelectedImage = 1;
+
+    auto pdata = std::make_unique<ObjectData>(ObjectType::CLSID, pUnknown, clsid);
+    tvis.itemex.lParam = reinterpret_cast<LPARAM>(pdata.release());
+
+    auto item = InsertItem(&tvis);
+    item.Expand();
+
+    SelectItem(item);
+}
+
+BOOL ComTreeView::IsSelectedInstance() const
+{
+    auto item = GetSelectedItem();
+    if (item.IsNull()) {
+        return FALSE;
+    }
+
+    auto data = reinterpret_cast<LPOBJECTDATA>(item.GetData());
+    if (data == nullptr) {
+        return FALSE;
+    }
+
+    return data->pUnknown != nullptr;
+}
+
+void ComTreeView::ReleaseSelectedObject()
+{
+    auto item = GetSelectedItem();
+    if (item.IsNull()) {
+        return;
+    }
+
+    auto data = reinterpret_cast<LPOBJECTDATA>(item.GetData());
+    if (data == nullptr) {
+        return;
+    }
+
+    if (data->pUnknown == nullptr) {
+        return;
+    }
+
+    data->pUnknown.Release();
+
+    item.Expand(TVE_COLLAPSE);
+    item.SetState(0, TVIS_BOLD);
+}
+
 void ComTreeView::ExpandClasses(const CTreeItem& item)
 {
     auto result = GetItemState(item.m_hTreeItem, TVIS_EXPANDED);
@@ -127,9 +225,22 @@ void ComTreeView::ExpandInterfaces(const CTreeItem& item)
         return; // already expanded
     }
 
+    auto data = reinterpret_cast<LPOBJECTDATA>(item.GetData());
+    if (data != nullptr && data->pUnknown != nullptr) {
+        if (!item.GetChild().IsNull()) {
+            return; // live instance already expanded
+        }
+    }
+
+    // Always remove all interfaces for new instance
     auto child = item.GetChild();
     if (!child.IsNull()) {
-        return; // already have children
+        auto sibling = GetNextSiblingItem(child);
+        while (!sibling.IsNull()) {
+            DeleteItem(sibling);
+            sibling = GetNextSiblingItem(child);
+        }
+        DeleteItem(child);
     }
 
     ConstructInterfaces(item);
@@ -526,24 +637,27 @@ void ComTreeView::ConstructInterfaces(const CTreeItem& item)
     CWaitCursor cursor;
     SetRedraw(FALSE);
 
-    CComPtr<IClassFactory> pFactory;
-    auto hr = CoGetClassObject(data->guid,
-                               CLSCTX_LOCAL_SERVER | CLSCTX_INPROC_SERVER,
-                               nullptr, __uuidof(IClassFactory),
-                               reinterpret_cast<void**>(&pFactory));
-    if (FAILED(hr)) {
-        SetRedraw(TRUE);
-        return;
+    if (data->pUnknown == nullptr) {
+        CComPtr<IClassFactory> pFactory;
+        auto hr = CoGetClassObject(data->guid,
+                                   CLSCTX_LOCAL_SERVER | CLSCTX_INPROC_SERVER,
+                                   nullptr, __uuidof(IClassFactory),
+                                   reinterpret_cast<void**>(&pFactory));
+        if (FAILED(hr)) {
+            SetRedraw(TRUE);
+            return;
+        }
+
+        hr = pFactory->CreateInstance(nullptr, IID_IUnknown, reinterpret_cast<void**>(&data->pUnknown));
+        if (FAILED(hr)) {
+            SetRedraw(TRUE);
+            return;
+        }
+
+        SetItemState(item.m_hTreeItem, TVIS_BOLD, TVIS_BOLD);
     }
 
-    CComPtr<IUnknown> pUnk;
-    hr = pFactory->CreateInstance(nullptr, IID_IUnknown, reinterpret_cast<void**>(&pUnk));
-    if (FAILED(hr)) {
-        SetRedraw(TRUE);
-        return;
-    }
-
-    ConstructInterfaces(pUnk, item);
+    ConstructInterfaces(data->pUnknown, item);
 
     SetRedraw(TRUE);
 }
@@ -620,6 +734,8 @@ void ComTreeView::ConstructAllInterfaces(const CTreeItem& item)
 
 void ComTreeView::ConstructInterfaces(CComPtr<IUnknown>& pUnk, const CTreeItem& item)
 {
+    ATLASSERT(pUnk);
+
     CRegKey key, subkey;
     auto lResult = key.Open(HKEY_LOCAL_MACHINE, _T("SOFTWARE\\Classes\\Interface"), KEY_ENUMERATE_SUB_KEYS);
     if (lResult != ERROR_SUCCESS) {

@@ -10,16 +10,18 @@
     <Command Name="VIEW_STATUS_BAR" Symbol="ID_VIEW_STATUS_BAR" Id="0xE801"/>
     <Command Name="APP_ABOUT" Symbol="ID_APP_ABOUT" Id="0xE140"/>
     <Command Name="APP_EXIT" Symbol="ID_APP_EXIT" Id="0xE141"/>
+    <Command Name="RELEASE_OBJECT" Symbol="ID_RELEASE_OBJECT" Id="32776"/>
 
     <!-- Tabs -->
-    <Command Name="TabHome" Symbol="ID_TAB_HOME" LabelTitle="Home"/>
+    <Command Name="TAB_HOME" Symbol="ID_TAB_HOME" LabelTitle="Home"/>
+    <Command Name="TAB_VIEW" Symbol="ID_TAB_VIEW" LabelTitle="View"/>
 
     <!-- Groups -->
-    <Command Name="GroupFile" Symbol="ID_GROUP_FILE" LabelTitle="File"/>
-    <Command Name="GroupView" Symbol="ID_GROUP_VIEW" LabelTitle="View"/>
-    <Command Name="GroupHelp" Symbol="ID_GROUP_HELP" LabelTitle="Help"/>
+    <Command Name="GROUP_TOOLS" Symbol="ID_GROUP_TOOLS" LabelTitle="Tools"/>
+    <Command Name="GROUP_SHOW" Symbol="ID_GROUP_SHOW" LabelTitle="Show or Hide"/>
+    <Command Name="GROUP_HELP" Symbol="ID_GROUP_HELP" LabelTitle="Help"/>
 
-    <!-- App Menu, Quick Access Toolbar and Context Menu  -->
+    <!-- App Menu, Quick Access Toolbar -->
     <Command Name="AppMenu" Symbol="ID_RIBBON_APP_MENU"/>
     <Command Name="QAT" Symbol="ID_RIBBON_QAT"/>
   </Application.Commands>
@@ -53,27 +55,29 @@
       </Ribbon.QuickAccessToolbar>
 
       <Ribbon.Tabs>
-        <Tab CommandName="TabHome">
+        <Tab CommandName="TAB_HOME">
           <Tab.ScalingPolicy>
             <ScalingPolicy>
               <ScalingPolicy.IdealSizes>
-                <Scale Group="GroupFile" Size="Large"/>
-                <Scale Group="GroupView" Size="Large"/>
-                <Scale Group="GroupHelp" Size="Large"/>
+                <Scale Group="GROUP_TOOLS" Size="Large"/>
+                <Scale Group="GROUP_HELP" Size="Large"/>
               </ScalingPolicy.IdealSizes>
-              <Scale Group="GroupFile" Size="Small"/>
-              <Scale Group="GroupView" Size="Small"/>
-              <Scale Group="GroupHelp" Size="Small"/>
+              <Scale Group="GROUP_TOOLS" Size="Small"/>
+              <Scale Group="GROUP_HELP" Size="Small"/>
             </ScalingPolicy>
           </Tab.ScalingPolicy>
 
-          <Group CommandName="GroupFile">
+          <Group CommandName="GROUP_TOOLS">
             <SizeDefinition>
               <ControlNameMap>
                 <ControlNameDefinition Name="FILE_OPEN"/>
+                <ControlNameDefinition Name="RELEASE_OBJECT"/>
               </ControlNameMap>
               <GroupSizeDefinition Size="Large">
                 <ControlSizeDefinition ControlName="FILE_OPEN"
+                                       ImageSize="Large"
+                                       IsLabelVisible="true"/>
+                <ControlSizeDefinition ControlName="RELEASE_OBJECT"
                                        ImageSize="Large"
                                        IsLabelVisible="true"/>
               </GroupSizeDefinition>
@@ -81,17 +85,59 @@
                 <ControlSizeDefinition ControlName="FILE_OPEN"
                                        ImageSize="Large"
                                        IsLabelVisible="true"/>
+                <ControlSizeDefinition ControlName="RELEASE_OBJECT"
+                                       ImageSize="Large"
+                                       IsLabelVisible="true"/>
               </GroupSizeDefinition>
               <GroupSizeDefinition Size="Small">
                 <ControlSizeDefinition ControlName="FILE_OPEN"
                                        ImageSize="Small"
                                        IsLabelVisible="true"/>
+                <ControlSizeDefinition ControlName="RELEASE_OBJECT"
+                                       ImageSize="Small"
+                                       IsLabelVisible="true"/>
               </GroupSizeDefinition>
             </SizeDefinition>
             <Button CommandName="FILE_OPEN"/>
+            <Button CommandName="RELEASE_OBJECT"/>
           </Group>
 
-          <Group CommandName="GroupView">
+          <Group CommandName="GROUP_HELP">
+            <SizeDefinition>
+              <ControlNameMap>
+                <ControlNameDefinition Name="APP_ABOUT"/>
+              </ControlNameMap>
+              <GroupSizeDefinition Size="Large">
+                <ControlSizeDefinition ControlName="APP_ABOUT"
+                                       ImageSize="Large"
+                                       IsLabelVisible="true"/>
+              </GroupSizeDefinition>
+              <GroupSizeDefinition Size="Medium">
+                <ControlSizeDefinition ControlName="APP_ABOUT"
+                                       ImageSize="Large"
+                                       IsLabelVisible="true"/>
+              </GroupSizeDefinition>
+              <GroupSizeDefinition Size="Small">
+                <ControlSizeDefinition ControlName="APP_ABOUT"
+                                       ImageSize="Small"
+                                       IsLabelVisible="true"/>
+              </GroupSizeDefinition>
+            </SizeDefinition>
+            <Button CommandName="APP_ABOUT"/>
+          </Group>
+        </Tab>
+
+        <Tab CommandName="TAB_VIEW">
+          <Tab.ScalingPolicy>
+            <ScalingPolicy>
+              <ScalingPolicy.IdealSizes>
+                <Scale Group="GROUP_SHOW" Size="Large"/>
+              </ScalingPolicy.IdealSizes>
+              <Scale Group="GROUP_SHOW" Size="Small"/>
+            </ScalingPolicy>
+          </Tab.ScalingPolicy>
+
+          <Group CommandName="GROUP_SHOW">
             <SizeDefinition>
               <ControlNameMap>
                 <ControlNameDefinition Name="VIEW_STATUS_BAR"/>
@@ -114,31 +160,7 @@
 
               </GroupSizeDefinition>
             </SizeDefinition>
-            <CheckBox CommandName="VIEW_STATUS_BAR" />
-          </Group>
-
-          <Group CommandName="GroupHelp">
-            <SizeDefinition>
-              <ControlNameMap>
-                <ControlNameDefinition Name="APP_ABOUT"/>
-              </ControlNameMap>
-              <GroupSizeDefinition Size="Large">
-                <ControlSizeDefinition ControlName="APP_ABOUT"
-                                       ImageSize="Large"
-                                       IsLabelVisible="true"/>
-              </GroupSizeDefinition>
-              <GroupSizeDefinition Size="Medium">
-                <ControlSizeDefinition ControlName="APP_ABOUT"
-                                       ImageSize="Large"
-                                       IsLabelVisible="true"/>
-              </GroupSizeDefinition>
-              <GroupSizeDefinition Size="Small">
-                <ControlSizeDefinition ControlName="APP_ABOUT"
-                                       ImageSize="Small"
-                                       IsLabelVisible="true"/>
-              </GroupSizeDefinition>
-            </SizeDefinition>
-            <Button CommandName="APP_ABOUT"/>
+            <CheckBox CommandName="VIEW_STATUS_BAR"/>
           </Group>
         </Tab>
       </Ribbon.Tabs>

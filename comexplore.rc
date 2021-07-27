@@ -56,6 +56,8 @@ ID_APP_EXIT             BITMAP                  "res\\exit.bmp"
 
 ID_FILE_OPEN            BITMAP                  "res\\open.bmp"
 
+ID_RELEASE_OBJECT       BITMAP                  "res\\release.bmp"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -67,6 +69,10 @@ BEGIN
     POPUP "&File"
     BEGIN
         MENUITEM "E&xit",                       ID_APP_EXIT
+    END
+    POPUP "&Tools"
+    BEGIN
+        MENUITEM "&Release Object Instance",    ID_RELEASE_OBJECT
     END
     POPUP "&View"
     BEGIN
@@ -137,9 +143,9 @@ STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "About COM Explorer"
 FONT 8, "Tahoma", 400, 0, 0x0
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,55,45,50,14
+    DEFPUSHBUTTON   "OK",IDOK,64,45,50,14
     LTEXT           "COM Explorer\nCopyright© 2003-2021 Rieck Enterprises\nAll Rights Reserved",IDC_STATIC,37,9,134,26
-    ICON            IDR_MAINFRAME,IDC_STATIC,7,7,21,20
+    ICON            IDR_MAINFRAME,IDC_STATIC,7,7,20,20
 END
 
 
@@ -171,6 +177,7 @@ IDR_MAINFRAME ACCELERATORS
 BEGIN
     "O",            ID_FILE_OPEN,           VIRTKEY, CONTROL, NOINVERT
     "S",            ID_FILE_SAVE,           VIRTKEY, CONTROL, NOINVERT
+    "R",            ID_RELEASE_OBJECT,      VIRTKEY, CONTROL, NOINVERT
 END
 
 
@@ -226,6 +233,14 @@ END
 
 /////////////////////////////////////////////////////////////////////////////
 //
+// UIFILE
+//
+
+APPLICATION_RIBBON      UIFILE                  "ribbon.bin"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
 // String Table
 //
 
@@ -260,6 +275,24 @@ BEGIN
     ATL_IDS_MRU_FILE        "Open this document"
 END
 
+STRINGTABLE
+BEGIN
+    ID_RELEASE_OBJECT       "Release Object Instance\nRelease Instance"
+END
+
+STRINGTABLE
+BEGIN
+    ID_FILE_OPEN_LabelTitle_RESID "Bind to File..."
+    ID_FILE_OPEN_Keytip_RESID "O"
+    ID_FILE_OPEN_TooltipTitle_RESID "Bind to File(Ctrl+O)"
+    ID_FILE_OPEN_TooltipDescription_RESID "Bind to a File"
+    ID_TAB_HOME_LabelTitle_RESID "Home"
+    ID_TAB_VIEW_LabelTitle_RESID "View"
+    ID_GROUP_TOOLS_LabelTitle_RESID "Tools"
+    ID_GROUP_SHOW_LabelTitle_RESID "Show or Hide"
+    ID_GROUP_HELP_LabelTitle_RESID "Help"
+END
+
 #endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
 
@@ -270,7 +303,6 @@ END
 //
 // Generated from the TEXTINCLUDE 3 resource.
 //
-#include "ribbon.rc2"
 
 
 /////////////////////////////////////////////////////////////////////////////

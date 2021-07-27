@@ -24,7 +24,6 @@ public:
     END_RIBBON_CONTROL_MAP()
 
     BEGIN_UPDATE_UI_MAP(CMainFrame)
-        UPDATE_ELEMENT(ID_VIEW_TOOLBAR, UPDUI_MENUPOPUP)
         UPDATE_ELEMENT(ID_VIEW_STATUS_BAR, UPDUI_MENUPOPUP)
     END_UPDATE_UI_MAP()
 
@@ -34,6 +33,7 @@ BEGIN_MSG_MAP(CMainFrame)
         COMMAND_ID_HANDLER(ID_FILE_OPEN, OnFileOpen)
         COMMAND_ID_HANDLER(ID_VIEW_STATUS_BAR, OnViewStatusBar)
         COMMAND_ID_HANDLER(ID_APP_ABOUT, OnAppAbout)
+        COMMAND_ID_HANDLER(ID_RELEASE_OBJECT, OnReleaseObject)
         REFLECT_NOTIFY_CODE(TVN_ITEMEXPANDING)
         REFLECT_NOTIFY_CODE(TVN_DELETEITEM)
         NOTIFY_CODE_HANDLER_EX(TVN_SELCHANGED, OnTVSelChanged)
@@ -46,8 +46,12 @@ BEGIN_MSG_MAP(CMainFrame)
     LRESULT OnFileOpen(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
     LRESULT OnViewStatusBar(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
     LRESULT OnAppAbout(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+    LRESULT OnReleaseObject(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 
 private:
+    BOOL IsSelectedInstance() const;
+    void AddFileMoniker(LPCTSTR pFilename, LPUNKNOWN pUnk, REFCLSID clsid);
+
     ObjectPane m_objectPane;
     ComTreeView m_treeView;
     ComDetailView m_detailView;
