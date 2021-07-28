@@ -155,28 +155,23 @@ void RegistryView::BuildCLSID(LPOBJECTDATA pdata)
 
     CRegKey key;
     auto lResult = key.Open(HKEY_LOCAL_MACHINE, strPath, KEY_ENUMERATE_SUB_KEYS | KEY_QUERY_VALUE);
-    if (lResult != ERROR_SUCCESS) {
-        return;
+    if (lResult == ERROR_SUCCESS) {
+        TCHAR typelib[REG_BUFFER_SIZE];
+        DWORD length = REG_BUFFER_SIZE;
+        lResult = key.QueryStringValue(nullptr, typelib, &length);
+        if (lResult == ERROR_SUCCESS) {
+            BuildTypeLib(typelib);
+        }
     }
-
-    TCHAR typelib[REG_BUFFER_SIZE];
-    DWORD length = REG_BUFFER_SIZE;
-    lResult = key.QueryStringValue(nullptr, typelib, &length);
-    if (lResult != ERROR_SUCCESS) {
-        return;
-    }
-
-    BuildTypeLib(typelib);
 
     strPath.Format(_T("SOFTWARE\\Classes\\CLSID\\%s\\ProgID"), static_cast<LPCTSTR>(strGUID));
-
     lResult = key.Open(HKEY_LOCAL_MACHINE, strPath, KEY_ENUMERATE_SUB_KEYS | KEY_QUERY_VALUE);
     if (lResult != ERROR_SUCCESS) {
         return;
     }
 
     TCHAR progID[REG_BUFFER_SIZE];
-    length = REG_BUFFER_SIZE;
+    DWORD length = REG_BUFFER_SIZE;
     lResult = key.QueryStringValue(nullptr, progID, &length);
     if (lResult != ERROR_SUCCESS) {
         return;

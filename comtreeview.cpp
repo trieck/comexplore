@@ -32,9 +32,11 @@ LRESULT ComTreeView::OnCreate(LPCREATESTRUCT)
         IDI_COCLASS,
         IDI_INTERFACE,
         IDI_INTERFACE_GROUP,
+        IDI_APPID_GROUP,
         IDI_APPID,
         IDI_TYPELIB_GROUP,
         IDI_TYPELIB,
+        IDI_CATID_GROUP,
         IDI_CATID
     };
 
@@ -425,8 +427,8 @@ void ComTreeView::ConstructTypeLibs(const CTreeItem& item)
             tvis.itemex.mask = TVIF_CHILDREN | TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_TEXT | TVIF_PARAM;
             tvis.itemex.cChildren = 0;
             tvis.itemex.pszText = const_cast<LPTSTR>(static_cast<LPCTSTR>(strName));
-            tvis.itemex.iImage = 6;
-            tvis.itemex.iSelectedImage = 6;
+            tvis.itemex.iImage = 7;
+            tvis.itemex.iSelectedImage = 7;
 
             auto pdata = std::make_unique<ObjectData>(ObjectType::TYPELIB, szTypeLibID, wMaj, wMin);
             if (pdata != nullptr && pdata->guid != GUID_NULL) {
@@ -495,8 +497,8 @@ void ComTreeView::ConstructApps(const CTreeItem& item)
         tvis.itemex.mask = TVIF_CHILDREN | TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_TEXT | TVIF_PARAM;
         tvis.itemex.cChildren = 0;
         tvis.itemex.pszText = const_cast<LPTSTR>(static_cast<LPCTSTR>(strName));
-        tvis.itemex.iImage = 4;
-        tvis.itemex.iSelectedImage = 4;
+        tvis.itemex.iImage = 5;
+        tvis.itemex.iSelectedImage = 5;
 
         auto pdata = std::make_unique<ObjectData>(ObjectType::APPID, appID);
         if (pdata != nullptr && pdata->guid != GUID_NULL) {
@@ -840,8 +842,8 @@ void ComTreeView::ConstructCategories(const CTreeItem& item)
         tvis.itemex.mask = TVIF_CHILDREN | TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_TEXT | TVIF_PARAM;
         tvis.itemex.cChildren = 1;
         tvis.itemex.pszText = const_cast<LPTSTR>(static_cast<LPCTSTR>(value));
-        tvis.itemex.iImage = 7;
-        tvis.itemex.iSelectedImage = 7;
+        tvis.itemex.iImage = 9;
+        tvis.itemex.iSelectedImage = 9;
 
         auto pdata = std::make_unique<ObjectData>(ObjectType::CATID, szGUID);
         if (pdata != nullptr && !IsEqualGUID(pdata->guid, GUID_NULL)) {
@@ -971,16 +973,16 @@ void ComTreeView::ConstructTree()
     InsertItem(&tvis);
 
     tvis.itemex.pszText = _T("Type Libraries");
-    tvis.itemex.iImage = 5;
-    tvis.itemex.iSelectedImage = 5;
-    tvis.itemex.iExpandedImage = 5;
+    tvis.itemex.iImage = 6;
+    tvis.itemex.iSelectedImage = 6;
+    tvis.itemex.iExpandedImage = 6;
     tvis.itemex.lParam = reinterpret_cast<LPARAM>(new ObjectData(ObjectType::TYPELIB, GUID_NULL));
     InsertItem(&tvis);
 
     tvis.itemex.pszText = _T("Categories");
-    tvis.itemex.iImage = 7;
-    tvis.itemex.iSelectedImage = 7;
-    tvis.itemex.iExpandedImage = 7;
+    tvis.itemex.iImage = 8;
+    tvis.itemex.iSelectedImage = 8;
+    tvis.itemex.iExpandedImage = 8;
     tvis.itemex.lParam = reinterpret_cast<LPARAM>(new ObjectData(ObjectType::CATID, GUID_NULL));
     InsertItem(&tvis);
 

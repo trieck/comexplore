@@ -220,6 +220,15 @@
     <Image Include="res\exit.bmp">
       <Filter>Bitmap Files</Filter>
     </Image>
+    <Image Include="res\folder.ico">
+      <Filter>Icon Files</Filter>
+    </Image>
+    <Image Include="res\appid_grp.ico">
+      <Filter>Icon Files</Filter>
+    </Image>
+    <Image Include="res\catid_grp.ico">
+      <Filter>Icon Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="comexplore.rc">

@@ -345,13 +345,16 @@
     <Image Include="res\about.bmp" />
     <Image Include="res\alias.ico" />
     <Image Include="res\appid.ico" />
+    <Image Include="res\appid_grp.ico" />
     <Image Include="res\automation.bmp" />
     <Image Include="res\catid.ico" />
+    <Image Include="res\catid_grp.ico" />
     <Image Include="res\coclass.ico" />
     <Image Include="res\comexplore.ico" />
     <Image Include="res\dispatch.ico" />
     <Image Include="res\enum.ico" />
     <Image Include="res\exit.bmp" />
+    <Image Include="res\folder.ico" />
     <Image Include="res\function.ico" />
     <Image Include="res\interface.ico" />
     <Image Include="res\interface_grp.ico" />

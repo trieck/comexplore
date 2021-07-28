@@ -132,6 +132,10 @@ IDI_PROPERTY            ICON                    "res\\property.ico"
 
 IDI_CATID               ICON                    "res\\catid.ico"
 
+IDI_APPID_GROUP         ICON                    "res\\appid_grp.ico"
+
+IDI_CATID_GROUP         ICON                    "res\\catid_grp.ico"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -233,14 +237,6 @@ END
 
 /////////////////////////////////////////////////////////////////////////////
 //
-// UIFILE
-//
-
-APPLICATION_RIBBON      UIFILE                  "ribbon.bin"
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
 // String Table
 //
 
@@ -280,19 +276,6 @@ BEGIN
     ID_RELEASE_OBJECT       "Release Object Instance\nRelease Instance"
 END
 
-STRINGTABLE
-BEGIN
-    ID_FILE_OPEN_LabelTitle_RESID "Bind to File..."
-    ID_FILE_OPEN_Keytip_RESID "O"
-    ID_FILE_OPEN_TooltipTitle_RESID "Bind to File(Ctrl+O)"
-    ID_FILE_OPEN_TooltipDescription_RESID "Bind to a File"
-    ID_TAB_HOME_LabelTitle_RESID "Home"
-    ID_TAB_VIEW_LabelTitle_RESID "View"
-    ID_GROUP_TOOLS_LabelTitle_RESID "Tools"
-    ID_GROUP_SHOW_LabelTitle_RESID "Show or Hide"
-    ID_GROUP_HELP_LabelTitle_RESID "Help"
-END
-
 #endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
 
@@ -303,7 +286,7 @@ END
 //
 // Generated from the TEXTINCLUDE 3 resource.
 //
-
+#include "ribbon.rc2"
 
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED
