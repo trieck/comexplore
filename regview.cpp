@@ -147,6 +147,7 @@ void RegistryView::BuildCLSID(LPOBJECTDATA pdata)
 
     CString strGUID;
     StringFromGUID2(pdata->guid, strGUID.GetBuffer(40), 40);
+    strGUID.ReleaseBuffer();
 
     BuildCLSID(strGUID);
 
@@ -206,6 +207,7 @@ void RegistryView::BuildTypeLib(LPOBJECTDATA pdata)
 
     CString strGUID;
     StringFromGUID2(pdata->guid, strGUID.GetBuffer(40), 40);
+    strGUID.ReleaseBuffer();
 
     BuildTypeLib(strGUID);
 }
@@ -256,6 +258,7 @@ void RegistryView::BuildAppID(LPOBJECTDATA pdata)
 
     CString strAppID;
     StringFromGUID2(pdata->guid, strAppID.GetBuffer(40), 40);
+    strAppID.ReleaseBuffer();
 
     CString strPath;
     strPath.Format(_T("SOFTWARE\\Classes\\AppID\\%s"), static_cast<LPCTSTR>(strAppID));
@@ -281,6 +284,7 @@ void RegistryView::BuildIID(LPOBJECTDATA pdata)
 
     CString strIID;
     StringFromGUID2(pdata->guid, strIID.GetBuffer(40), 40);
+    strIID.ReleaseBuffer();
 
     CString strPath;
     strPath.Format(_T("SOFTWARE\\Classes\\Interface\\%s"), static_cast<LPCTSTR>(strIID));
@@ -341,6 +345,7 @@ inline void RegistryView::BuildCatID(LPOBJECTDATA pdata)
 
     CString strCatID;
     StringFromGUID2(pdata->guid, strCatID.GetBuffer(40), 40);
+    strCatID.ReleaseBuffer();
 
     CString strPath;
     strPath.Format(_T("Component Categories\\%s"), static_cast<LPCTSTR>(strCatID));

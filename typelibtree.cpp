@@ -56,9 +56,6 @@ BOOL TypeLibTree::BuildView(LPOBJECTDATA pdata)
 {
     ATLASSERT(pdata && pdata->type == ObjectType::TYPELIB && pdata->guid != GUID_NULL);
 
-    CString strGUID;
-    StringFromGUID2(pdata->guid, strGUID.GetBuffer(40), 40);
-
     auto lcid = GetUserDefaultLCID();
 
     auto hr = LoadRegTypeLib(pdata->guid, pdata->wMaj, pdata->wMin, lcid, &m_pTypeLib);

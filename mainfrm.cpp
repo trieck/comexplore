@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "mainfrm.h"
-
 #include "comerror.h"
 
 BOOL CMainFrame::PreTranslateMessage(MSG* pMsg)
@@ -14,9 +13,12 @@ BOOL CMainFrame::PreTranslateMessage(MSG* pMsg)
 
 BOOL CMainFrame::OnIdle()
 {
-    UIUpdateToolBar();
-
     UIEnable(ID_RELEASE_OBJECT, IsSelectedInstance());
+    UIEnable(ID_COPY_GUID, IsGUIDSelected());
+    UIEnable(ID_VIEW_TYPEINFO, IsTypeInfoAvailable());
+
+    UIUpdateToolBar();
+    UIUpdateMenuBar();
 
     return FALSE;
 }
@@ -39,6 +41,30 @@ LRESULT CMainFrame::OnTVSelChanged(LPNMHDR pnmhdr)
         auto item = CTreeItem(reinterpret_cast<LPNMTREEVIEW>(pnmhdr)->itemNew.hItem, &m_treeView);
         m_detailView.SendMessage(WM_SELCHANGED, 0, item.GetData());
     }
+
+    return 0;
+}
+
+LRESULT CMainFrame::OnRClick(LPNMHDR pnmh)
+{
+    if (pnmh->hwndFrom != m_treeView) {
+        return 0;
+    }
+
+    auto item = m_treeView.GetSelectedItem();
+    if (item.IsNull()) {
+        return 0;
+    }
+
+    CMenu menu;
+    menu.LoadMenu(IDR_CONTEXT_MENU);
+
+    CMenuHandle popup = menu.GetSubMenu(0);
+
+    CPoint pt;
+    GetCursorPos(&pt);
+
+    popup.TrackPopupMenu(TPM_LEFTALIGN | TPM_LEFTBUTTON | TPM_VERTICAL, pt.x, pt.y, *this);
 
     return 0;
 }
@@ -170,9 +196,25 @@ LRESULT CMainFrame::OnReleaseObject(WORD, WORD, HWND, BOOL&)
     return 0;
 }
 
+LRESULT CMainFrame::OnCopyGUID(WORD, WORD, HWND, BOOL&)
+{
+    m_treeView.CopyGUIDToClipboard();
+    return 0;
+}
+
 BOOL CMainFrame::IsSelectedInstance() const
 {
     return m_treeView.IsSelectedInstance();
+}
+
+BOOL CMainFrame::IsGUIDSelected() const
+{
+    return m_treeView.IsGUIDSelected();
+}
+
+BOOL CMainFrame::IsTypeInfoAvailable() const
+{
+    return m_treeView.IsTypeInfoAvailable();
 }
 
 void CMainFrame::AddFileMoniker(LPCTSTR pFilename, LPUNKNOWN pUnk, REFCLSID clsid)

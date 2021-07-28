@@ -1,6 +1,7 @@
 // Microsoft Visual C++ generated resource script.
 //
 #include "resource.h"
+#include "ribbon.rc2"
 
 #define APSTUDIO_READONLY_SYMBOLS
 /////////////////////////////////////////////////////////////////////////////
@@ -51,13 +52,9 @@ END
 //
 
 ID_APP_ABOUT            BITMAP                  "res\\about.bmp"
-
 ID_APP_EXIT             BITMAP                  "res\\exit.bmp"
-
 ID_FILE_OPEN            BITMAP                  "res\\open.bmp"
-
 ID_RELEASE_OBJECT       BITMAP                  "res\\release.bmp"
-
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -84,6 +81,16 @@ BEGIN
     END
 END
 
+IDR_CONTEXT_MENU MENU
+BEGIN
+    POPUP "CONTEXT_MENU"
+    BEGIN
+        MENUITEM "Release Instance",            ID_RELEASE_OBJECT
+        MENUITEM "Copy GUID to Cllipboard",     ID_COPY_GUID
+        MENUITEM "View Type Information",       ID_VIEW_TYPEINFO
+    END
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -92,49 +99,28 @@ END
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDR_MAINFRAME           ICON                    "res\\comexplore.ico"
-
-IDI_COCLASS             ICON                    "res\\coclass.ico"
-
-IDI_NODE                ICON                    "res\\node.ico"
-
-IDI_INTERFACE           ICON                    "res\\interface.ico"
-
-IDI_REGNODE             ICON                    "res\\regnode.ico"
-
-IDI_REGISTRY            ICON                    "res\\reg.ico"
-
-IDI_INTERFACE_GROUP     ICON                    "res\\interface_grp.ico"
-
-IDI_APPID               ICON                    "res\\appid.ico"
-
-IDI_TYPELIB_GROUP       ICON                    "res\\typelib_grp.ico"
-
-IDI_TYPELIB             ICON                    "res\\typelib.ico"
-
-IDI_DISPATCH            ICON                    "res\\dispatch.ico"
-
-IDI_RECORD              ICON                    "res\\record.ico"
-
-IDI_ENUM                ICON                    "res\\enum.ico"
-
-IDI_UNION               ICON                    "res\\union.ico"
-
-IDI_MODULE              ICON                    "res\\module.ico"
-
 IDI_ALIAS               ICON                    "res\\alias.ico"
-
-IDI_FUNCTION            ICON                    "res\\function.ico"
-
-IDI_CONSTANT            ICON                    "res\\constant.ico"
-
-IDI_PROPERTY            ICON                    "res\\property.ico"
-
-IDI_CATID               ICON                    "res\\catid.ico"
-
+IDI_APPID               ICON                    "res\\appid.ico"
 IDI_APPID_GROUP         ICON                    "res\\appid_grp.ico"
-
+IDI_CATID               ICON                    "res\\catid.ico"
 IDI_CATID_GROUP         ICON                    "res\\catid_grp.ico"
+IDI_COCLASS             ICON                    "res\\coclass.ico"
+IDI_CONSTANT            ICON                    "res\\constant.ico"
+IDI_DISPATCH            ICON                    "res\\dispatch.ico"
+IDI_ENUM                ICON                    "res\\enum.ico"
+IDI_FUNCTION            ICON                    "res\\function.ico"
+IDI_INTERFACE           ICON                    "res\\interface.ico"
+IDI_INTERFACE_GROUP     ICON                    "res\\interface_grp.ico"
+IDI_MODULE              ICON                    "res\\module.ico"
+IDI_NODE                ICON                    "res\\node.ico"
+IDI_PROPERTY            ICON                    "res\\property.ico"
+IDI_RECORD              ICON                    "res\\record.ico"
+IDI_REGISTRY            ICON                    "res\\reg.ico"
+IDI_REGNODE             ICON                    "res\\regnode.ico"
+IDI_TYPELIB             ICON                    "res\\typelib.ico"
+IDI_TYPELIB_GROUP       ICON                    "res\\typelib_grp.ico"
+IDI_UNION               ICON                    "res\\union.ico"
+IDR_MAINFRAME           ICON                    "res\\comexplore.ico"
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -273,7 +259,9 @@ END
 
 STRINGTABLE
 BEGIN
-    ID_RELEASE_OBJECT       "Release Object Instance\nRelease Instance"
+    ID_RELEASE_OBJECT   "Release Object Instance\nRelease Instance"
+    ID_COPY_GUID        "Copy GUID to Clipboard\nCopy GUID"
+    ID_VIEW_TYPEINFO    "View Type Information for Object\nView TypeInfo."
 END
 
 #endif    // English (United States) resources
@@ -286,7 +274,7 @@ END
 //
 // Generated from the TEXTINCLUDE 3 resource.
 //
-#include "ribbon.rc2"
+
 
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED

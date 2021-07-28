@@ -34,7 +34,7 @@ CString TextStream::ReadString()
     auto size = statstg.cbSize.QuadPart;
 
     CString strText;
-    auto* buffer = strText.GetBuffer(int(size + 1));
+    auto* buffer = strText.GetBuffer(static_cast<int>(size + 1));
 
     LARGE_INTEGER li{};
     hr = Seek(li, STREAM_SEEK_SET, nullptr);
@@ -43,7 +43,7 @@ CString TextStream::ReadString()
     }
 
     ULONG uRead;
-    hr = Read(buffer, ULONG(size), &uRead);
+    hr = Read(buffer, static_cast<ULONG>(size), &uRead);
     if (FAILED(hr)) {
         return _T("");
     }

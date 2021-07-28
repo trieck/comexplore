@@ -114,6 +114,7 @@ void ComTreeView::AddFileMoniker(LPCTSTR pFilename, LPUNKNOWN pUnknown, REFCLSID
     if (clsid != GUID_NULL) {
         CString strGUID;
         StringFromGUID2(clsid, strGUID.GetBuffer(40), 40);
+        strGUID.ReleaseBuffer();
 
         CString strPath;
         strPath.Format(_T("SOFTWARE\\Classes\\CLSID\\%s"), strGUID);
@@ -181,6 +182,42 @@ BOOL ComTreeView::IsSelectedInstance() const
     return data->pUnknown != nullptr;
 }
 
+BOOL ComTreeView::IsGUIDSelected() const
+{
+    auto item = GetSelectedItem();
+    if (item.IsNull()) {
+        return FALSE;
+    }
+
+    auto data = reinterpret_cast<LPOBJECTDATA>(item.GetData());
+    if (data == nullptr) {
+        return FALSE;
+    }
+
+    return data->guid != GUID_NULL;
+}
+
+BOOL ComTreeView::IsTypeInfoAvailable() const
+{
+    auto item = GetSelectedItem();
+    if (item.IsNull()) {
+        return FALSE;
+    }
+
+    auto data = reinterpret_cast<LPOBJECTDATA>(item.GetData());
+    if (data == nullptr || data->pUnknown == nullptr) {
+        return FALSE;
+    }
+
+    CComPtr<IProvideClassInfo> pProvideClassInfo;
+    auto hr = data->pUnknown.QueryInterface(&pProvideClassInfo);
+    if (FAILED(hr)) {
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
 void ComTreeView::ReleaseSelectedObject()
 {
     auto item = GetSelectedItem();
@@ -201,6 +238,49 @@ void ComTreeView::ReleaseSelectedObject()
 
     item.Expand(TVE_COLLAPSE);
     item.SetState(0, TVIS_BOLD);
+}
+
+void ComTreeView::CopyGUIDToClipboard()
+{
+    auto item = GetSelectedItem();
+    if (item.IsNull()) {
+        return;
+    }
+
+    auto data = reinterpret_cast<LPOBJECTDATA>(item.GetData());
+    if (data == nullptr) {
+        return;
+    }
+
+    if (data->guid == GUID_NULL) {
+        return;
+    }
+
+    CString strGUID;
+    StringFromGUID2(data->guid, strGUID.GetBuffer(40), 40);
+    strGUID.ReleaseBuffer();
+
+    auto hGlobal = GlobalAlloc(GMEM_MOVEABLE, (strGUID.GetLength() + 1) * sizeof(TCHAR));
+    if (hGlobal == nullptr) {
+        return;        
+    }
+
+    CT2W wszGUID(strGUID);
+
+    auto pData = static_cast<LPWSTR>(GlobalLock(hGlobal));
+    wcscpy(pData, wszGUID);
+
+    GlobalUnlock(hGlobal);
+
+    if (!OpenClipboard()) {
+        return;
+    }
+
+    EmptyClipboard();
+
+    SetClipboardData(CF_UNICODETEXT, hGlobal);
+    
+    CloseClipboard();    
 }
 
 void ComTreeView::ExpandClasses(const CTreeItem& item)
@@ -860,6 +940,7 @@ void ComTreeView::ConstructCategory(const CTreeItem& item)
 
     CString strGUID;
     StringFromGUID2(data->guid, strGUID.GetBuffer(40), 40);
+    strGUID.ReleaseBuffer();
 
     CWaitCursor cursor;
     SetRedraw(FALSE);
