@@ -23,6 +23,9 @@ BEGIN_MSG_MAP_EX(TypeLibTree)
     LRESULT OnDelete(LPNMHDR pnmh);
     HRESULT GetTypeLib(ITypeLib** pTypeLib);
 private:
+    BOOL LoadTypeLib(LPUNKNOWN pUnknown);
+    BOOL GetTypeLibFromCLSID(REFGUID clsid, GUID& typeLibID, WORD& wMaj, WORD& wMin);
+    
     BOOL BuildView();
     BOOL BuildView(LPOBJECTDATA pdata);
     HTREEITEM InsertItem(LPCTSTR lpszItem, int nImage, int nSelectedImage,

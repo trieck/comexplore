@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "comexplorer.h"
 #include "MainFrm.h"
+#include "msgloop.h"
 
 COMExplorer::~COMExplorer()
 {
@@ -51,7 +52,7 @@ int COMExplorer::Run(HINSTANCE hInstance, LPTSTR /*lpCmdLine*/, int nCmdShow)
         return -1;
     }
 
-    CMessageLoop theLoop;
+    MessageLoopEx theLoop;
     _Module.AddMessageLoop(&theLoop);
 
     CMainFrame wndMain;

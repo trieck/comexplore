@@ -15,7 +15,6 @@ BOOL CMainFrame::OnIdle()
 {
     UIEnable(ID_RELEASE_OBJECT, IsSelectedInstance());
     UIEnable(ID_COPY_GUID, IsGUIDSelected());
-    UIEnable(ID_VIEW_TYPEINFO, IsTypeInfoAvailable());
 
     UIUpdateToolBar();
     UIUpdateMenuBar();
@@ -40,6 +39,7 @@ LRESULT CMainFrame::OnTVSelChanged(LPNMHDR pnmhdr)
     if (pnmhdr != nullptr && pnmhdr->hwndFrom == m_treeView) {
         auto item = CTreeItem(reinterpret_cast<LPNMTREEVIEW>(pnmhdr)->itemNew.hItem, &m_treeView);
         m_detailView.SendMessage(WM_SELCHANGED, 0, item.GetData());
+        m_treeView.SetFocus();
     }
 
     return 0;
@@ -210,11 +210,6 @@ BOOL CMainFrame::IsSelectedInstance() const
 BOOL CMainFrame::IsGUIDSelected() const
 {
     return m_treeView.IsGUIDSelected();
-}
-
-BOOL CMainFrame::IsTypeInfoAvailable() const
-{
-    return m_treeView.IsTypeInfoAvailable();
 }
 
 void CMainFrame::AddFileMoniker(LPCTSTR pFilename, LPUNKNOWN pUnk, REFCLSID clsid)

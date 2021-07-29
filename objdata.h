@@ -26,6 +26,8 @@ struct ObjectData
     ObjectData& operator =(const ObjectData&) = delete;
     ObjectData& operator =(ObjectData&&) = delete;
 
+    void SafeRelease();
+
     ObjectType type; // type of object
     CComPtr<IUnknown> pUnknown; // object instance
     GUID guid; // UUID of object or GUID_NULL for none

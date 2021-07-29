@@ -117,6 +117,7 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <LanguageStandard>stdcpp14</LanguageStandard>
+      <ExceptionHandling>Async</ExceptionHandling>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -166,6 +167,7 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <LanguageStandard>stdcpp14</LanguageStandard>
+      <ExceptionHandling>Async</ExceptionHandling>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -216,6 +218,7 @@
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <LanguageStandard>stdcpp14</LanguageStandard>
+      <ExceptionHandling>Async</ExceptionHandling>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -263,6 +266,7 @@
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <LanguageStandard>stdcpp14</LanguageStandard>
+      <ExceptionHandling>Async</ExceptionHandling>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -299,6 +303,7 @@
     <ClCompile Include="idlstreamformatter.cpp" />
     <ClCompile Include="idlview.cpp" />
     <ClCompile Include="mainfrm.cpp" />
+    <ClCompile Include="msgloop.cpp" />
     <ClCompile Include="objdata.cpp" />
     <ClCompile Include="regview.cpp" />
     <ClCompile Include="stdafx.cpp">
@@ -330,6 +335,7 @@
     <ClInclude Include="idlstreamformatter.h" />
     <ClInclude Include="idlview.h" />
     <ClInclude Include="mainfrm.h" />
+    <ClInclude Include="msgloop.h" />
     <ClInclude Include="objdata.h" />
     <ClInclude Include="regview.h" />
     <ClInclude Include="resource.h" />

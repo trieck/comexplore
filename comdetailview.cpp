@@ -42,26 +42,25 @@ LRESULT ComDetailView::OnSelChanged(UINT, WPARAM, LPARAM lParam, BOOL& /*bHandle
     RemoveAllPages();
 
     auto pdata = reinterpret_cast<LPOBJECTDATA>(lParam);
-    if (pdata != nullptr && pdata->guid != GUID_NULL) {
-        if (m_regView.Create(*this, rcDefault, nullptr, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
-                             WS_EX_CLIENTEDGE, 0U, pdata)) {
-            AddPage(m_regView, _T("Registry"), 0, pdata);
-        }
+    if (pdata == nullptr || pdata->guid == GUID_NULL) {
+        return 0;
+    }
 
-        if (pdata->type == ObjectType::TYPELIB) {
-            if (m_typeLibView.Create(*this, rcDefault, nullptr,
-                                     WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, WS_EX_CLIENTEDGE,
-                                     0U, pdata)) {
-                AddPage(m_typeLibView, _T("Type Library"), 1, pdata);
-            }
-        }
 
-        const auto nPageCount = GetPageCount();
-        if (nPageCount == 1) {
-            SetActivePage(0);
-        } else if (nPageCount == 2) {
-            SetActivePage(1);
-        }
+    if (m_regView.Create(*this, rcDefault, nullptr, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
+                         WS_EX_CLIENTEDGE, 0U, pdata)) {
+        AddPage(m_regView, _T("Registry"), 0, pdata);
+    }
+
+    if (m_typeLibView.Create(*this, rcDefault, nullptr,
+                             WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, WS_EX_CLIENTEDGE,
+                             0U, pdata)) {
+        AddPage(m_typeLibView, _T("Type Library"), 1, pdata);
+    }
+
+    const auto nPageCount = GetPageCount();
+    if (nPageCount > 0) {
+        SetActivePage(nPageCount - 1);
     }
 
     UpdateLayout();

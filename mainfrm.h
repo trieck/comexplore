@@ -27,7 +27,6 @@ public:
         UPDATE_ELEMENT(ID_VIEW_STATUS_BAR, UPDUI_MENUPOPUP)
         UPDATE_ELEMENT(ID_RELEASE_OBJECT, UPDUI_MENUPOPUP)
         UPDATE_ELEMENT(ID_COPY_GUID, UPDUI_MENUPOPUP)
-        UPDATE_ELEMENT(ID_VIEW_TYPEINFO, UPDUI_MENUPOPUP)
     END_UPDATE_UI_MAP()
 
 BEGIN_MSG_MAP(CMainFrame)
@@ -58,7 +57,6 @@ BEGIN_MSG_MAP(CMainFrame)
 private:
     BOOL IsSelectedInstance() const;
     BOOL IsGUIDSelected() const;
-    BOOL IsTypeInfoAvailable() const;
 
     void AddFileMoniker(LPCTSTR pFilename, LPUNKNOWN pUnk, REFCLSID clsid);
 

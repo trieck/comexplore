@@ -1,11 +1,11 @@
 #include "stdafx.h"
-
-
 #include "autodesc.h"
 #include "autotypeattr.h"
 #include "resource.h"
 #include "TypeLibTree.h"
 #include "util.h"
+
+#include <boost/algorithm/string.hpp>
 
 TypeLibTree::TypeLibTree(): m_bMsgHandled(0)
 {
@@ -54,22 +54,43 @@ LRESULT TypeLibTree::OnCreate(LPCREATESTRUCT pcs)
 
 BOOL TypeLibTree::BuildView(LPOBJECTDATA pdata)
 {
-    ATLASSERT(pdata && pdata->type == ObjectType::TYPELIB && pdata->guid != GUID_NULL);
+    if (pdata == nullptr || pdata->guid == GUID_NULL) {
+        return FALSE;
+    }
 
-    auto lcid = GetUserDefaultLCID();
+    if (pdata->type != ObjectType::CLSID && pdata->type != ObjectType::TYPELIB) {
+        return FALSE;
+    }
 
-    auto hr = LoadRegTypeLib(pdata->guid, pdata->wMaj, pdata->wMin, lcid, &m_pTypeLib);
-    if (FAILED(hr)) {
-        // attempt to load manually        
-        CComBSTR bstrPath;
-        hr = QueryPathOfRegTypeLib(pdata->guid, pdata->wMaj, pdata->wMin,
-                                   GetUserDefaultLCID(), &bstrPath);
+    if (pdata->type == ObjectType::CLSID && pdata->pUnknown) {
+        LoadTypeLib(pdata->pUnknown);
+    }
+
+    GUID typeLibID = GUID_NULL;
+    WORD wMaj = 0, wMin = 0;
+
+    if (!m_pTypeLib && pdata->type == ObjectType::CLSID) {
+        GetTypeLibFromCLSID(pdata->guid, typeLibID, wMaj, wMin);
+    } else if (pdata->type == ObjectType::TYPELIB) {
+        typeLibID = pdata->guid;
+        wMaj = pdata->wMaj;
+        wMin = pdata->wMin;
+    }
+
+    if (!m_pTypeLib && typeLibID != GUID_NULL) {
+        auto lcid = GetUserDefaultLCID();
+        auto hr = LoadRegTypeLib(typeLibID, wMaj, wMin, lcid, &m_pTypeLib);
         if (FAILED(hr)) {
-            // no hope
-            return FALSE;
-        }
+            // attempt to load manually        
+            CComBSTR bstrPath;
+            hr = QueryPathOfRegTypeLib(typeLibID, wMaj, wMin, lcid, &bstrPath);
+            if (FAILED(hr)) {
+                // no hope
+                return FALSE;
+            }
 
-        LoadTypeLib(bstrPath, &m_pTypeLib);
+            ::LoadTypeLib(bstrPath, &m_pTypeLib);
+        }
     }
 
     if (m_pTypeLib != nullptr) {
@@ -97,10 +118,8 @@ BOOL TypeLibTree::BuildView()
     }
 
     auto hRoot = InsertItem(strItem, 0, 0, 1, TVI_ROOT, TVI_LAST);
-
     BuildTypeInfo(hRoot);
     SortChildren(hRoot);
-
     Expand(hRoot);
 
     return TRUE;
@@ -507,4 +526,97 @@ HRESULT TypeLibTree::GetTypeLib(ITypeLib** pTypeLib)
     (*pTypeLib)->AddRef();
 
     return S_OK;
+}
+
+BOOL TypeLibTree::LoadTypeLib(LPUNKNOWN pUnknown)
+{
+    ATLASSERT(pUnknown);
+
+    CComPtr<IProvideClassInfo> pProvideClassInfo;
+    auto hr = pUnknown->QueryInterface(&pProvideClassInfo);
+    if (FAILED(hr)) {
+        return FALSE;
+    }
+
+    CComPtr<ITypeInfo> pTypeInfo;
+    hr = pProvideClassInfo->GetClassInfo(&pTypeInfo);
+    if (FAILED(hr)) {
+        return FALSE;
+    }
+
+    UINT nIndex;
+    hr = pTypeInfo->GetContainingTypeLib(&m_pTypeLib, &nIndex);
+
+    return SUCCEEDED(hr);
+}
+
+BOOL TypeLibTree::GetTypeLibFromCLSID(REFGUID clsid, GUID& typeLibID, WORD& wMaj, WORD& wMin)
+{
+    CString strCLSID;
+    StringFromGUID2(clsid, strCLSID.GetBuffer(40), 40);
+    strCLSID.ReleaseBuffer();
+
+    CString strPath;
+    strPath.Format(_T("SOFTWARE\\Classes\\CLSID\\%s\\TypeLib"), strCLSID);
+
+    CRegKey key;
+    auto lResult = key.Open(HKEY_LOCAL_MACHINE, strPath, KEY_READ);
+    if (lResult != ERROR_SUCCESS) {
+        return FALSE;
+    }
+
+    TCHAR value[REG_BUFFER_SIZE];
+    DWORD length = REG_BUFFER_SIZE;
+
+    lResult = key.QueryStringValue(nullptr, value, &length);
+    if (lResult != ERROR_SUCCESS) {
+        return FALSE;
+    }
+
+    CString strTypeLibID(value);
+    if (value[0] != '{') {
+        strTypeLibID.Format(_T("{%s}"), value);
+    }
+
+    auto hr = CLSIDFromString(strTypeLibID, &typeLibID);
+    if (FAILED(hr)) {
+        return FALSE;
+    }
+
+    // Find latest available registered version
+    strPath.Format(_T("SOFTWARE\\Classes\\TypeLib\\%s"), strTypeLibID);
+    lResult = key.Open(HKEY_LOCAL_MACHINE, strPath, KEY_ENUMERATE_SUB_KEYS);
+    if (lResult != ERROR_SUCCESS) {
+        return FALSE;
+    }
+
+    DWORD index = 0;
+    auto succeeded = FALSE;
+
+    for (;;) {
+        TCHAR szVersion[REG_BUFFER_SIZE]{};
+        length = REG_BUFFER_SIZE;
+
+        lResult = key.EnumKey(index++, szVersion, &length);
+        if (lResult != ERROR_SUCCESS) {
+            break;
+        }
+
+        CRegKey verKey;
+        lResult = verKey.Open(key, szVersion, KEY_READ);
+        if (lResult != ERROR_SUCCESS) {
+            continue;
+        }
+
+        std::vector<tstring> out;
+        split(out, szVersion, boost::is_any_of(_T(".")));
+
+        if (out.size() == 2) {
+            wMaj = std::max<WORD>(wMaj, _ttoi(out[0].c_str()));
+            wMin = _ttoi(out[1].c_str());
+            succeeded = TRUE;
+        }
+    }
+
+    return succeeded;
 }

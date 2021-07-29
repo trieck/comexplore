@@ -23,7 +23,16 @@ ObjectData::ObjectData(ObjectType t, LPUNKNOWN pUnknown, const GUID& uuid,
 /////////////////////////////////////////////////////////////////////////////
 ObjectData::~ObjectData()
 {
-    pUnknown.Release();
+    SafeRelease();
+}
+
+void ObjectData::SafeRelease()
+{
+    try {
+        pUnknown.Release();
+    } catch (...) {
+        ATLTRACE(_T("Unexpected error releasing object.\n"));
+    }
 }
 
 /////////////////////////////////////////////////////////////////////////////

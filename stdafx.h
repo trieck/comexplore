@@ -38,6 +38,15 @@
 #include <unordered_set>
 #include <string>
 
+// ensure structured exceptions are enabled
+#pragma warning(push)
+#pragma warning(error:4535)
+static void __check_eha()
+{
+    _set_se_translator(nullptr);
+}
+#pragma warning(pop)
+
 #ifdef _UNICODE
 using tstring = std::wstring;
 #else

@@ -22,7 +22,6 @@ BEGIN_MSG_MAP_EX(ComTreeView)
     void AddFileMoniker(LPCTSTR pFilename, LPUNKNOWN pUnknown, REFCLSID clsid);
     BOOL IsSelectedInstance() const;
     BOOL IsGUIDSelected() const;
-    BOOL IsTypeInfoAvailable() const;
 
     void ReleaseSelectedObject();
     void CopyGUIDToClipboard();
@@ -41,7 +40,7 @@ private:
     void ConstructClasses(const CTreeItem& item);
     void ConstructInterfaces(const CTreeItem& item);
     void ConstructAllInterfaces(const CTreeItem& item);
-    void ConstructInterfaces(CComPtr<IUnknown>& pUnk, const CTreeItem& item);
+    void ConstructInterfaces(LPUNKNOWN pUnknown, const CTreeItem& item);
     void ConstructCategories(const CTreeItem& item);
     void ConstructCategory(const CTreeItem& item);
     void ConstructTree();

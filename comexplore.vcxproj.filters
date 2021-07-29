@@ -78,6 +78,9 @@
     <ClCompile Include="comerror.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="msgloop.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="aboutdlg.h">
@@ -141,6 +144,9 @@
       <Filter>Generated Files</Filter>
     </ClInclude>
     <ClInclude Include="comerror.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="msgloop.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

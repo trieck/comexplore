@@ -86,8 +86,7 @@ BEGIN
     POPUP "CONTEXT_MENU"
     BEGIN
         MENUITEM "Release Instance",            ID_RELEASE_OBJECT
-        MENUITEM "Copy GUID to Cllipboard",     ID_COPY_GUID
-        MENUITEM "View Type Information",       ID_VIEW_TYPEINFO
+        MENUITEM "Copy GUID to Clipboard",     ID_COPY_GUID
     END
 END
 
@@ -261,7 +260,6 @@ STRINGTABLE
 BEGIN
     ID_RELEASE_OBJECT   "Release Object Instance\nRelease Instance"
     ID_COPY_GUID        "Copy GUID to Clipboard\nCopy GUID"
-    ID_VIEW_TYPEINFO    "View Type Information for Object\nView TypeInfo."
 END
 
 #endif    // English (United States) resources

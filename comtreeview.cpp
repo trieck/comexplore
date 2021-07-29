@@ -197,27 +197,6 @@ BOOL ComTreeView::IsGUIDSelected() const
     return data->guid != GUID_NULL;
 }
 
-BOOL ComTreeView::IsTypeInfoAvailable() const
-{
-    auto item = GetSelectedItem();
-    if (item.IsNull()) {
-        return FALSE;
-    }
-
-    auto data = reinterpret_cast<LPOBJECTDATA>(item.GetData());
-    if (data == nullptr || data->pUnknown == nullptr) {
-        return FALSE;
-    }
-
-    CComPtr<IProvideClassInfo> pProvideClassInfo;
-    auto hr = data->pUnknown.QueryInterface(&pProvideClassInfo);
-    if (FAILED(hr)) {
-        return FALSE;
-    }
-
-    return TRUE;
-}
-
 void ComTreeView::ReleaseSelectedObject()
 {
     auto item = GetSelectedItem();
@@ -230,11 +209,7 @@ void ComTreeView::ReleaseSelectedObject()
         return;
     }
 
-    if (data->pUnknown == nullptr) {
-        return;
-    }
-
-    data->pUnknown.Release();
+    data->SafeRelease();
 
     item.Expand(TVE_COLLAPSE);
     item.SetState(0, TVIS_BOLD);
@@ -737,9 +712,14 @@ void ComTreeView::ConstructInterfaces(const CTreeItem& item)
         }
 
         SetItemState(item.m_hTreeItem, TVIS_BOLD, TVIS_BOLD);
+
+        SelectItem(nullptr);    // re-select a live node, if needed
+        SelectItem(item.m_hTreeItem);
     }
 
-    ConstructInterfaces(data->pUnknown, item);
+    if (data->pUnknown) {
+        ConstructInterfaces(data->pUnknown, item);
+    }
 
     SetRedraw(TRUE);
 }
@@ -814,9 +794,9 @@ void ComTreeView::ConstructAllInterfaces(const CTreeItem& item)
     SetRedraw(TRUE);
 }
 
-void ComTreeView::ConstructInterfaces(CComPtr<IUnknown>& pUnk, const CTreeItem& item)
+void ComTreeView::ConstructInterfaces(LPUNKNOWN pUnknown, const CTreeItem& item)
 {
-    ATLASSERT(pUnk);
+    ATLASSERT(pUnknown);
 
     CRegKey key, subkey;
     auto lResult = key.Open(HKEY_LOCAL_MACHINE, _T("SOFTWARE\\Classes\\Interface"), KEY_ENUMERATE_SUB_KEYS);
@@ -861,7 +841,7 @@ void ComTreeView::ConstructInterfaces(CComPtr<IUnknown>& pUnk, const CTreeItem& 
         }
 
         CComPtr<IUnknown> pFoo;
-        hr = pUnk->QueryInterface(iid, reinterpret_cast<void**>(&pFoo));
+        hr = pUnknown->QueryInterface(iid, reinterpret_cast<void**>(&pFoo));
         if (FAILED(hr)) {
             continue;
         }

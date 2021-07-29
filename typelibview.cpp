@@ -17,7 +17,7 @@ LRESULT TypeLibView::OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHa
 
     if (!m_idlView.Create(*this, rcDefault, nullptr,
                           WS_CHILD | WS_VISIBLE | WS_VSCROLL | WS_HSCROLL |
-                          ES_AUTOHSCROLL | ES_AUTOVSCROLL | ES_MULTILINE 
+                          ES_AUTOHSCROLL | ES_AUTOVSCROLL | ES_MULTILINE
                           | ES_NOOLEDRAGDROP | ES_READONLY)) {
         return -1;
     }
@@ -33,18 +33,20 @@ LRESULT TypeLibView::OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHa
 
 LRESULT TypeLibView::OnTVSelChanged(LPNMHDR pnmhdr)
 {
-    if (pnmhdr != nullptr && pnmhdr->hwndFrom == m_tree) {
-        auto item = CTreeItem(reinterpret_cast<LPNMTREEVIEW>(pnmhdr)->itemNew.hItem, &m_tree);
-
-        CComPtr<ITypeLib> pTypeLib;
-        auto hr = m_tree.GetTypeLib(&pTypeLib);
-        if (FAILED(hr)) {
-            return 0;
-        }
-
-        m_idlView.SendMessage(WM_SELCHANGED, reinterpret_cast<WPARAM>(pTypeLib.p), item.GetData());
+    if (pnmhdr == nullptr || pnmhdr->hwndFrom != m_tree
+        || !m_idlView.IsWindow()) {
+        return 0;
     }
+
+    auto item = CTreeItem(reinterpret_cast<LPNMTREEVIEW>(pnmhdr)->itemNew.hItem, &m_tree);
+
+    CComPtr<ITypeLib> pTypeLib;
+    auto hr = m_tree.GetTypeLib(&pTypeLib);
+    if (FAILED(hr)) {
+        return 0;
+    }
+
+    m_idlView.SendMessage(WM_SELCHANGED, reinterpret_cast<WPARAM>(pTypeLib.p), item.GetData());
 
     return 0;
 }
-
