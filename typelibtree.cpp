@@ -583,40 +583,23 @@ BOOL TypeLibTree::GetTypeLibFromCLSID(REFGUID clsid, GUID& typeLibID, WORD& wMaj
         return FALSE;
     }
 
-    // Find latest available registered version
-    strPath.Format(_T("SOFTWARE\\Classes\\TypeLib\\%s"), strTypeLibID);
-    lResult = key.Open(HKEY_LOCAL_MACHINE, strPath, KEY_ENUMERATE_SUB_KEYS);
-    if (lResult != ERROR_SUCCESS) {
-        return FALSE;
-    }
+    wMaj = 1; // default version, if not specified
+    wMin = 0;
 
-    DWORD index = 0;
-    auto succeeded = FALSE;
+    strPath.Format(_T("SOFTWARE\\Classes\\CLSID\\%s\\Version"), strCLSID);
+    lResult = key.Open(HKEY_LOCAL_MACHINE, strPath, KEY_READ);
+    if (lResult == ERROR_SUCCESS) {
+        lResult = key.QueryStringValue(nullptr, value, &length);
+        if (lResult == ERROR_SUCCESS) {
+            std::vector<tstring> out;
+            split(out, value, boost::is_any_of(_T(".")));
 
-    for (;;) {
-        TCHAR szVersion[REG_BUFFER_SIZE]{};
-        length = REG_BUFFER_SIZE;
-
-        lResult = key.EnumKey(index++, szVersion, &length);
-        if (lResult != ERROR_SUCCESS) {
-            break;
-        }
-
-        CRegKey verKey;
-        lResult = verKey.Open(key, szVersion, KEY_READ);
-        if (lResult != ERROR_SUCCESS) {
-            continue;
-        }
-
-        std::vector<tstring> out;
-        split(out, szVersion, boost::is_any_of(_T(".")));
-
-        if (out.size() == 2) {
-            wMaj = std::max<WORD>(wMaj, _ttoi(out[0].c_str()));
-            wMin = _ttoi(out[1].c_str());
-            succeeded = TRUE;
+            if (out.size() == 2) {
+                wMaj = _ttoi(out[0].c_str());
+                wMin = _ttoi(out[1].c_str());
+            }
         }
     }
 
-    return succeeded;
+    return TRUE;
 }
