@@ -32,13 +32,14 @@ public:
 
 BEGIN_MSG_MAP(CMainFrame)
         MSG_WM_CREATE(OnCreate)
-        COMMAND_ID_HANDLER(ID_APP_EXIT, OnFileExit)
-        COMMAND_ID_HANDLER(ID_FILE_OPEN, OnFileOpen)
-        COMMAND_ID_HANDLER(ID_VIEW_STATUS_BAR, OnViewStatusBar)
-        COMMAND_ID_HANDLER(ID_APP_ABOUT, OnAppAbout)
-        COMMAND_ID_HANDLER(ID_RELEASE_OBJECT, OnReleaseObject)
-        COMMAND_ID_HANDLER(ID_COPY_GUID, OnCopyGUID)
-        COMMAND_ID_HANDLER(ID_REGEDIT_HERE, OnRegEditHere)
+        COMMAND_ID_HANDLER2(ID_APP_EXIT, OnFileExit)
+        COMMAND_ID_HANDLER2(ID_FILE_OPEN, OnFileOpen)
+        COMMAND_ID_HANDLER2(ID_FILE_TYPELIB, OnFileTypeLib)
+        COMMAND_ID_HANDLER2(ID_VIEW_STATUS_BAR, OnViewStatusBar)
+        COMMAND_ID_HANDLER2(ID_APP_ABOUT, OnAppAbout)
+        COMMAND_ID_HANDLER2(ID_RELEASE_OBJECT, OnReleaseObject)
+        COMMAND_ID_HANDLER2(ID_COPY_GUID, OnCopyGUID)
+        COMMAND_ID_HANDLER2(ID_REGEDIT_HERE, OnRegEditHere)
         REFLECT_NOTIFY_CODE(TVN_ITEMEXPANDING)
         REFLECT_NOTIFY_CODE(TVN_DELETEITEM)
         NOTIFY_CODE_HANDLER_EX(TVN_SELCHANGED, OnTVSelChanged)
@@ -49,19 +50,21 @@ BEGIN_MSG_MAP(CMainFrame)
     LRESULT OnTVSelChanged(LPNMHDR pnmhdr);
     LRESULT OnRClick(LPNMHDR pnmh);
     LRESULT OnCreate(LPCREATESTRUCT pcs);
-    LRESULT OnFileExit(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-    LRESULT OnFileOpen(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-    LRESULT OnViewStatusBar(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-    LRESULT OnAppAbout(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-    LRESULT OnReleaseObject(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-    LRESULT OnCopyGUID(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-    LRESULT OnRegEditHere(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+    LRESULT OnFileExit();
+    LRESULT OnFileOpen();
+    LRESULT OnFileTypeLib();
+    LRESULT OnViewStatusBar();
+    LRESULT OnAppAbout();
+    LRESULT OnReleaseObject();
+    LRESULT OnCopyGUID();
+    LRESULT OnRegEditHere();
 
 private:
     BOOL IsSelectedInstance() const;
     BOOL IsGUIDSelected() const;
 
     void AddFileMoniker(LPCTSTR pFilename, LPUNKNOWN pUnk, REFCLSID clsid);
+    void AddFileTypeLib(LPCTSTR pFilename, LPTYPELIB pTypeLib);
 
     ObjectPane m_objectPane;
     ComTreeView m_treeView;

@@ -15,8 +15,7 @@ struct ObjectData
 {
     ObjectData();
     ObjectData(ObjectType t, const GUID& uuid, WORD maj = 0, WORD min = 0);
-    ObjectData(ObjectType t, LPUNKNOWN pUnknown, const GUID& uuid,
-               WORD maj = 0, WORD min = 0);
+    ObjectData(ObjectType t, LPUNKNOWN pUnknown, const GUID& uuid, WORD maj = 0, WORD min = 0);
     ObjectData(ObjectType t, LPCTSTR pGUID, WORD maj = 0, WORD min = 0);
     ~ObjectData();
 
@@ -29,10 +28,10 @@ struct ObjectData
     void SafeRelease();
 
     ObjectType type; // type of object
-    CComPtr<IUnknown> pUnknown; // object instance
-    GUID guid; // UUID of object or GUID_NULL for none
-    WORD wMaj; // major version of typelib
-    WORD wMin; // minor version of typelib
+    CComPtr<IUnknown> pUnknown; // object / typelib instance
+    GUID guid = GUID_NULL; // UUID of object
+    WORD wMaj = 0; // major version of typelib
+    WORD wMin = 0; // minor version of typelib
 };
 
 using LPOBJECTDATA = ObjectData*;

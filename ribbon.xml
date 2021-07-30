@@ -7,6 +7,13 @@
       <Command.TooltipTitle>Bind to File(Ctrl+O)</Command.TooltipTitle>
       <Command.TooltipDescription>Bind to a File</Command.TooltipDescription>
     </Command>
+
+    <Command Name="FILE_TYPELIB" Symbol="ID_FILE_TYPELIB" Id="32782" Keytip="T">
+      <Command.LabelTitle>Open Type Library...</Command.LabelTitle>
+      <Command.TooltipTitle>Open Type Library(Ctrl+O)</Command.TooltipTitle>
+      <Command.TooltipDescription>Open Type Library</Command.TooltipDescription>
+    </Command>
+
     <Command Name="VIEW_STATUS_BAR" Symbol="ID_VIEW_STATUS_BAR" Id="0xE801"/>
     <Command Name="APP_ABOUT" Symbol="ID_APP_ABOUT" Id="0xE140"/>
     <Command Name="APP_EXIT" Symbol="ID_APP_EXIT" Id="0xE141"/>
@@ -35,6 +42,7 @@
           </MenuGroup>
           <MenuGroup>
             <Button CommandName="FILE_OPEN"/>
+            <Button CommandName="FILE_TYPELIB"/>
           </MenuGroup>
           <MenuGroup>
             <Button CommandName="APP_ABOUT"/>
@@ -71,10 +79,14 @@
             <SizeDefinition>
               <ControlNameMap>
                 <ControlNameDefinition Name="FILE_OPEN"/>
+                <ControlNameDefinition Name="FILE_TYPELIB"/>
                 <ControlNameDefinition Name="RELEASE_OBJECT"/>
               </ControlNameMap>
               <GroupSizeDefinition Size="Large">
                 <ControlSizeDefinition ControlName="FILE_OPEN"
+                                       ImageSize="Large"
+                                       IsLabelVisible="true"/>
+                <ControlSizeDefinition ControlName="FILE_TYPELIB"
                                        ImageSize="Large"
                                        IsLabelVisible="true"/>
                 <ControlSizeDefinition ControlName="RELEASE_OBJECT"
@@ -85,6 +97,9 @@
                 <ControlSizeDefinition ControlName="FILE_OPEN"
                                        ImageSize="Large"
                                        IsLabelVisible="true"/>
+                <ControlSizeDefinition ControlName="FILE_TYPELIB"
+                                       ImageSize="Large"
+                                       IsLabelVisible="true"/>
                 <ControlSizeDefinition ControlName="RELEASE_OBJECT"
                                        ImageSize="Large"
                                        IsLabelVisible="true"/>
@@ -93,12 +108,16 @@
                 <ControlSizeDefinition ControlName="FILE_OPEN"
                                        ImageSize="Small"
                                        IsLabelVisible="true"/>
+                <ControlSizeDefinition ControlName="FILE_TYPELIB"
+                                       ImageSize="Small"
+                                       IsLabelVisible="true"/>
                 <ControlSizeDefinition ControlName="RELEASE_OBJECT"
                                        ImageSize="Small"
                                        IsLabelVisible="true"/>
               </GroupSizeDefinition>
             </SizeDefinition>
             <Button CommandName="FILE_OPEN"/>
+            <Button CommandName="FILE_TYPELIB"/>
             <Button CommandName="RELEASE_OBJECT"/>
           </Group>
 

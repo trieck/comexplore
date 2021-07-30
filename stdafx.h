@@ -68,6 +68,12 @@ using tstring = std::string;
 			return TRUE; \
 	}
 
+#define COMMAND_ID_HANDLER2(id, func) \
+	if(uMsg == WM_COMMAND && (id) == LOWORD(wParam)) \
+	{ \
+		lResult = func(); \
+	}
+
 constexpr auto REG_BUFFER_SIZE = 1024;
 
 struct equal_to_string

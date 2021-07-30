@@ -17,7 +17,6 @@ BOOL CMainFrame::OnIdle()
     UIEnable(ID_COPY_GUID, IsGUIDSelected());
     UIEnable(ID_REGEDIT_HERE, IsGUIDSelected());
 
-    UIUpdateToolBar();
     UIUpdateMenuBar();
 
     return FALSE;
@@ -81,7 +80,6 @@ LRESULT CMainFrame::OnCreate(LPCREATESTRUCT pcs)
     bool bRibbonUI = RunTimeHelper::IsRibbonUIAvailable();
     if (bRibbonUI) {
         UIAddMenu(m_cmdBar.GetMenu(), true);
-
         UIRemoveUpdateElement(ID_FILE_MRU_FIRST);
     }
 
@@ -136,13 +134,13 @@ LRESULT CMainFrame::OnCreate(LPCREATESTRUCT pcs)
     return 1;
 }
 
-LRESULT CMainFrame::OnFileExit(WORD, WORD, HWND, BOOL&)
+LRESULT CMainFrame::OnFileExit()
 {
     PostMessage(WM_CLOSE);
     return 0;
 }
 
-LRESULT CMainFrame::OnFileOpen(WORD, WORD, HWND, BOOL&)
+LRESULT CMainFrame::OnFileOpen()
 {
     CFileDialog dlg(TRUE, nullptr, _T(""), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, _T("All Files (*.*)\0*.*\0"));
     if (dlg.DoModal() != IDOK) {
@@ -176,7 +174,28 @@ LRESULT CMainFrame::OnFileOpen(WORD, WORD, HWND, BOOL&)
     return 0;
 }
 
-LRESULT CMainFrame::OnViewStatusBar(WORD, WORD, HWND, BOOL&)
+LRESULT CMainFrame::OnFileTypeLib()
+{
+    CFileDialog dlg(TRUE, nullptr, _T(""), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
+                    _T("TypeLib Files (*.tlb;*.olb;*.dll;*.ocx;*.exe)\0*.tlb;*.olb;*.dll;*.ocx;*.exe\0")
+                    _T("All Files (*.*)\0*.*\0"));
+    if (dlg.DoModal() != IDOK) {
+        return 0;
+    }
+
+    CComPtr<ITypeLib> pTypeLib;
+    auto hr = LoadTypeLib(dlg.m_szFileName, &pTypeLib);
+    if (FAILED(hr)) {
+        CoMessageBox(*this, hr, nullptr, IDR_MAINFRAME);
+        return 0;
+    }
+
+    AddFileTypeLib(dlg.m_szFileName, pTypeLib);
+    
+    return 0;
+}
+
+LRESULT CMainFrame::OnViewStatusBar()
 {
     BOOL bVisible = !::IsWindowVisible(m_hWndStatusBar);
     ::ShowWindow(m_hWndStatusBar, bVisible ? SW_SHOWNOACTIVATE : SW_HIDE);
@@ -185,26 +204,26 @@ LRESULT CMainFrame::OnViewStatusBar(WORD, WORD, HWND, BOOL&)
     return 0;
 }
 
-LRESULT CMainFrame::OnAppAbout(WORD, WORD, HWND, BOOL&)
+LRESULT CMainFrame::OnAppAbout()
 {
     CAboutDlg dlg;
     dlg.DoModal();
     return 0;
 }
 
-LRESULT CMainFrame::OnReleaseObject(WORD, WORD, HWND, BOOL&)
+LRESULT CMainFrame::OnReleaseObject()
 {
     m_treeView.ReleaseSelectedObject();
     return 0;
 }
 
-LRESULT CMainFrame::OnCopyGUID(WORD, WORD, HWND, BOOL&)
+LRESULT CMainFrame::OnCopyGUID()
 {
     m_treeView.CopyGUIDToClipboard();
     return 0;
 }
 
-LRESULT CMainFrame::OnRegEditHere(WORD, WORD, HWND, BOOL&)
+LRESULT CMainFrame::OnRegEditHere()
 {
     auto item = m_treeView.GetSelectedItem();
     if (item.IsNull()) {
@@ -287,4 +306,13 @@ void CMainFrame::AddFileMoniker(LPCTSTR pFilename, LPUNKNOWN pUnk, REFCLSID clsi
     ATLASSERT(m_treeView);
 
     m_treeView.AddFileMoniker(pFilename, pUnk, clsid);
+}
+
+void CMainFrame::AddFileTypeLib(LPCTSTR pFilename, LPTYPELIB pTypeLib)
+{
+    ATLASSERT(pFilename);
+    ATLASSERT(pTypeLib);
+    ATLASSERT(m_treeView);
+
+    m_treeView.AddFileTypeLib(pFilename, pTypeLib);
 }

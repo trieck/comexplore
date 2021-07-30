@@ -20,6 +20,8 @@ BEGIN_MSG_MAP_EX(ComTreeView)
     LRESULT OnDelete(LPNMHDR pnmh);
 
     void AddFileMoniker(LPCTSTR pFilename, LPUNKNOWN pUnknown, REFCLSID clsid);
+    void AddFileTypeLib(LPCTSTR pFilename, LPTYPELIB pTypeLib);
+
     BOOL IsSelectedInstance() const;
     BOOL IsGUIDSelected() const;
 
@@ -46,7 +48,7 @@ private:
     void ConstructTree();
 
     CImageList m_ImageList;
-    CTreeItem m_objectInstances;
+    CTreeItem m_objectInstances, m_fileTypeLibs;
 };
 
 /////////////////////////////////////////////////////////////////////////////

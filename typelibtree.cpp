@@ -75,6 +75,8 @@ BOOL TypeLibTree::BuildView(LPOBJECTDATA pdata)
         GetTypeLibFromCLSID(pdata->guid, typeLibID, wMaj, wMin);
     } else if (pdata->type == ObjectType::IID) {
         GetTypeLibFromIID(pdata->guid, typeLibID, wMaj, wMin);
+    } else if (pdata->type == ObjectType::TYPELIB && pdata->pUnknown) {
+        pdata->pUnknown->QueryInterface(IID_ITypeLib, IID_PPV_ARGS_Helper(&m_pTypeLib));
     } else if (pdata->type == ObjectType::TYPELIB) {
         typeLibID = pdata->guid;
         wMaj = pdata->wMaj;

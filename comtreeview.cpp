@@ -2,6 +2,7 @@
 #include "comtreeview.h"
 #include "resource.h"
 #include "objdata.h"
+#include "autotypeattr.h"
 
 #include <boost/algorithm/string.hpp>
 
@@ -167,6 +168,51 @@ void ComTreeView::AddFileMoniker(LPCTSTR pFilename, LPUNKNOWN pUnknown, REFCLSID
     SelectItem(item);
 }
 
+void ComTreeView::AddFileTypeLib(LPCTSTR pFilename, LPTYPELIB pTypeLib)
+{
+    ATLASSERT(pFilename);
+    ATLASSERT(pTypeLib);
+
+    CComBSTR bstrName;
+    pTypeLib->GetDocumentation(-1, &bstrName, nullptr, nullptr, nullptr);
+
+    AutoTypeLibAttr attr(pTypeLib);
+    attr.Get();
+
+    if (m_fileTypeLibs.IsNull()) {
+        TV_INSERTSTRUCT tvis{};
+        tvis.hParent = TVI_ROOT;
+        tvis.hInsertAfter = TVI_FIRST;
+        tvis.itemex.mask = TVIF_CHILDREN | TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_EXPANDEDIMAGE | TVIF_TEXT |
+            TVIF_PARAM;
+        tvis.itemex.cChildren = 1;
+        tvis.itemex.pszText = _T("Type Library Files");
+        tvis.itemex.iImage = 6;
+        tvis.itemex.iSelectedImage = 6;
+        tvis.itemex.iExpandedImage = 6;
+        tvis.itemex.lParam = reinterpret_cast<LPARAM>(new ObjectData(ObjectType::TYPELIB, GUID_NULL));
+
+        m_fileTypeLibs = InsertItem(&tvis);
+    }
+
+    TV_INSERTSTRUCT tvis{};
+    tvis.hParent = m_fileTypeLibs;
+    tvis.hInsertAfter = TVI_FIRST;
+    tvis.itemex.mask = TVIF_CHILDREN | TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_TEXT | TVIF_PARAM;
+    tvis.itemex.cChildren = 0;
+    tvis.itemex.pszText = const_cast<LPTSTR>(static_cast<LPCTSTR>(bstrName));
+    tvis.itemex.iImage = 7;
+    tvis.itemex.iSelectedImage = 7;
+
+    auto pdata = std::make_unique<ObjectData>(ObjectType::TYPELIB, pTypeLib,
+                                              attr->guid, attr->wMajorVerNum,
+                                              attr->wMinorVerNum);
+    tvis.itemex.lParam = reinterpret_cast<LPARAM>(pdata.release());
+
+    auto item = InsertItem(&tvis);
+    SelectItem(item);
+}
+
 BOOL ComTreeView::IsSelectedInstance() const
 {
     auto item = GetSelectedItem();
@@ -179,7 +225,7 @@ BOOL ComTreeView::IsSelectedInstance() const
         return FALSE;
     }
 
-    return data->pUnknown != nullptr;
+    return data->type == ObjectType::CLSID && data->pUnknown != nullptr;
 }
 
 BOOL ComTreeView::IsGUIDSelected() const

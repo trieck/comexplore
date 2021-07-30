@@ -54,6 +54,7 @@ END
 ID_APP_ABOUT            BITMAP                  "res\\about.bmp"
 ID_APP_EXIT             BITMAP                  "res\\exit.bmp"
 ID_FILE_OPEN            BITMAP                  "res\\open.bmp"
+ID_FILE_TYPELIB         BITMAP                  "res\\automation.bmp"
 ID_RELEASE_OBJECT       BITMAP                  "res\\release.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
@@ -165,6 +166,7 @@ END
 IDR_MAINFRAME ACCELERATORS
 BEGIN
     "O",            ID_FILE_OPEN,           VIRTKEY, CONTROL, NOINVERT
+    "T",            ID_FILE_TYPELIB,        VIRTKEY, CONTROL, NOINVERT
     "S",            ID_FILE_SAVE,           VIRTKEY, CONTROL, NOINVERT
     "R",            ID_RELEASE_OBJECT,      VIRTKEY, CONTROL, NOINVERT
 END
@@ -198,7 +200,7 @@ BEGIN
             VALUE "InternalName", "comexplore"
             VALUE "LegalCopyright", "Copyright© 2003-2021 Rieck Enterprises"
             VALUE "OriginalFilename", "comexplore.exe"
-            VALUE "ProductName", "comexplore Module"
+            VALUE "ProductName", "COM Explorer"
             VALUE "ProductVersion", "1, 0, 0, 1"
         END
     END
@@ -233,6 +235,7 @@ END
 STRINGTABLE
 BEGIN
     ID_FILE_OPEN            "Bind to File\nBind"
+    ID_FILE_TYPELIB         "Open Type Library\nOpen Type Library"
 END
 
 STRINGTABLE
