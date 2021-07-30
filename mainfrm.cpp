@@ -15,6 +15,7 @@ BOOL CMainFrame::OnIdle()
 {
     UIEnable(ID_RELEASE_OBJECT, IsSelectedInstance());
     UIEnable(ID_COPY_GUID, IsGUIDSelected());
+    UIEnable(ID_REGEDIT_HERE, IsGUIDSelected());
 
     UIUpdateToolBar();
     UIUpdateMenuBar();
@@ -37,6 +38,7 @@ BOOL CMainFrame::DefCreate()
 LRESULT CMainFrame::OnTVSelChanged(LPNMHDR pnmhdr)
 {
     if (pnmhdr != nullptr && pnmhdr->hwndFrom == m_treeView) {
+        CWaitCursor cursor;
         auto item = CTreeItem(reinterpret_cast<LPNMTREEVIEW>(pnmhdr)->itemNew.hItem, &m_treeView);
         m_detailView.SendMessage(WM_SELCHANGED, 0, item.GetData());
         m_treeView.SetFocus();
@@ -199,6 +201,72 @@ LRESULT CMainFrame::OnReleaseObject(WORD, WORD, HWND, BOOL&)
 LRESULT CMainFrame::OnCopyGUID(WORD, WORD, HWND, BOOL&)
 {
     m_treeView.CopyGUIDToClipboard();
+    return 0;
+}
+
+LRESULT CMainFrame::OnRegEditHere(WORD, WORD, HWND, BOOL&)
+{
+    auto item = m_treeView.GetSelectedItem();
+    if (item.IsNull()) {
+        return 0;
+    }
+
+    auto data = reinterpret_cast<LPOBJECTDATA>(item.GetData());
+    if (data == nullptr || data->guid == GUID_NULL) {
+        return 0;
+    }
+
+    CString strGUID;
+    StringFromGUID2(data->guid, strGUID.GetBuffer(40), 40);
+    strGUID.ReleaseBuffer();
+
+    CRegKey key;
+    auto lResult = key.Open(
+        HKEY_CURRENT_USER, _T("Software\\Microsoft\\Windows\\CurrentVersion\\Applets\\Regedit"),
+        KEY_SET_VALUE);
+    if (lResult != ERROR_SUCCESS) {
+        return 0; // no access
+    }
+
+    CString strValue;
+    switch (data->type) {
+    case ObjectType::APPID:
+        strValue.Format(_T("HKLM\\Software\\Classes\\AppID\\%s"), strGUID);
+        break;
+    case ObjectType::CATID:
+        strValue.Format(_T("HKCR\\Component Categories\\%s"), strGUID);
+        break;
+    case ObjectType::CLSID:
+        strValue.Format(_T("HKLM\\Software\\Classes\\CLSID\\%s"), strGUID);
+        break;
+    case ObjectType::IID:
+        strValue.Format(_T("HKLM\\Software\\Classes\\Interface\\%s"), strGUID);
+        break;
+    case ObjectType::TYPELIB:
+        strValue.Format(_T("HKLM\\Software\\Classes\\TypeLib\\%s"), strGUID);
+        break;
+    default:
+        break;
+    }
+
+    if (!strValue.IsEmpty()) {
+        lResult = key.SetStringValue(_T("LastKey"), strValue);
+        if (lResult != ERROR_SUCCESS) {
+            return 0;
+        }
+    }
+
+    auto hWnd = FindWindow(_T("RegEdit_RegEdit"), nullptr);
+    if (hWnd != nullptr) {
+        DWORD pid = 0;
+        GetWindowThreadProcessId(hWnd, &pid);
+        auto hProcess = OpenProcess(PROCESS_TERMINATE, false, pid);
+        TerminateProcess(hProcess, 1);
+        CloseHandle(hProcess);
+    }
+
+    ShellExecute(*this, _T("open"), _T("regedit.exe"), nullptr, nullptr, SW_SHOWNORMAL);
+
     return 0;
 }
 

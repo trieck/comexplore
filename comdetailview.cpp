@@ -45,8 +45,7 @@ LRESULT ComDetailView::OnSelChanged(UINT, WPARAM, LPARAM lParam, BOOL& /*bHandle
     if (pdata == nullptr || pdata->guid == GUID_NULL) {
         return 0;
     }
-
-
+    
     if (m_regView.Create(*this, rcDefault, nullptr, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
                          WS_EX_CLIENTEDGE, 0U, pdata)) {
         AddPage(m_regView, _T("Registry"), 0, pdata);

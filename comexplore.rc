@@ -85,8 +85,9 @@ IDR_CONTEXT_MENU MENU
 BEGIN
     POPUP "CONTEXT_MENU"
     BEGIN
+        MENUITEM "Copy GUID to Clipboard",      ID_COPY_GUID
         MENUITEM "Release Instance",            ID_RELEASE_OBJECT
-        MENUITEM "Copy GUID to Clipboard",     ID_COPY_GUID
+        MENUITEM "RegEdit Here...",             ID_REGEDIT_HERE        
     END
 END
 
@@ -120,7 +121,6 @@ IDI_TYPELIB             ICON                    "res\\typelib.ico"
 IDI_TYPELIB_GROUP       ICON                    "res\\typelib_grp.ico"
 IDI_UNION               ICON                    "res\\union.ico"
 IDR_MAINFRAME           ICON                    "res\\comexplore.ico"
-
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -258,8 +258,9 @@ END
 
 STRINGTABLE
 BEGIN
-    ID_RELEASE_OBJECT   "Release Object Instance\nRelease Instance"
     ID_COPY_GUID        "Copy GUID to Clipboard\nCopy GUID"
+    ID_RELEASE_OBJECT   "Release Object Instance\nRelease Instance"
+    ID_REGEDIT_HERE     "Open Registry Editor Here\nRegEdit Here"
 END
 
 #endif    // English (United States) resources

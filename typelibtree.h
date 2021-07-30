@@ -22,9 +22,13 @@ BEGIN_MSG_MAP_EX(TypeLibTree)
     LRESULT OnItemExpanding(LPNMHDR pnmh);
     LRESULT OnDelete(LPNMHDR pnmh);
     HRESULT GetTypeLib(ITypeLib** pTypeLib);
+    BOOL SelectType(REFGUID guid);
+
 private:
     BOOL LoadTypeLib(LPUNKNOWN pUnknown);
+    BOOL GetTypeLibFromKey(CRegKey& key, GUID& typeLibID, WORD& wMaj, WORD& wMin);
     BOOL GetTypeLibFromCLSID(REFGUID clsid, GUID& typeLibID, WORD& wMaj, WORD& wMin);
+    BOOL GetTypeLibFromIID(REFIID iid, GUID& typeLibID, WORD& wMaj, WORD& wMin);
     
     BOOL BuildView();
     BOOL BuildView(LPOBJECTDATA pdata);
@@ -41,7 +45,9 @@ private:
     void AddVars(const CTreeItem& item, LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr);
     void AddAliases(const CTreeItem& item, LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr);
     void ConstructChildren(const CTreeItem& item);
-
+    BOOL SelectType(const CTreeItem& item, REFGUID guid);
+    
     CImageList m_ImageList;
     CComPtr<ITypeLib> m_pTypeLib;
 };
+

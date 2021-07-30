@@ -58,19 +58,23 @@ BOOL TypeLibTree::BuildView(LPOBJECTDATA pdata)
         return FALSE;
     }
 
-    if (pdata->type != ObjectType::CLSID && pdata->type != ObjectType::TYPELIB) {
+    if (pdata->type != ObjectType::CLSID &&
+        pdata->type != ObjectType::IID &&
+        pdata->type != ObjectType::TYPELIB) {
         return FALSE;
-    }
-
-    if (pdata->type == ObjectType::CLSID && pdata->pUnknown) {
-        LoadTypeLib(pdata->pUnknown);
     }
 
     GUID typeLibID = GUID_NULL;
     WORD wMaj = 0, wMin = 0;
 
+    if (pdata->type == ObjectType::CLSID && pdata->pUnknown) {
+        LoadTypeLib(pdata->pUnknown);
+    }
+
     if (!m_pTypeLib && pdata->type == ObjectType::CLSID) {
         GetTypeLibFromCLSID(pdata->guid, typeLibID, wMaj, wMin);
+    } else if (pdata->type == ObjectType::IID) {
+        GetTypeLibFromIID(pdata->guid, typeLibID, wMaj, wMin);
     } else if (pdata->type == ObjectType::TYPELIB) {
         typeLibID = pdata->guid;
         wMaj = pdata->wMaj;
@@ -93,11 +97,15 @@ BOOL TypeLibTree::BuildView(LPOBJECTDATA pdata)
         }
     }
 
-    if (m_pTypeLib != nullptr) {
-        return BuildView();
+    if (m_pTypeLib == nullptr) {
+        return FALSE;
     }
 
-    return FALSE;
+    if (!BuildView()) {
+        return FALSE;
+    }
+
+    return TRUE;
 }
 
 BOOL TypeLibTree::BuildView()
@@ -112,7 +120,7 @@ BOOL TypeLibTree::BuildView()
 
     CString strItem;
     if (bstrDoc.Length() != 0) {
-        strItem.Format(_T("%s (%s)"), static_cast<LPCTSTR>(bstrName), static_cast<LPCTSTR>(bstrDoc));
+        strItem.Format(_T("%s (%s)"), bstrName, bstrDoc);
     } else {
         strItem = bstrName;
     }
@@ -429,6 +437,52 @@ void TypeLibTree::ConstructChildren(const CTreeItem& item)
     AddAliases(item, pTypeInfo, static_cast<LPTYPEATTR>(attr));
 }
 
+BOOL TypeLibTree::SelectType(const GUID& guid)
+{
+    ATLASSERT(IsWindow());
+
+    const auto& root = GetRootItem();
+    if (!root.IsNull()) {
+        return SelectType(root, guid);
+    }
+
+    return FALSE;
+}
+
+BOOL TypeLibTree::SelectType(const CTreeItem& item, const GUID& guid)
+{
+    auto pNode = reinterpret_cast<LPTYPEINFONODE>(item.GetData());
+    if (pNode != nullptr) {
+        AutoTypeAttr attr(pNode->pTypeInfo);
+        auto hr = attr.Get();
+        if (SUCCEEDED(hr) && guid == attr->guid) {
+            Expand(item.m_hTreeItem);
+            EnsureVisible(item.m_hTreeItem);
+            SelectItem(item.m_hTreeItem);
+            return TRUE;
+        }
+    }
+
+    auto child = item.GetChild();
+    if (child.IsNull()) {
+        return FALSE;
+    }
+
+    if (SelectType(child, guid)) {
+        return TRUE;
+    }
+
+    auto sibling = GetNextSiblingItem(child);
+    while (!sibling.IsNull()) {
+        if (SelectType(sibling, guid)) {
+            return TRUE;
+        }
+        sibling = GetNextSiblingItem(sibling);
+    }
+
+    return FALSE;
+}
+
 HTREEITEM TypeLibTree::InsertItem(LPCTSTR lpszName, int nImage, int nChildren, HTREEITEM hParent, TypeInfoType type,
                                   LPTYPEINFO pTypeInfo,
                                   MEMBERID memberID)
@@ -550,25 +604,18 @@ BOOL TypeLibTree::LoadTypeLib(LPUNKNOWN pUnknown)
     return SUCCEEDED(hr);
 }
 
-BOOL TypeLibTree::GetTypeLibFromCLSID(REFGUID clsid, GUID& typeLibID, WORD& wMaj, WORD& wMin)
+BOOL TypeLibTree::GetTypeLibFromKey(CRegKey& key, GUID& typeLibID, WORD& wMaj, WORD& wMin)
 {
-    CString strCLSID;
-    StringFromGUID2(clsid, strCLSID.GetBuffer(40), 40);
-    strCLSID.ReleaseBuffer();
+    TCHAR value[REG_BUFFER_SIZE];
+    DWORD length = REG_BUFFER_SIZE;
 
-    CString strPath;
-    strPath.Format(_T("SOFTWARE\\Classes\\CLSID\\%s\\TypeLib"), strCLSID);
-
-    CRegKey key;
-    auto lResult = key.Open(HKEY_LOCAL_MACHINE, strPath, KEY_READ);
+    CRegKey subkey;
+    auto lResult = subkey.Open(key, _T("TypeLib"), KEY_READ);
     if (lResult != ERROR_SUCCESS) {
         return FALSE;
     }
 
-    TCHAR value[REG_BUFFER_SIZE];
-    DWORD length = REG_BUFFER_SIZE;
-
-    lResult = key.QueryStringValue(nullptr, value, &length);
+    lResult = subkey.QueryStringValue(nullptr, value, &length);
     if (lResult != ERROR_SUCCESS) {
         return FALSE;
     }
@@ -586,10 +633,9 @@ BOOL TypeLibTree::GetTypeLibFromCLSID(REFGUID clsid, GUID& typeLibID, WORD& wMaj
     wMaj = 1; // default version, if not specified
     wMin = 0;
 
-    strPath.Format(_T("SOFTWARE\\Classes\\CLSID\\%s\\Version"), strCLSID);
-    lResult = key.Open(HKEY_LOCAL_MACHINE, strPath, KEY_READ);
+    lResult = subkey.Open(key, _T("Version"), KEY_READ);
     if (lResult == ERROR_SUCCESS) {
-        lResult = key.QueryStringValue(nullptr, value, &length);
+        lResult = subkey.QueryStringValue(nullptr, value, &length);
         if (lResult == ERROR_SUCCESS) {
             std::vector<tstring> out;
             split(out, value, boost::is_any_of(_T(".")));
@@ -602,4 +648,40 @@ BOOL TypeLibTree::GetTypeLibFromCLSID(REFGUID clsid, GUID& typeLibID, WORD& wMaj
     }
 
     return TRUE;
+}
+
+BOOL TypeLibTree::GetTypeLibFromIID(const IID& iid, GUID& typeLibID, WORD& wMaj, WORD& wMin)
+{
+    CString strIID;
+    StringFromGUID2(iid, strIID.GetBuffer(40), 40);
+    strIID.ReleaseBuffer();
+
+    CString strPath;
+    strPath.Format(_T("SOFTWARE\\Classes\\Interface\\%s"), strIID);
+
+    CRegKey key;
+    auto lResult = key.Open(HKEY_LOCAL_MACHINE, strPath, KEY_READ);
+    if (lResult != ERROR_SUCCESS) {
+        return FALSE;
+    }
+
+    return GetTypeLibFromKey(key, typeLibID, wMaj, wMin);
+}
+
+BOOL TypeLibTree::GetTypeLibFromCLSID(REFGUID clsid, GUID& typeLibID, WORD& wMaj, WORD& wMin)
+{
+    CString strCLSID;
+    StringFromGUID2(clsid, strCLSID.GetBuffer(40), 40);
+    strCLSID.ReleaseBuffer();
+
+    CString strPath;
+    strPath.Format(_T("SOFTWARE\\Classes\\CLSID\\%s"), strCLSID);
+
+    CRegKey key;
+    auto lResult = key.Open(HKEY_LOCAL_MACHINE, strPath, KEY_READ);
+    if (lResult != ERROR_SUCCESS) {
+        return FALSE;
+    }
+
+    return GetTypeLibFromKey(key, typeLibID, wMaj, wMin);
 }

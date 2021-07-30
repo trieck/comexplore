@@ -28,6 +28,8 @@ LRESULT TypeLibView::OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHa
     SetSplitterPane(SPLIT_PANE_RIGHT, m_idlView);
     SetSplitterPosPct(50);
 
+    SelectItem(pcs->lpCreateParams);
+
     return bResult;
 }
 
@@ -49,4 +51,15 @@ LRESULT TypeLibView::OnTVSelChanged(LPNMHDR pnmhdr)
     m_idlView.SendMessage(WM_SELCHANGED, reinterpret_cast<WPARAM>(pTypeLib.p), item.GetData());
 
     return 0;
+}
+
+void TypeLibView::SelectItem(LPVOID pv)
+{
+    ATLASSERT(m_tree.IsWindow());
+    ATLASSERT(m_idlView.IsWindow());
+
+    auto pdata = static_cast<LPOBJECTDATA>(pv);
+    if (pdata != nullptr && pdata->guid != GUID_NULL) {
+        m_tree.SelectType(pdata->guid);
+    }
 }

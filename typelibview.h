@@ -16,6 +16,8 @@ BEGIN_MSG_MAP_EX(TypeLibView)
     LRESULT OnTVSelChanged(LPNMHDR pnmhdr);
 
 private:
+    void SelectItem(LPVOID pv);
+
     TypeLibTree m_tree;
     IDLView m_idlView;
 };

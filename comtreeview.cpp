@@ -237,7 +237,7 @@ void ComTreeView::CopyGUIDToClipboard()
 
     auto hGlobal = GlobalAlloc(GMEM_MOVEABLE, (strGUID.GetLength() + 1) * sizeof(TCHAR));
     if (hGlobal == nullptr) {
-        return;        
+        return;
     }
 
     CT2W wszGUID(strGUID);
@@ -254,8 +254,8 @@ void ComTreeView::CopyGUIDToClipboard()
     EmptyClipboard();
 
     SetClipboardData(CF_UNICODETEXT, hGlobal);
-    
-    CloseClipboard();    
+
+    CloseClipboard();
 }
 
 void ComTreeView::ExpandClasses(const CTreeItem& item)
@@ -294,8 +294,9 @@ void ComTreeView::ExpandInterfaces(const CTreeItem& item)
     if (!child.IsNull()) {
         auto sibling = GetNextSiblingItem(child);
         while (!sibling.IsNull()) {
-            DeleteItem(sibling);
-            sibling = GetNextSiblingItem(child);
+            HTREEITEM hItem = sibling;
+            sibling = GetNextSiblingItem(sibling);
+            DeleteItem(hItem);
         }
         DeleteItem(child);
     }
@@ -713,7 +714,7 @@ void ComTreeView::ConstructInterfaces(const CTreeItem& item)
 
         SetItemState(item.m_hTreeItem, TVIS_BOLD, TVIS_BOLD);
 
-        SelectItem(nullptr);    // re-select a live node, if needed
+        SelectItem(nullptr); // re-select a live node, if needed
         SelectItem(item.m_hTreeItem);
     }
 

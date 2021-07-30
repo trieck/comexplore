@@ -27,6 +27,7 @@ public:
         UPDATE_ELEMENT(ID_VIEW_STATUS_BAR, UPDUI_MENUPOPUP)
         UPDATE_ELEMENT(ID_RELEASE_OBJECT, UPDUI_MENUPOPUP)
         UPDATE_ELEMENT(ID_COPY_GUID, UPDUI_MENUPOPUP)
+        UPDATE_ELEMENT(ID_REGEDIT_HERE, UPDUI_MENUPOPUP)
     END_UPDATE_UI_MAP()
 
 BEGIN_MSG_MAP(CMainFrame)
@@ -37,6 +38,7 @@ BEGIN_MSG_MAP(CMainFrame)
         COMMAND_ID_HANDLER(ID_APP_ABOUT, OnAppAbout)
         COMMAND_ID_HANDLER(ID_RELEASE_OBJECT, OnReleaseObject)
         COMMAND_ID_HANDLER(ID_COPY_GUID, OnCopyGUID)
+        COMMAND_ID_HANDLER(ID_REGEDIT_HERE, OnRegEditHere)
         REFLECT_NOTIFY_CODE(TVN_ITEMEXPANDING)
         REFLECT_NOTIFY_CODE(TVN_DELETEITEM)
         NOTIFY_CODE_HANDLER_EX(TVN_SELCHANGED, OnTVSelChanged)
@@ -53,6 +55,7 @@ BEGIN_MSG_MAP(CMainFrame)
     LRESULT OnAppAbout(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
     LRESULT OnReleaseObject(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
     LRESULT OnCopyGUID(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+    LRESULT OnRegEditHere(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 
 private:
     BOOL IsSelectedInstance() const;
