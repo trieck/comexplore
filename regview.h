@@ -12,20 +12,20 @@ BEGIN_MSG_MAP_EX(RegistryView)
     RegistryView();
     LRESULT OnCreate(LPCREATESTRUCT pcs);
 private:
-    void BuildView(LPOBJECTDATA pdata);
+    BOOL BuildView(LPOBJECTDATA pdata);
 
     CTreeItem InsertValue(HTREEITEM hParentItem, LPCTSTR keyName, LPCTSTR value, LPCTSTR data);
     CTreeItem InsertValue(HTREEITEM hParentItem, LPCTSTR keyName, LPCTSTR value, DWORD dwData);
     CTreeItem InsertValues(HKEY hKey, HTREEITEM hParentItem, LPCTSTR keyName);
     void InsertSubkeys(CRegKey& key, HTREEITEM hParentItem);
-    void BuildCLSID(LPOBJECTDATA pdata);
-    void BuildCLSID(LPCTSTR pCLSID);
-    void BuildTypeLib(LPOBJECTDATA pdata);
-    void BuildTypeLib(LPCTSTR pTypeLib);
-    void BuildProgID(LPCTSTR pProgID);
-    void BuildAppID(LPOBJECTDATA pdata);
-    void BuildIID(LPOBJECTDATA pdata);
-    void BuildCatID(LPOBJECTDATA pdata);
+    BOOL BuildCLSID(LPOBJECTDATA pdata);
+    BOOL BuildCLSID(LPCTSTR pCLSID);
+    BOOL BuildTypeLib(LPOBJECTDATA pdata);
+    BOOL BuildTypeLib(LPCTSTR pTypeLib);
+    BOOL BuildProgID(LPCTSTR pProgID);
+    BOOL BuildAppID(LPOBJECTDATA pdata);
+    BOOL BuildIID(LPOBJECTDATA pdata);
+    BOOL BuildCatID(LPOBJECTDATA pdata);
 
     CImageList m_ImageList;
 };

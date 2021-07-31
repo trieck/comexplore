@@ -173,8 +173,15 @@ void ComTreeView::AddFileTypeLib(LPCTSTR pFilename, LPTYPELIB pTypeLib)
     ATLASSERT(pFilename);
     ATLASSERT(pTypeLib);
 
-    CComBSTR bstrName;
-    pTypeLib->GetDocumentation(-1, &bstrName, nullptr, nullptr, nullptr);
+    CComBSTR bstrName, bstrDoc;
+    pTypeLib->GetDocumentation(MEMBERID_NIL, &bstrName, &bstrDoc, nullptr, nullptr);
+    
+    CString strItem;
+    if (bstrDoc.Length() != 0) {
+        strItem.Format(_T("%s (%s)"), bstrName, bstrDoc);
+    } else {
+        strItem = bstrName;
+    }
 
     AutoTypeLibAttr attr(pTypeLib);
     attr.Get();
@@ -200,7 +207,7 @@ void ComTreeView::AddFileTypeLib(LPCTSTR pFilename, LPTYPELIB pTypeLib)
     tvis.hInsertAfter = TVI_FIRST;
     tvis.itemex.mask = TVIF_CHILDREN | TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_TEXT | TVIF_PARAM;
     tvis.itemex.cChildren = 0;
-    tvis.itemex.pszText = const_cast<LPTSTR>(static_cast<LPCTSTR>(bstrName));
+    tvis.itemex.pszText = const_cast<LPTSTR>(static_cast<LPCTSTR>(strItem));
     tvis.itemex.iImage = 7;
     tvis.itemex.iSelectedImage = 7;
 

@@ -568,13 +568,7 @@ void IDLView::DecompileFunc(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, MEMBERID mem
     if (FAILED(hr)) {
         return;
     }
-
-    if (funcdesc->wFuncFlags & (FUNCFLAG_FHIDDEN | FUNCFLAG_FNONBROWSABLE | FUNCFLAG_FRESTRICTED)) {
-        if (pAttr->guid != IID_IUnknown && pAttr->guid != IID_IDispatch) {
-            return;
-        }
-    }
-
+    
     auto fAttributes = FALSE;
 
     if (pAttr->typekind == TKIND_DISPATCH || pAttr->wTypeFlags & TYPEFLAG_FDUAL) {
@@ -894,12 +888,16 @@ void IDLView::DecompileDispatch(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, int leve
 
     WriteLevel(level, _T("dispinterface %s {\n"), CString(bstrName));
 
-    WriteLevel(level + 1, _T("properties:\n"));
+    if (pAttr->cVars > 0) {
+        WriteLevel(level + 1, _T("properties:\n"));
+    }
     for (auto i = 0u; i < pAttr->cVars; ++i) {
         DecompileVar(pTypeInfo, pAttr, i, level + 2);
     }
 
-    WriteLevel(level + 1, _T("methods:\n"));
+    if (pAttr->cFuncs > 0) {
+        WriteLevel(level + 1, _T("methods:\n"));
+    }
     for (auto i = 0u; i < pAttr->cFuncs; ++i) {
         DecompileFunc(pTypeInfo, pAttr, i, level + 2);
     }

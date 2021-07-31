@@ -23,35 +23,34 @@ LRESULT RegistryView::OnCreate(LPCREATESTRUCT pcs)
                   | TVS_HASBUTTONS | TVS_HASLINES | TVS_FULLROWSELECT | TVS_INFOTIP
                   | TVS_LINESATROOT | TVS_SHOWSELALWAYS);
 
-    BuildView(static_cast<LPOBJECTDATA>(pcs->lpCreateParams));
+    if (!BuildView(static_cast<LPOBJECTDATA>(pcs->lpCreateParams))) {
+        return -1;
+    }
 
     SetMsgHandled(FALSE);
 
     return bResult;
 }
 
-void RegistryView::BuildView(LPOBJECTDATA pdata)
+BOOL RegistryView::BuildView(LPOBJECTDATA pdata)
 {
     ATLASSERT(pdata && pdata->guid != GUID_NULL);
     switch (pdata->type) {
     case ObjectType::APPID:
-        BuildAppID(pdata);
-        break;
+        return BuildAppID(pdata);
     case ObjectType::CLSID:
-        BuildCLSID(pdata);
-        break;
+        return BuildCLSID(pdata);
     case ObjectType::IID:
-        BuildIID(pdata);
-        break;
+        return BuildIID(pdata);
     case ObjectType::TYPELIB:
-        BuildTypeLib(pdata);
-        break;
+        return BuildTypeLib(pdata);
     case ObjectType::CATID:
-        BuildCatID(pdata);
-        break;
+        return BuildCatID(pdata);
     default:
         break;
     }
+
+    return FALSE;
 }
 
 CTreeItem RegistryView::InsertValue(HTREEITEM hParentItem, LPCTSTR keyName, LPCTSTR value, LPCTSTR data)
@@ -141,7 +140,7 @@ void RegistryView::InsertSubkeys(CRegKey& key, HTREEITEM hParentItem)
     }
 }
 
-void RegistryView::BuildCLSID(LPOBJECTDATA pdata)
+BOOL RegistryView::BuildCLSID(LPOBJECTDATA pdata)
 {
     ATLASSERT(pdata && pdata->type == ObjectType::CLSID && pdata->guid != GUID_NULL);
 
@@ -149,7 +148,9 @@ void RegistryView::BuildCLSID(LPOBJECTDATA pdata)
     StringFromGUID2(pdata->guid, strGUID.GetBuffer(40), 40);
     strGUID.ReleaseBuffer();
 
-    BuildCLSID(strGUID);
+    if (!BuildCLSID(strGUID)) {
+        return FALSE;
+    }
 
     CString strPath;
     strPath.Format(_T("SOFTWARE\\Classes\\CLSID\\%s\\TypeLib"), static_cast<LPCTSTR>(strGUID));
@@ -168,20 +169,22 @@ void RegistryView::BuildCLSID(LPOBJECTDATA pdata)
     strPath.Format(_T("SOFTWARE\\Classes\\CLSID\\%s\\ProgID"), static_cast<LPCTSTR>(strGUID));
     lResult = key.Open(HKEY_LOCAL_MACHINE, strPath, KEY_ENUMERATE_SUB_KEYS | KEY_QUERY_VALUE);
     if (lResult != ERROR_SUCCESS) {
-        return;
+        return TRUE;
     }
 
     TCHAR progID[REG_BUFFER_SIZE];
     DWORD length = REG_BUFFER_SIZE;
     lResult = key.QueryStringValue(nullptr, progID, &length);
     if (lResult != ERROR_SUCCESS) {
-        return;
+        return TRUE;
     }
 
     BuildProgID(progID);
+
+    return TRUE;
 }
 
-void RegistryView::BuildCLSID(LPCTSTR pCLSID)
+BOOL RegistryView::BuildCLSID(LPCTSTR pCLSID)
 {
     CString strPath;
     strPath.Format(_T("SOFTWARE\\Classes\\CLSID\\%s"), pCLSID);
@@ -189,7 +192,7 @@ void RegistryView::BuildCLSID(LPCTSTR pCLSID)
     CRegKey key;
     auto lResult = key.Open(HKEY_LOCAL_MACHINE, strPath, KEY_ENUMERATE_SUB_KEYS | KEY_QUERY_VALUE);
     if (lResult != ERROR_SUCCESS) {
-        return;
+        return FALSE;
     }
 
     auto root = InsertItem(_T("CLSID="), TVI_ROOT, TVI_LAST);
@@ -199,9 +202,11 @@ void RegistryView::BuildCLSID(LPCTSTR pCLSID)
 
     root.Expand();
     guid.Expand();
+
+    return TRUE;
 }
 
-void RegistryView::BuildTypeLib(LPOBJECTDATA pdata)
+BOOL RegistryView::BuildTypeLib(LPOBJECTDATA pdata)
 {
     ATLASSERT(pdata && pdata->type == ObjectType::TYPELIB && pdata->guid != GUID_NULL);
 
@@ -209,10 +214,10 @@ void RegistryView::BuildTypeLib(LPOBJECTDATA pdata)
     StringFromGUID2(pdata->guid, strGUID.GetBuffer(40), 40);
     strGUID.ReleaseBuffer();
 
-    BuildTypeLib(strGUID);
+    return BuildTypeLib(strGUID);
 }
 
-void RegistryView::BuildTypeLib(LPCTSTR pTypeLib)
+BOOL RegistryView::BuildTypeLib(LPCTSTR pTypeLib)
 {
     CString strPath;
     strPath.Format(_T("SOFTWARE\\Classes\\TypeLib\\%s"), pTypeLib);
@@ -220,7 +225,7 @@ void RegistryView::BuildTypeLib(LPCTSTR pTypeLib)
     CRegKey key;
     auto lResult = key.Open(HKEY_LOCAL_MACHINE, strPath, KEY_ENUMERATE_SUB_KEYS | KEY_QUERY_VALUE);
     if (lResult != ERROR_SUCCESS) {
-        return;
+        return FALSE;
     }
 
     auto root = InsertItem(_T("TypeLib="), TVI_ROOT, TVI_LAST);
@@ -230,9 +235,11 @@ void RegistryView::BuildTypeLib(LPCTSTR pTypeLib)
 
     root.Expand();
     guid.Expand();
+
+    return TRUE;
 }
 
-void RegistryView::BuildProgID(LPCTSTR pProgID)
+BOOL RegistryView::BuildProgID(LPCTSTR pProgID)
 {
     CString strPath;
     strPath.Format(_T("SOFTWARE\\Classes\\%s"), pProgID);
@@ -240,7 +247,7 @@ void RegistryView::BuildProgID(LPCTSTR pProgID)
     CRegKey key;
     auto lResult = key.Open(HKEY_LOCAL_MACHINE, strPath, KEY_ENUMERATE_SUB_KEYS | KEY_QUERY_VALUE);
     if (lResult != ERROR_SUCCESS) {
-        return;
+        return FALSE;
     }
 
     auto root = InsertItem(_T("ProgID="), TVI_ROOT, TVI_LAST);
@@ -250,9 +257,11 @@ void RegistryView::BuildProgID(LPCTSTR pProgID)
 
     root.Expand();
     guid.Expand();
+
+    return TRUE;
 }
 
-void RegistryView::BuildAppID(LPOBJECTDATA pdata)
+BOOL RegistryView::BuildAppID(LPOBJECTDATA pdata)
 {
     ATLASSERT(pdata && pdata->type == ObjectType::APPID && pdata->guid != GUID_NULL);
 
@@ -266,7 +275,7 @@ void RegistryView::BuildAppID(LPOBJECTDATA pdata)
     CRegKey key;
     auto lResult = key.Open(HKEY_LOCAL_MACHINE, strPath, KEY_ENUMERATE_SUB_KEYS | KEY_QUERY_VALUE);
     if (lResult != ERROR_SUCCESS) {
-        return;
+        return FALSE;
     }
 
     auto appidRoot = InsertItem(_T("AppID="), TVI_ROOT, TVI_LAST);
@@ -276,9 +285,11 @@ void RegistryView::BuildAppID(LPOBJECTDATA pdata)
 
     appidRoot.Expand();
     appid.Expand();
+
+    return TRUE;
 }
 
-void RegistryView::BuildIID(LPOBJECTDATA pdata)
+BOOL RegistryView::BuildIID(LPOBJECTDATA pdata)
 {
     ATLASSERT(pdata && pdata->type == ObjectType::IID && pdata->guid != GUID_NULL);
 
@@ -292,7 +303,7 @@ void RegistryView::BuildIID(LPOBJECTDATA pdata)
     CRegKey key;
     auto lResult = key.Open(HKEY_LOCAL_MACHINE, strPath, KEY_ENUMERATE_SUB_KEYS | KEY_QUERY_VALUE);
     if (lResult != ERROR_SUCCESS) {
-        return;
+        return FALSE;
     }
 
     auto iidRoot = InsertItem(_T("IID="), TVI_ROOT, TVI_LAST);
@@ -311,14 +322,14 @@ void RegistryView::BuildIID(LPOBJECTDATA pdata)
     }
 
     if (lResult != ERROR_SUCCESS) {
-        return;
+        return TRUE;
     }
 
     TCHAR clsid[REG_BUFFER_SIZE];
     DWORD length = REG_BUFFER_SIZE;
     lResult = key.QueryStringValue(nullptr, clsid, &length);
     if (lResult != ERROR_SUCCESS) {
-        return;
+        return TRUE;
     }
 
     BuildCLSID(clsid);
@@ -326,20 +337,22 @@ void RegistryView::BuildIID(LPOBJECTDATA pdata)
     strPath.Format(_T("SOFTWARE\\Classes\\Interface\\%s\\TypeLib"), static_cast<LPCTSTR>(strIID));
     lResult = key.Open(HKEY_LOCAL_MACHINE, strPath, KEY_QUERY_VALUE);
     if (lResult != ERROR_SUCCESS) {
-        return;
+        return TRUE;
     }
 
     TCHAR typelib[REG_BUFFER_SIZE];
     length = REG_BUFFER_SIZE;
     lResult = key.QueryStringValue(nullptr, typelib, &length);
     if (lResult != ERROR_SUCCESS) {
-        return;
+        return TRUE;
     }
 
     BuildTypeLib(typelib);
+
+    return TRUE;
 }
 
-inline void RegistryView::BuildCatID(LPOBJECTDATA pdata)
+BOOL RegistryView::BuildCatID(LPOBJECTDATA pdata)
 {
     ATLASSERT(pdata && pdata->type == ObjectType::CATID && pdata->guid != GUID_NULL);
 
@@ -353,7 +366,7 @@ inline void RegistryView::BuildCatID(LPOBJECTDATA pdata)
     CRegKey key;
     auto lResult = key.Open(HKEY_CLASSES_ROOT, strPath, KEY_ENUMERATE_SUB_KEYS | KEY_QUERY_VALUE);
     if (lResult != ERROR_SUCCESS) {
-        return;
+        return FALSE;
     }
 
     auto appidRoot = InsertItem(_T("Component Categories"), TVI_ROOT, TVI_LAST);
@@ -363,4 +376,6 @@ inline void RegistryView::BuildCatID(LPOBJECTDATA pdata)
 
     appidRoot.Expand();
     appid.Expand();
+
+    return TRUE;
 }
