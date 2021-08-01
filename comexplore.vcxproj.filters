@@ -81,6 +81,24 @@
     <ClCompile Include="msgloop.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="regcleanwiz.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="regcleanwizsheet.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="regcleanwelcome.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="regcleanrunpage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="regcleaninfo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="regcleanresults.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="aboutdlg.h">
@@ -147,6 +165,24 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="msgloop.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="regcleanwiz.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="regcleanwizsheet.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="regcleanwelcome.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="regcleanrunpage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="regcleaninfo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="regcleanresults.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -234,6 +270,15 @@
     </Image>
     <Image Include="res\catid_grp.ico">
       <Filter>Icon Files</Filter>
+    </Image>
+    <Image Include="res\regclean.bmp">
+      <Filter>Bitmap Files</Filter>
+    </Image>
+    <Image Include="res\regclean_large.bmp">
+      <Filter>Bitmap Files</Filter>
+    </Image>
+    <Image Include="res\regclean_header.bmp">
+      <Filter>Bitmap Files</Filter>
     </Image>
   </ItemGroup>
   <ItemGroup>

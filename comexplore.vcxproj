@@ -305,6 +305,12 @@
     <ClCompile Include="mainfrm.cpp" />
     <ClCompile Include="msgloop.cpp" />
     <ClCompile Include="objdata.cpp" />
+    <ClCompile Include="regcleaninfo.cpp" />
+    <ClCompile Include="regcleanresults.cpp" />
+    <ClCompile Include="regcleanrunpage.cpp" />
+    <ClCompile Include="regcleanwelcome.cpp" />
+    <ClCompile Include="regcleanwiz.cpp" />
+    <ClCompile Include="regcleanwizsheet.cpp" />
     <ClCompile Include="regview.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -337,6 +343,12 @@
     <ClInclude Include="mainfrm.h" />
     <ClInclude Include="msgloop.h" />
     <ClInclude Include="objdata.h" />
+    <ClInclude Include="regcleaninfo.h" />
+    <ClInclude Include="regcleanresults.h" />
+    <ClInclude Include="regcleanrunpage.h" />
+    <ClInclude Include="regcleanwelcome.h" />
+    <ClInclude Include="regcleanwiz.h" />
+    <ClInclude Include="regcleanwizsheet.h" />
     <ClInclude Include="regview.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="ribbon.h" />
@@ -370,6 +382,9 @@
     <Image Include="res\property.ico" />
     <Image Include="res\record.ico" />
     <Image Include="res\reg.ico" />
+    <Image Include="res\regclean.bmp" />
+    <Image Include="res\regclean_header.bmp" />
+    <Image Include="res\regclean_large.bmp" />
     <Image Include="res\regnode.ico" />
     <Image Include="res\release.bmp" />
     <Image Include="res\typelib.ico" />

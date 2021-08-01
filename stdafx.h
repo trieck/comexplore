@@ -12,6 +12,9 @@
 #define NOMINMAX
 
 #define WM_SELCHANGED (WM_APP + 1)
+#define WM_PROGRESS (WM_SELCHANGED + 1)
+#define WM_COMPLETE (WM_PROGRESS + 1)
+#define WM_SETRANGE (WM_COMPLETE + 1)
 
 #include <atlbase.h>
 #include <atlapp.h>
@@ -109,6 +112,9 @@ struct string_hash
         return result;
     }
 };
+
+template <typename Value>
+using CStringMap = std::unordered_map<CString, Value, string_hash, equal_to_string>;
 
 template <typename Value>
 class string_key_map

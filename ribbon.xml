@@ -5,13 +5,19 @@
     <Command Name="FILE_OPEN" Symbol="ID_FILE_OPEN" Id="0xE101" Keytip="O">
       <Command.LabelTitle>Bind to File...</Command.LabelTitle>
       <Command.TooltipTitle>Bind to File(Ctrl+O)</Command.TooltipTitle>
-      <Command.TooltipDescription>Bind to a File</Command.TooltipDescription>
+      <Command.TooltipDescription>Bind to an Object via a File Moniker</Command.TooltipDescription>
     </Command>
 
     <Command Name="FILE_TYPELIB" Symbol="ID_FILE_TYPELIB" Id="32782" Keytip="T">
       <Command.LabelTitle>Open Type Library...</Command.LabelTitle>
       <Command.TooltipTitle>Open Type Library(Ctrl+O)</Command.TooltipTitle>
-      <Command.TooltipDescription>Open Type Library</Command.TooltipDescription>
+      <Command.TooltipDescription>Open a Type Library File</Command.TooltipDescription>
+    </Command>
+
+    <Command Name="REGCLEAN" Symbol="ID_REGCLEAN" Id="32783">
+      <Command.LabelTitle>Clean the Registry</Command.LabelTitle>
+      <Command.TooltipTitle>Clean the Registry...</Command.TooltipTitle>
+      <Command.TooltipDescription>Run the Registry Cleaning Wizard</Command.TooltipDescription>
     </Command>
 
     <Command Name="VIEW_STATUS_BAR" Symbol="ID_VIEW_STATUS_BAR" Id="0xE801"/>
@@ -80,6 +86,7 @@
               <ControlNameMap>
                 <ControlNameDefinition Name="FILE_OPEN"/>
                 <ControlNameDefinition Name="FILE_TYPELIB"/>
+                <ControlNameDefinition Name="REGCLEAN"/>
                 <ControlNameDefinition Name="RELEASE_OBJECT"/>
               </ControlNameMap>
               <GroupSizeDefinition Size="Large">
@@ -87,6 +94,9 @@
                                        ImageSize="Large"
                                        IsLabelVisible="true"/>
                 <ControlSizeDefinition ControlName="FILE_TYPELIB"
+                                       ImageSize="Large"
+                                       IsLabelVisible="true"/>
+                <ControlSizeDefinition ControlName="REGCLEAN"
                                        ImageSize="Large"
                                        IsLabelVisible="true"/>
                 <ControlSizeDefinition ControlName="RELEASE_OBJECT"
@@ -100,6 +110,9 @@
                 <ControlSizeDefinition ControlName="FILE_TYPELIB"
                                        ImageSize="Large"
                                        IsLabelVisible="true"/>
+                <ControlSizeDefinition ControlName="REGCLEAN"
+                                       ImageSize="Large"
+                                       IsLabelVisible="true"/>
                 <ControlSizeDefinition ControlName="RELEASE_OBJECT"
                                        ImageSize="Large"
                                        IsLabelVisible="true"/>
@@ -111,6 +124,9 @@
                 <ControlSizeDefinition ControlName="FILE_TYPELIB"
                                        ImageSize="Small"
                                        IsLabelVisible="true"/>
+                <ControlSizeDefinition ControlName="REGCLEAN"
+                                       ImageSize="Small"
+                                       IsLabelVisible="true"/>
                 <ControlSizeDefinition ControlName="RELEASE_OBJECT"
                                        ImageSize="Small"
                                        IsLabelVisible="true"/>
@@ -118,6 +134,7 @@
             </SizeDefinition>
             <Button CommandName="FILE_OPEN"/>
             <Button CommandName="FILE_TYPELIB"/>
+            <Button CommandName="REGCLEAN"/>
             <Button CommandName="RELEASE_OBJECT"/>
           </Group>
 

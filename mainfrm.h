@@ -40,6 +40,7 @@ BEGIN_MSG_MAP(CMainFrame)
         COMMAND_ID_HANDLER2(ID_RELEASE_OBJECT, OnReleaseObject)
         COMMAND_ID_HANDLER2(ID_COPY_GUID, OnCopyGUID)
         COMMAND_ID_HANDLER2(ID_REGEDIT_HERE, OnRegEditHere)
+        COMMAND_ID_HANDLER2(ID_REGCLEAN, OnRegClean)
         REFLECT_NOTIFY_CODE(TVN_ITEMEXPANDING)
         REFLECT_NOTIFY_CODE(TVN_DELETEITEM)
         NOTIFY_CODE_HANDLER_EX(TVN_SELCHANGED, OnTVSelChanged)
@@ -58,6 +59,7 @@ BEGIN_MSG_MAP(CMainFrame)
     LRESULT OnReleaseObject();
     LRESULT OnCopyGUID();
     LRESULT OnRegEditHere();
+    LRESULT OnRegClean();
 
 private:
     BOOL IsSelectedInstance() const;

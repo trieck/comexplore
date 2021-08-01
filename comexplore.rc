@@ -1,7 +1,7 @@
 // Microsoft Visual C++ generated resource script.
 //
 #include "resource.h"
-#include "ribbon.rc2"
+
 
 #define APSTUDIO_READONLY_SYMBOLS
 /////////////////////////////////////////////////////////////////////////////
@@ -19,6 +19,7 @@
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 #pragma code_page(1252)
+
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -40,6 +41,7 @@ END
 3 TEXTINCLUDE 
 BEGIN
     "\r\n"
+    "#include ""ribbon.rc2""\r\n"
     "\0"
 END
 
@@ -52,10 +54,21 @@ END
 //
 
 ID_APP_ABOUT            BITMAP                  "res\\about.bmp"
+
 ID_APP_EXIT             BITMAP                  "res\\exit.bmp"
+
 ID_FILE_OPEN            BITMAP                  "res\\open.bmp"
+
 ID_FILE_TYPELIB         BITMAP                  "res\\automation.bmp"
+
+ID_REGCLEAN             BITMAP                  "res\\regclean.bmp"
+
 ID_RELEASE_OBJECT       BITMAP                  "res\\release.bmp"
+
+IDB_REGCLEAN_HEADER     BITMAP                  "res\\regclean_header.bmp"
+
+IDB_REGCLEAN_LARGE      BITMAP                  "res\\regclean_large.bmp"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -88,7 +101,7 @@ BEGIN
     BEGIN
         MENUITEM "Copy GUID to Clipboard",      ID_COPY_GUID
         MENUITEM "Release Instance",            ID_RELEASE_OBJECT
-        MENUITEM "RegEdit Here...",             ID_REGEDIT_HERE        
+        MENUITEM "RegEdit Here...",             ID_REGEDIT_HERE
     END
 END
 
@@ -100,28 +113,50 @@ END
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDI_ALIAS               ICON                    "res\\alias.ico"
-IDI_APPID               ICON                    "res\\appid.ico"
-IDI_APPID_GROUP         ICON                    "res\\appid_grp.ico"
-IDI_CATID               ICON                    "res\\catid.ico"
-IDI_CATID_GROUP         ICON                    "res\\catid_grp.ico"
-IDI_COCLASS             ICON                    "res\\coclass.ico"
-IDI_CONSTANT            ICON                    "res\\constant.ico"
-IDI_DISPATCH            ICON                    "res\\dispatch.ico"
-IDI_ENUM                ICON                    "res\\enum.ico"
-IDI_FUNCTION            ICON                    "res\\function.ico"
-IDI_INTERFACE           ICON                    "res\\interface.ico"
-IDI_INTERFACE_GROUP     ICON                    "res\\interface_grp.ico"
-IDI_MODULE              ICON                    "res\\module.ico"
-IDI_NODE                ICON                    "res\\node.ico"
-IDI_PROPERTY            ICON                    "res\\property.ico"
-IDI_RECORD              ICON                    "res\\record.ico"
-IDI_REGISTRY            ICON                    "res\\reg.ico"
-IDI_REGNODE             ICON                    "res\\regnode.ico"
-IDI_TYPELIB             ICON                    "res\\typelib.ico"
-IDI_TYPELIB_GROUP       ICON                    "res\\typelib_grp.ico"
-IDI_UNION               ICON                    "res\\union.ico"
 IDR_MAINFRAME           ICON                    "res\\comexplore.ico"
+
+IDI_ALIAS               ICON                    "res\\alias.ico"
+
+IDI_APPID               ICON                    "res\\appid.ico"
+
+IDI_APPID_GROUP         ICON                    "res\\appid_grp.ico"
+
+IDI_CATID               ICON                    "res\\catid.ico"
+
+IDI_CATID_GROUP         ICON                    "res\\catid_grp.ico"
+
+IDI_COCLASS             ICON                    "res\\coclass.ico"
+
+IDI_CONSTANT            ICON                    "res\\constant.ico"
+
+IDI_DISPATCH            ICON                    "res\\dispatch.ico"
+
+IDI_ENUM                ICON                    "res\\enum.ico"
+
+IDI_FUNCTION            ICON                    "res\\function.ico"
+
+IDI_INTERFACE           ICON                    "res\\interface.ico"
+
+IDI_INTERFACE_GROUP     ICON                    "res\\interface_grp.ico"
+
+IDI_MODULE              ICON                    "res\\module.ico"
+
+IDI_NODE                ICON                    "res\\node.ico"
+
+IDI_PROPERTY            ICON                    "res\\property.ico"
+
+IDI_RECORD              ICON                    "res\\record.ico"
+
+IDI_REGISTRY            ICON                    "res\\reg.ico"
+
+IDI_REGNODE             ICON                    "res\\regnode.ico"
+
+IDI_TYPELIB             ICON                    "res\\typelib.ico"
+
+IDI_TYPELIB_GROUP       ICON                    "res\\typelib_grp.ico"
+
+IDI_UNION               ICON                    "res\\union.ico"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -136,6 +171,36 @@ BEGIN
     DEFPUSHBUTTON   "OK",IDOK,64,45,50,14
     LTEXT           "COM Explorer\nCopyright© 2003-2021 Rieck Enterprises\nAll Rights Reserved",IDC_STATIC,37,9,134,26
     ICON            IDR_MAINFRAME,IDC_STATIC,7,7,20,20
+END
+
+IDD_REGCLEAN_WELCOME DIALOGEX 0, 0, 317, 193
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "COM Registry Cleaner"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    LTEXT           "COM Registry Cleaner",IDC_REGCLEAN_TITLE,127,8,163,16
+    LTEXT           "Welcome to the COM Registry Cleaner!\n\nThis Wizard will scan the Windows Registry for invalid COM entries.\n\nIf any entries are found, they will be removed from the registry.\n\nClick Next to begin.",IDC_STATIC,127,40,183,129,SS_SUNKEN
+END
+
+IDD_REGCLEAN_RUN DIALOGEX 0, 0, 317, 143
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "COM Registry Cleaner"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    LTEXT           "Now scanning the Registry...Just a moment...",IDC_STATIC,21,8,275,24
+    CONTROL         "",IDC_REGCLEAN_PROGRESS,"msctls_progress32",PBS_SMOOTH | WS_BORDER,43,68,243,10
+END
+
+IDD_REGCLEAN_RESULTS DIALOGEX 0, 0, 317, 143
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "COM Registry Cleaner"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+LTEXT           "Below is a list of invalid entries found.\nClick Finish to delete these items from the registry.",
+IDC_STATIC, 21, 8, 275, 24
+CONTROL         "", IDC_LIST_RESULTS, "SysListView32", LVS_REPORT |
+LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | WS_BORDER |
+WS_TABSTOP, 21, 32, 275, 86
 END
 
 
@@ -153,6 +218,34 @@ BEGIN
         RIGHTMARGIN, 172
         TOPMARGIN, 7
         BOTTOMMARGIN, 59
+    END
+
+    IDD_REGCLEAN_WELCOME, DIALOG
+    BEGIN
+        RIGHTMARGIN, 310
+        VERTGUIDE, 115
+        VERTGUIDE, 118
+        VERTGUIDE, 127
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 186
+        HORZGUIDE, 8
+        HORZGUIDE, 32
+        HORZGUIDE, 40
+        HORZGUIDE, 169
+    END
+
+    IDD_REGCLEAN_RUN, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 310
+        VERTGUIDE, 21
+        VERTGUIDE, 31
+        VERTGUIDE, 43
+        VERTGUIDE, 286
+        VERTGUIDE, 296
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 136
+        HORZGUIDE, 8
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -221,6 +314,16 @@ BEGIN
     0
 END
 
+IDD_REGCLEAN_WELCOME AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_REGCLEAN_RUN AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -235,6 +338,13 @@ END
 STRINGTABLE
 BEGIN
     ID_FILE_OPEN            "Bind to File\nBind"
+END
+
+STRINGTABLE
+BEGIN
+    ID_RELEASE_OBJECT       "Release Object Instance\nRelease Instance"
+    ID_COPY_GUID            "Copy GUID to Clipboard\nCopy GUID"
+    ID_REGEDIT_HERE         "Open Registry Editor Here\nRegEdit Here"
     ID_FILE_TYPELIB         "Open Type Library\nOpen Type Library"
 END
 
@@ -259,13 +369,6 @@ BEGIN
     ATL_IDS_MRU_FILE        "Open this document"
 END
 
-STRINGTABLE
-BEGIN
-    ID_COPY_GUID        "Copy GUID to Clipboard\nCopy GUID"
-    ID_RELEASE_OBJECT   "Release Object Instance\nRelease Instance"
-    ID_REGEDIT_HERE     "Open Registry Editor Here\nRegEdit Here"
-END
-
 #endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
 
@@ -276,7 +379,7 @@ END
 //
 // Generated from the TEXTINCLUDE 3 resource.
 //
-
+#include "ribbon.rc2"
 
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED

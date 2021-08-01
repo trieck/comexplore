@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "mainfrm.h"
 #include "comerror.h"
+#include "regcleanwiz.h"
 
 BOOL CMainFrame::PreTranslateMessage(MSG* pMsg)
 {
@@ -285,6 +286,14 @@ LRESULT CMainFrame::OnRegEditHere()
     }
 
     ShellExecute(*this, _T("open"), _T("regedit.exe"), nullptr, nullptr, SW_SHOWNORMAL);
+
+    return 0;
+}
+
+LRESULT CMainFrame::OnRegClean()
+{
+    RegCleanWiz wizard;
+    wizard.Execute();
 
     return 0;
 }

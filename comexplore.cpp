@@ -3,7 +3,7 @@
 
 CAppModule _Module;
 
-int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lpstrCmdLine, int nCmdShow)
+int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lpCmdLine, int nShowCmd)
 {
     COMExplorer explorer;
     if (!explorer.Init()) {
@@ -11,5 +11,5 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
         return -1;
     }
 
-    return explorer.Run(hInstance, lpstrCmdLine, nCmdShow);
+    return explorer.Run(hInstance, lpCmdLine, nShowCmd);
 }
