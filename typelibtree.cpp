@@ -252,7 +252,13 @@ void TypeLibTree::AddFunctions(const CTreeItem& item, LPTYPEINFO pTypeInfo, LPTY
         if (FAILED(hr)) {
             continue;
         }
-        
+
+        if (funcdesc->wFuncFlags & (FUNCFLAG_FHIDDEN | FUNCFLAG_FNONBROWSABLE | FUNCFLAG_FRESTRICTED)) {
+            if (pAttr->guid != IID_IUnknown && pAttr->guid != IID_IDispatch) {
+                continue;
+            }
+        }
+
         UINT cNames;
         CComBSTR bstrName;
         hr = pTypeInfo->GetNames(funcdesc->memid, &bstrName, 1, &cNames);
