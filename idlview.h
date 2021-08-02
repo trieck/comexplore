@@ -9,6 +9,7 @@ BEGIN_MSG_MAP(IDLView)
         MSG_WM_CREATE(OnCreate)
         MESSAGE_HANDLER(WM_SELCHANGED, OnSelChanged)
     END_MSG_MAP()
+
     DECLARE_WND_SUPERCLASS(NULL, CRichEditCtrl::GetWndClassName())
 
     LRESULT OnCreate(LPCREATESTRUCT pcs);
@@ -32,6 +33,10 @@ private:
 
     // Helpers
     void Update(LPTYPELIB pTypeLib, LPTYPEINFONODE pNode);
+    void WriteCustAttr(BOOL& hasAttributes, int level, LPCUSTDATA pCustData);
+    void WriteCustAttr(BOOL& hasAttributes, int level, LPTYPELIB pTypeLib);
+    void WriteCustAttr(BOOL& hasAttributes, int level, LPTYPEINFO pTypeInfo);
+
     void WriteAttributes(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, BOOL fNewLine,
                          MEMBERID memID, int level);
     BOOL Write(LPCTSTR format, ...);

@@ -49,6 +49,69 @@ void IDLView::Update(LPTYPELIB pTypeLib, LPTYPEINFONODE pNode)
     FlushStream();
 }
 
+void IDLView::WriteCustAttr(BOOL& hasAttributes, int level, LPCUSTDATA pCustData)
+{
+    ATLASSERT(pCustData);
+
+    for (auto i = 0u; i < pCustData->cCustData; ++i) {
+        CString strGUID;
+        StringFromGUID2(pCustData->prgCustData[i].guid, strGUID.GetBuffer(40), 40);
+
+        CString strValue(_T("<Unknown>"));
+        CComVariant vtValue;
+        auto hr = vtValue.ChangeType(VT_BSTR, &pCustData->prgCustData[i].varValue);
+        if (SUCCEEDED(hr)) {
+            strValue = vtValue;
+        }
+
+        if (V_VT(&pCustData->prgCustData[i].varValue) == VT_BSTR) {
+            WriteAttr(hasAttributes, TRUE, level, _T("custom(%.36s, \"%s\")"),
+                      (static_cast<LPCTSTR>(strGUID) + 1), strValue);
+        } else {
+            WriteAttr(hasAttributes, TRUE, level, _T("custom(%.36s, %s)"),
+                      (static_cast<LPCTSTR>(strGUID) + 1), strValue);
+        }
+    }
+}
+
+void IDLView::WriteCustAttr(BOOL& hasAttributes, int level, LPTYPELIB pTypeLib)
+{
+    ATLASSERT(pTypeLib);
+
+    CComPtr<ITypeLib2> pTypeLib2;
+    auto hr = pTypeLib->QueryInterface(IID_ITypeLib2, IID_PPV_ARGS_Helper(&pTypeLib2));
+    if (FAILED(hr)) {
+        return;
+    }
+
+    CUSTDATA custdata;
+    hr = pTypeLib2->GetAllCustData(&custdata);
+    if (FAILED(hr)) {
+        return;
+    }
+
+    WriteCustAttr(hasAttributes, level, &custdata);
+}
+
+void IDLView::WriteCustAttr(BOOL& hasAttributes, int level, LPTYPEINFO pTypeInfo)
+{
+    ATLASSERT(pTypeInfo);
+
+    CComPtr<ITypeInfo2> pTypeTypeInfo2;
+    auto hr = pTypeInfo->QueryInterface(IID_ITypeInfo2, IID_PPV_ARGS_Helper(&pTypeTypeInfo2));
+    if (FAILED(hr)) {
+        return;
+    }
+
+    CUSTDATA custdata;
+    hr = pTypeTypeInfo2->GetAllCustData(&custdata);
+    if (FAILED(hr)) {
+        return;
+    }
+
+    WriteCustAttr(hasAttributes, level, &custdata);
+}
+
 void IDLView::WriteAttributes(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, BOOL fNewLine, MEMBERID memID, int level)
 {
     ATLASSERT(pTypeInfo != nullptr);
@@ -123,6 +186,8 @@ void IDLView::WriteAttributes(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, BOOL fNewL
 
         WriteAttr(fAttributes, fNewLine, level, _T("dllname(\"%s\")"), bstrName);
     }
+
+    WriteCustAttr(fAttributes, level, pTypeInfo);
 
     if (fAttributes) {
         if (fNewLine) {
@@ -285,6 +350,8 @@ void IDLView::Decompile(LPTYPELIB pTypeLib)
         WriteAttr(fAttributes, TRUE, 0,_T("helpfile(\"%s\")"), bstrHelp);
         WriteAttr(fAttributes, TRUE, 0,_T("helpcontext(%#08.8x)"), dwHelpID);
     }
+
+    WriteCustAttr(fAttributes, 0, pTypeLib);
 
     if (fAttributes) {
         Write(_T("\n]\n"));
@@ -503,22 +570,30 @@ void IDLView::DecompileCoClass(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, int level
         WriteIndent(level + 1);
 
         auto fAttributes = FALSE;
-        if (impltype) {
-            if (impltype & IMPLTYPEFLAG_FDEFAULT) {
-                WriteAttr(fAttributes, FALSE, 0, _T("default"));
-            }
+        if (impltype & IMPLTYPEFLAG_FDEFAULT) {
+            WriteAttr(fAttributes, FALSE, 0, _T("default"));
+        }
 
-            if (impltype & IMPLTYPEFLAG_FSOURCE) {
-                WriteAttr(fAttributes, FALSE, 0, _T("source"));
-            }
+        if (impltype & IMPLTYPEFLAG_FSOURCE) {
+            WriteAttr(fAttributes, FALSE, 0, _T("source"));
+        }
 
-            if (impltype & IMPLTYPEFLAG_FRESTRICTED) {
-                WriteAttr(fAttributes, FALSE, 0, _T("restricted"));
+        if (impltype & IMPLTYPEFLAG_FRESTRICTED) {
+            WriteAttr(fAttributes, FALSE, 0, _T("restricted"));
+        }            
+        
+        CComPtr<ITypeInfo2> pTypeInfo2;
+        hr = pTypeInfo->QueryInterface(IID_ITypeInfo2, IID_PPV_ARGS_Helper(&pTypeInfo2));
+        if (SUCCEEDED(hr)) {
+            CUSTDATA custdata;
+            hr = pTypeInfo2->GetAllImplTypeCustData(i, &custdata);
+            if (SUCCEEDED(hr)) {
+                WriteCustAttr(fAttributes, level, &custdata);
             }
+        }
 
-            if (fAttributes) {
-                Write(_T("] "));
-            }
+        if (fAttributes) {
+            Write(_T("] "));
         }
 
         if (attrImpl->typekind == TKIND_INTERFACE) {
@@ -639,6 +714,16 @@ void IDLView::DecompileFunc(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, MEMBERID mem
         WriteAttr(fAttributes, FALSE, level, _T("helpcontext(%#08.8x)"), dwHelpID);
     }
 
+    CComPtr<ITypeInfo2> pTypeInfo2;
+    hr = pTypeInfo->QueryInterface(IID_ITypeInfo2, IID_PPV_ARGS_Helper(&pTypeInfo2));
+    if (SUCCEEDED(hr)) {
+        CUSTDATA custdata;
+        hr = pTypeInfo2->GetAllFuncCustData(memID, &custdata);
+        if (SUCCEEDED(hr)) {
+            WriteCustAttr(fAttributes, level, &custdata);
+        }
+    }
+
     if (fAttributes) {
         Write(_T("]\n"));
     }
@@ -709,6 +794,14 @@ void IDLView::DecompileFunc(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, MEMBERID mem
             (i > (funcdesc->cParams - funcdesc->cParamsOpt))) {
             WriteAttr(fAttributes, FALSE, 0, _T("optional"));
             fAttributes = TRUE;
+        }
+
+        if (pTypeInfo2) {
+            CUSTDATA custdata;
+            hr = pTypeInfo2->GetAllParamCustData(memID, i, &custdata);
+            if (SUCCEEDED(hr)) {
+                WriteCustAttr(fAttributes, 0, &custdata);
+            }
         }
 
         if (fAttributes) {
@@ -861,6 +954,16 @@ void IDLView::DecompileVar(LPTYPEINFO pTypeInfo, LPTYPEATTR pAttr, MEMBERID memI
 
     if (dwHelpID > 0) {
         WriteAttr(fAttributes, FALSE, 0, _T("helpcontext(%#08.8x)"), dwHelpID);
+    }
+
+    CComPtr<ITypeInfo2> pTypeInfo2;
+    hr = pTypeInfo->QueryInterface(IID_ITypeInfo2, IID_PPV_ARGS_Helper(&pTypeInfo2));
+    if (SUCCEEDED(hr)) {
+        CUSTDATA custdata;
+        hr = pTypeInfo2->GetAllVarCustData(memID, &custdata);
+        if (SUCCEEDED(hr)) {
+            WriteCustAttr(fAttributes, level, &custdata);
+        }
     }
 
     if (fAttributes) {
