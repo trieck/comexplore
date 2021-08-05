@@ -99,6 +99,9 @@
     <ClCompile Include="regcleanresults.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="regkeyaccess.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="aboutdlg.h">
@@ -183,6 +186,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="regcleanresults.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="regkeyaccess.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="localbuff.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

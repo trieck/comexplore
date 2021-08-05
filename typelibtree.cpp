@@ -659,10 +659,10 @@ BOOL TypeLibTree::GetTypeLibFromIID(const IID& iid, GUID& typeLibID, WORD& wMaj,
     strIID.ReleaseBuffer();
 
     CString strPath;
-    strPath.Format(_T("SOFTWARE\\Classes\\Interface\\%s"), strIID);
+    strPath.Format(_T("Interface\\%s"), strIID);
 
     CRegKey key;
-    auto lResult = key.Open(HKEY_LOCAL_MACHINE, strPath, KEY_READ);
+    auto lResult = key.Open(HKEY_CLASSES_ROOT, strPath, KEY_READ);
     if (lResult != ERROR_SUCCESS) {
         return FALSE;
     }
@@ -677,10 +677,10 @@ BOOL TypeLibTree::GetTypeLibFromCLSID(REFGUID clsid, GUID& typeLibID, WORD& wMaj
     strCLSID.ReleaseBuffer();
 
     CString strPath;
-    strPath.Format(_T("SOFTWARE\\Classes\\CLSID\\%s"), strCLSID);
+    strPath.Format(_T("CLSID\\%s"), strCLSID);
 
     CRegKey key;
-    auto lResult = key.Open(HKEY_LOCAL_MACHINE, strPath, KEY_READ);
+    auto lResult = key.Open(HKEY_CLASSES_ROOT, strPath, KEY_READ);
     if (lResult != ERROR_SUCCESS) {
         return FALSE;
     }

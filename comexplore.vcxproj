@@ -135,6 +135,7 @@
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
       <DelayLoadDLLs>
       </DelayLoadDLLs>
+      <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
     </Link>
     <Bscmake>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -184,6 +185,7 @@
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
       <DelayLoadDLLs>
       </DelayLoadDLLs>
+      <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
     </Link>
     <Bscmake>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -232,6 +234,7 @@
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention />
       <TargetMachine>MachineX86</TargetMachine>
+      <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
     </Link>
     <Bscmake>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -279,6 +282,7 @@
       <SubSystem>Windows</SubSystem>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention />
+      <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
     </Link>
     <Bscmake>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -311,6 +315,7 @@
     <ClCompile Include="regcleanwelcome.cpp" />
     <ClCompile Include="regcleanwiz.cpp" />
     <ClCompile Include="regcleanwizsheet.cpp" />
+    <ClCompile Include="regkeyaccess.cpp" />
     <ClCompile Include="regview.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -340,6 +345,7 @@
     <ClInclude Include="comdetailview.h" />
     <ClInclude Include="idlstreamformatter.h" />
     <ClInclude Include="idlview.h" />
+    <ClInclude Include="localbuff.h" />
     <ClInclude Include="mainfrm.h" />
     <ClInclude Include="msgloop.h" />
     <ClInclude Include="objdata.h" />
@@ -349,6 +355,7 @@
     <ClInclude Include="regcleanwelcome.h" />
     <ClInclude Include="regcleanwiz.h" />
     <ClInclude Include="regcleanwizsheet.h" />
+    <ClInclude Include="regkeyaccess.h" />
     <ClInclude Include="regview.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="ribbon.h" />

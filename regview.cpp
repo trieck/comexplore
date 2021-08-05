@@ -153,10 +153,10 @@ BOOL RegistryView::BuildCLSID(LPOBJECTDATA pdata)
     }
 
     CString strPath;
-    strPath.Format(_T("SOFTWARE\\Classes\\CLSID\\%s\\TypeLib"), static_cast<LPCTSTR>(strGUID));
+    strPath.Format(_T("CLSID\\%s\\TypeLib"), static_cast<LPCTSTR>(strGUID));
 
     CRegKey key;
-    auto lResult = key.Open(HKEY_LOCAL_MACHINE, strPath, KEY_ENUMERATE_SUB_KEYS | KEY_QUERY_VALUE);
+    auto lResult = key.Open(HKEY_CLASSES_ROOT, strPath, KEY_ENUMERATE_SUB_KEYS | KEY_QUERY_VALUE);
     if (lResult == ERROR_SUCCESS) {
         TCHAR typelib[REG_BUFFER_SIZE];
         DWORD length = REG_BUFFER_SIZE;
@@ -166,8 +166,8 @@ BOOL RegistryView::BuildCLSID(LPOBJECTDATA pdata)
         }
     }
 
-    strPath.Format(_T("SOFTWARE\\Classes\\CLSID\\%s\\ProgID"), static_cast<LPCTSTR>(strGUID));
-    lResult = key.Open(HKEY_LOCAL_MACHINE, strPath, KEY_ENUMERATE_SUB_KEYS | KEY_QUERY_VALUE);
+    strPath.Format(_T("CLSID\\%s\\ProgID"), static_cast<LPCTSTR>(strGUID));
+    lResult = key.Open(HKEY_CLASSES_ROOT, strPath, KEY_ENUMERATE_SUB_KEYS | KEY_QUERY_VALUE);
     if (lResult != ERROR_SUCCESS) {
         return TRUE;
     }
@@ -187,10 +187,10 @@ BOOL RegistryView::BuildCLSID(LPOBJECTDATA pdata)
 BOOL RegistryView::BuildCLSID(LPCTSTR pCLSID)
 {
     CString strPath;
-    strPath.Format(_T("SOFTWARE\\Classes\\CLSID\\%s"), pCLSID);
+    strPath.Format(_T("CLSID\\%s"), pCLSID);
 
     CRegKey key;
-    auto lResult = key.Open(HKEY_LOCAL_MACHINE, strPath, KEY_ENUMERATE_SUB_KEYS | KEY_QUERY_VALUE);
+    auto lResult = key.Open(HKEY_CLASSES_ROOT, strPath, KEY_ENUMERATE_SUB_KEYS | KEY_QUERY_VALUE);
     if (lResult != ERROR_SUCCESS) {
         return FALSE;
     }
@@ -220,10 +220,10 @@ BOOL RegistryView::BuildTypeLib(LPOBJECTDATA pdata)
 BOOL RegistryView::BuildTypeLib(LPCTSTR pTypeLib)
 {
     CString strPath;
-    strPath.Format(_T("SOFTWARE\\Classes\\TypeLib\\%s"), pTypeLib);
+    strPath.Format(_T("TypeLib\\%s"), pTypeLib);
 
     CRegKey key;
-    auto lResult = key.Open(HKEY_LOCAL_MACHINE, strPath, KEY_ENUMERATE_SUB_KEYS | KEY_QUERY_VALUE);
+    auto lResult = key.Open(HKEY_CLASSES_ROOT, strPath, KEY_ENUMERATE_SUB_KEYS | KEY_QUERY_VALUE);
     if (lResult != ERROR_SUCCESS) {
         return FALSE;
     }
@@ -242,10 +242,10 @@ BOOL RegistryView::BuildTypeLib(LPCTSTR pTypeLib)
 BOOL RegistryView::BuildProgID(LPCTSTR pProgID)
 {
     CString strPath;
-    strPath.Format(_T("SOFTWARE\\Classes\\%s"), pProgID);
+    strPath.Format(_T("%s"), pProgID);
 
     CRegKey key;
-    auto lResult = key.Open(HKEY_LOCAL_MACHINE, strPath, KEY_ENUMERATE_SUB_KEYS | KEY_QUERY_VALUE);
+    auto lResult = key.Open(HKEY_CLASSES_ROOT, strPath, KEY_ENUMERATE_SUB_KEYS | KEY_QUERY_VALUE);
     if (lResult != ERROR_SUCCESS) {
         return FALSE;
     }
@@ -270,10 +270,10 @@ BOOL RegistryView::BuildAppID(LPOBJECTDATA pdata)
     strAppID.ReleaseBuffer();
 
     CString strPath;
-    strPath.Format(_T("SOFTWARE\\Classes\\AppID\\%s"), static_cast<LPCTSTR>(strAppID));
+    strPath.Format(_T("AppID\\%s"), static_cast<LPCTSTR>(strAppID));
 
     CRegKey key;
-    auto lResult = key.Open(HKEY_LOCAL_MACHINE, strPath, KEY_ENUMERATE_SUB_KEYS | KEY_QUERY_VALUE);
+    auto lResult = key.Open(HKEY_CLASSES_ROOT, strPath, KEY_ENUMERATE_SUB_KEYS | KEY_QUERY_VALUE);
     if (lResult != ERROR_SUCCESS) {
         return FALSE;
     }
@@ -298,10 +298,10 @@ BOOL RegistryView::BuildIID(LPOBJECTDATA pdata)
     strIID.ReleaseBuffer();
 
     CString strPath;
-    strPath.Format(_T("SOFTWARE\\Classes\\Interface\\%s"), static_cast<LPCTSTR>(strIID));
+    strPath.Format(_T("Interface\\%s"), static_cast<LPCTSTR>(strIID));
 
     CRegKey key;
-    auto lResult = key.Open(HKEY_LOCAL_MACHINE, strPath, KEY_ENUMERATE_SUB_KEYS | KEY_QUERY_VALUE);
+    auto lResult = key.Open(HKEY_CLASSES_ROOT, strPath, KEY_ENUMERATE_SUB_KEYS | KEY_QUERY_VALUE);
     if (lResult != ERROR_SUCCESS) {
         return FALSE;
     }
@@ -314,11 +314,11 @@ BOOL RegistryView::BuildIID(LPOBJECTDATA pdata)
     iidRoot.Expand();
     iid.Expand();
 
-    strPath.Format(_T("SOFTWARE\\Classes\\Interface\\%s\\ProxyStubClsid32"), static_cast<LPCTSTR>(strIID));
-    lResult = key.Open(HKEY_LOCAL_MACHINE, strPath, KEY_QUERY_VALUE);
+    strPath.Format(_T("Interface\\%s\\ProxyStubClsid32"), static_cast<LPCTSTR>(strIID));
+    lResult = key.Open(HKEY_CLASSES_ROOT, strPath, KEY_QUERY_VALUE);
     if (lResult != ERROR_SUCCESS) {
-        strPath.Format(_T("SOFTWARE\\Classes\\Interface\\%s\\ProxyStubClsid"), static_cast<LPCTSTR>(strIID));
-        lResult = key.Open(HKEY_LOCAL_MACHINE, strPath, KEY_QUERY_VALUE);
+        strPath.Format(_T("Interface\\%s\\ProxyStubClsid"), static_cast<LPCTSTR>(strIID));
+        lResult = key.Open(HKEY_CLASSES_ROOT, strPath, KEY_QUERY_VALUE);
     }
 
     if (lResult != ERROR_SUCCESS) {
@@ -334,8 +334,8 @@ BOOL RegistryView::BuildIID(LPOBJECTDATA pdata)
 
     BuildCLSID(clsid);
 
-    strPath.Format(_T("SOFTWARE\\Classes\\Interface\\%s\\TypeLib"), static_cast<LPCTSTR>(strIID));
-    lResult = key.Open(HKEY_LOCAL_MACHINE, strPath, KEY_QUERY_VALUE);
+    strPath.Format(_T("Interface\\%s\\TypeLib"), static_cast<LPCTSTR>(strIID));
+    lResult = key.Open(HKEY_CLASSES_ROOT, strPath, KEY_QUERY_VALUE);
     if (lResult != ERROR_SUCCESS) {
         return TRUE;
     }

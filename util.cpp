@@ -95,6 +95,46 @@ CString VTtoString(VARTYPE vt)
 }
 
 /////////////////////////////////////////////////////////////////////////////
+CString ErrorMessage(DWORD dwError)
+{
+    CString output;
+
+    LPTSTR pmsg = nullptr;
+
+    FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
+                  nullptr, dwError, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                  reinterpret_cast<LPTSTR>(&pmsg), 0, nullptr);
+
+    if (pmsg != nullptr) {
+        size_t N = _tcslen(pmsg);
+        if (N > 1 && pmsg[N - 1] == '\n')
+            pmsg[N - 1] = '\0';
+
+        if (N > 1 && pmsg[N - 2] == '\r')
+            pmsg[N - 2] = '\0';
+
+        output = pmsg;
+
+        LocalFree(pmsg);
+    }
+
+    return output;
+}
+
+/////////////////////////////////////////////////////////////////////////////
+int WinErrorMsgBox(HWND hWndOwner, DWORD dwError, ATL::_U_STRINGorID title,
+                   UINT uType)
+{
+    auto message = ErrorMessage(dwError);
+    if (message.IsEmpty()) {
+        message = _T("Unknown Error.");
+    }
+
+    return AtlMessageBox(hWndOwner, static_cast<LPCTSTR>(message), title,
+                         uType);
+}
+
+/////////////////////////////////////////////////////////////////////////////
 CString TYPEDESCtoString(LPTYPEINFO pTypeInfo, TYPEDESC* pTypeDesc)
 {
     ATLASSERT(pTypeInfo != nullptr && pTypeDesc != nullptr);

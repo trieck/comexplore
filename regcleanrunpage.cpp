@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "regcleanrunpage.h"
+#include "util.h"
 
 static DWORD WINAPI CleanProc(LPVOID pv);
 static BOOL ReadFile(LPCTSTR pFilename);
@@ -61,10 +62,14 @@ LRESULT RegCleanRunPage::OnComplete(UINT uMsg, WPARAM wParam, LPARAM lParam, BOO
         Sleep(500);
         SetWizardButtons(PSWIZB_BACK | PSWIZB_NEXT);
     } else {
-        m_progress.SetState(PBST_ERROR);
+        // ERROR condition
         auto lower = 0, upper = 0;
         m_progress.GetRange(lower, upper);
         m_progress.SetPos(upper);
+        m_progress.SetState(PBST_ERROR);
+
+        WinErrorMsgBox(*this, static_cast<DWORD>(lParam), _T("RegClean Error"), MB_ICONERROR);
+
     }
 
     return 0;
@@ -95,15 +100,16 @@ DWORD WINAPI CleanProc(LPVOID pv)
     CRegKey key, subkey;
     auto lResult = key.Open(HKEY_CLASSES_ROOT, _T("CLSID"), KEY_READ);
     if (lResult != ERROR_SUCCESS) {
-        SendMessage(*pThis, WM_COMPLETE, -1, -1);
+        SendMessage(*pThis, WM_COMPLETE, lResult, lResult);
         return -1;
     }
 
     DWORD dwSubKeys = 0;
-    lResult = RegQueryInfoKey(key, nullptr, nullptr, nullptr, &dwSubKeys, nullptr, nullptr,
-                              nullptr, nullptr, nullptr, nullptr, nullptr);
+    lResult = RegQueryInfoKey(key, nullptr, nullptr, nullptr, &dwSubKeys,
+                              nullptr, nullptr, nullptr, nullptr, nullptr,
+                              nullptr, nullptr);
     if (lResult != ERROR_SUCCESS) {
-        SendMessage(*pThis, WM_COMPLETE, lResult, 0);
+        SendMessage(*pThis, WM_COMPLETE, lResult, lResult);
         return -1;
     }
 
@@ -117,9 +123,17 @@ DWORD WINAPI CleanProc(LPVOID pv)
         TCHAR szCLSID[REG_BUFFER_SIZE];
         length = REG_BUFFER_SIZE;
 
+        SendMessage(pThis->m_hWnd, WM_PROGRESS, index, 0);
+
         lResult = key.EnumKey(index++, szCLSID, &length);
         if (lResult != ERROR_SUCCESS) {
             break;
+        }
+
+        lResult = subkey.Open(key.m_hKey, szCLSID, 
+            DELETE | KEY_ENUMERATE_SUB_KEYS | KEY_READ | KEY_QUERY_VALUE);
+        if (lResult != ERROR_SUCCESS) {
+            continue;
         }
 
         BOOL inProc = TRUE;
@@ -142,13 +156,10 @@ DWORD WINAPI CleanProc(LPVOID pv)
         if (lResult != ERROR_SUCCESS) {
             continue;
         }
-
         CString path = GetServerPath(filename, inProc);
         if (!ReadFile(path)) {
-            info.clsids[szCLSID] = filename;    // cannot read
+            info.clsids[szCLSID] = filename; // cannot read
         }
-
-        SendMessage(pThis->m_hWnd, WM_PROGRESS, index, 0);
     }
 
     SendMessage(*pThis, WM_COMPLETE, 0, 0);

@@ -118,10 +118,10 @@ void ComTreeView::AddFileMoniker(LPCTSTR pFilename, LPUNKNOWN pUnknown, REFCLSID
         strGUID.ReleaseBuffer();
 
         CString strPath;
-        strPath.Format(_T("SOFTWARE\\Classes\\CLSID\\%s"), strGUID);
+        strPath.Format(_T("CLSID\\%s"), strGUID);
 
         CRegKey key;
-        auto lResult = key.Open(HKEY_LOCAL_MACHINE, strPath, KEY_READ);
+        auto lResult = key.Open(HKEY_CLASSES_ROOT, strPath, KEY_READ);
         if (lResult == ERROR_SUCCESS) {
             TCHAR val[REG_BUFFER_SIZE];
             ULONG length = REG_BUFFER_SIZE;
@@ -474,7 +474,7 @@ void ComTreeView::ConstructTypeLibs(const CTreeItem& item)
     SetRedraw(FALSE);
 
     CRegKey key, subkey, verKey;
-    auto lResult = key.Open(HKEY_LOCAL_MACHINE, _T("SOFTWARE\\Classes\\TypeLib"), KEY_ENUMERATE_SUB_KEYS);
+    auto lResult = key.Open(HKEY_CLASSES_ROOT, _T("TypeLib"), KEY_ENUMERATE_SUB_KEYS);
     if (lResult != ERROR_SUCCESS)
         return;
 
@@ -556,7 +556,7 @@ void ComTreeView::ConstructApps(const CTreeItem& item)
     SetRedraw(FALSE);
 
     CRegKey key, subkey;
-    auto lResult = key.Open(HKEY_LOCAL_MACHINE, _T("SOFTWARE\\Classes\\AppID"), KEY_ENUMERATE_SUB_KEYS);
+    auto lResult = key.Open(HKEY_CLASSES_ROOT, _T("AppID"), KEY_ENUMERATE_SUB_KEYS);
     if (lResult != ERROR_SUCCESS)
         return;
 
@@ -684,7 +684,7 @@ void ComTreeView::ConstructClasses(const CTreeItem& item)
     SetRedraw(FALSE);
 
     CRegKey key, subkey;
-    auto lResult = key.Open(HKEY_LOCAL_MACHINE, _T("SOFTWARE\\Classes\\CLSID"), KEY_ENUMERATE_SUB_KEYS);
+    auto lResult = key.Open(HKEY_CLASSES_ROOT, _T("CLSID"), KEY_ENUMERATE_SUB_KEYS);
     if (lResult != ERROR_SUCCESS)
         return;
 
@@ -787,7 +787,7 @@ void ComTreeView::ConstructAllInterfaces(const CTreeItem& item)
     SetRedraw(FALSE);
 
     CRegKey key, subkey;
-    auto lResult = key.Open(HKEY_LOCAL_MACHINE, _T("SOFTWARE\\Classes\\Interface"), KEY_ENUMERATE_SUB_KEYS);
+    auto lResult = key.Open(HKEY_CLASSES_ROOT, _T("Interface"), KEY_ENUMERATE_SUB_KEYS);
     if (lResult != ERROR_SUCCESS) {
         return;
     }
@@ -853,7 +853,7 @@ void ComTreeView::ConstructInterfaces(LPUNKNOWN pUnknown, const CTreeItem& item)
     ATLASSERT(pUnknown);
 
     CRegKey key, subkey;
-    auto lResult = key.Open(HKEY_LOCAL_MACHINE, _T("SOFTWARE\\Classes\\Interface"), KEY_ENUMERATE_SUB_KEYS);
+    auto lResult = key.Open(HKEY_CLASSES_ROOT, _T("Interface"), KEY_ENUMERATE_SUB_KEYS);
     if (lResult != ERROR_SUCCESS) {
         return;
     }
@@ -980,7 +980,7 @@ void ComTreeView::ConstructCategory(const CTreeItem& item)
     SetRedraw(FALSE);
 
     CRegKey key, subkey;
-    auto lResult = key.Open(HKEY_LOCAL_MACHINE, _T("SOFTWARE\\Classes\\CLSID"), KEY_ENUMERATE_SUB_KEYS);
+    auto lResult = key.Open(HKEY_CLASSES_ROOT, _T("CLSID"), KEY_ENUMERATE_SUB_KEYS);
     if (lResult != ERROR_SUCCESS)
         return;
 

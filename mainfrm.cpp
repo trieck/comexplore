@@ -251,19 +251,19 @@ LRESULT CMainFrame::OnRegEditHere()
     CString strValue;
     switch (data->type) {
     case ObjectType::APPID:
-        strValue.Format(_T("HKLM\\Software\\Classes\\AppID\\%s"), strGUID);
+        strValue.Format(_T("HKCR\\AppID\\%s"), strGUID);
         break;
     case ObjectType::CATID:
         strValue.Format(_T("HKCR\\Component Categories\\%s"), strGUID);
         break;
     case ObjectType::CLSID:
-        strValue.Format(_T("HKLM\\Software\\Classes\\CLSID\\%s"), strGUID);
+        strValue.Format(_T("HKCR\\CLSID\\%s"), strGUID);
         break;
     case ObjectType::IID:
-        strValue.Format(_T("HKLM\\Software\\Classes\\Interface\\%s"), strGUID);
+        strValue.Format(_T("HKCR\\Interface\\%s"), strGUID);
         break;
     case ObjectType::TYPELIB:
-        strValue.Format(_T("HKLM\\Software\\Classes\\TypeLib\\%s"), strGUID);
+        strValue.Format(_T("HKCR\\TypeLib\\%s"), strGUID);
         break;
     default:
         break;
