@@ -4,10 +4,13 @@
 
 class ComDetailView : public CTabViewImpl<ComDetailView>
 {
+public:
+    using Base = CTabViewImpl<ComDetailView>;
+
 BEGIN_MSG_MAP(ComDetailView)
         MESSAGE_HANDLER(WM_SELCHANGED, OnSelChanged)
         REFLECT_NOTIFY_CODE(TBVN_PAGEACTIVATED)
-        CHAIN_MSG_MAP(CTabViewImpl<ComDetailView>)
+        CHAIN_MSG_MAP(Base)
         ALT_MSG_MAP(1) // tab control
     END_MSG_MAP()
 

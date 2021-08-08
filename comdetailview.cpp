@@ -4,7 +4,7 @@
 
 bool ComDetailView::CreateTabControl()
 {
-    auto result = CTabViewImpl<ComDetailView>::CreateTabControl();
+    auto result = Base::CreateTabControl();
     if (!result) {
         return false;
     }
