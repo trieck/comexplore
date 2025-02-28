@@ -204,12 +204,12 @@ std::vector<CString> SplitPath(LPCTSTR pFilename)
         switch (*pFilename) {
         case '\0':
             if (!arg.IsEmpty()) {
-                output.push_back(arg);
+                output.emplace_back(arg);
             }
             return output;
         case '\"':
             if (inQuotes) {
-                output.push_back(arg);
+                output.emplace_back(arg);
                 inQuotes = FALSE;
             } else {
                 inQuotes = TRUE;
@@ -226,7 +226,7 @@ std::vector<CString> SplitPath(LPCTSTR pFilename)
                     arg += ' ';
                 } else if (!arg.IsEmpty()) {
                     arg.Trim();
-                    output.push_back(arg);
+                    output.emplace_back(arg);
                     arg.Empty();
                 }
             }
@@ -236,7 +236,7 @@ std::vector<CString> SplitPath(LPCTSTR pFilename)
         case '/':
             if (!arg.IsEmpty() && pFilename[-1] == ' ') {
                 arg.Trim();
-                output.push_back(arg);
+                output.emplace_back(arg);
                 arg.Empty();
             }
             arg += *pFilename;
